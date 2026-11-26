@@ -25388,16 +25388,10 @@
 .vendor-identity .vendor-credit { color: var(--about-muted); font-size: 12px; font-weight: 400; }
 @media (max-width: 1100px) and (min-width: 801px), (max-width: 420px) {
   .vendor-logo-convex img { width: 190px; margin-left: -24px; }
-  .vendor-logo-nemotron img { width: 178px; margin-left: -27px; }
-  .vendor-logo-agentmail img { width: 140px; }
-  .vendor-logo-firecrawl img { width: 132px; }
 }
 @media (max-width: 360px) {
   .vendor-logo { height: 54px; }
   .vendor-logo-convex img { width: 169px; margin-left: -22px; }
-  .vendor-logo-nemotron img { width: 159px; margin-left: -24px; }
-  .vendor-logo-agentmail img { width: 124px; }
-  .vendor-logo-firecrawl img { width: 118px; }
 }
 
 /* Add tray — widgets first, a single peel-off sticker strip below. */
