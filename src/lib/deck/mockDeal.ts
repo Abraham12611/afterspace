@@ -56,9 +56,9 @@ export const SCRIPTED_ASKS: Array<{ id: string; say: string; label: string; answ
   },
   {
     id: "countdown",
-    say: "countdown to Holly's birthday on November 14",
+    say: "countdown to Theo's birthday on November 14",
     label: "Count down to a birthday",
-    answer: { card: "countdown", settings: { event: "holly's birthday", date: dateFromWords("november 14") } },
+    answer: { card: "countdown", settings: { event: "theo's birthday", date: dateFromWords("november 14") } },
   },
   {
     id: "checklist",
@@ -98,7 +98,7 @@ export const SCRIPTED_ASKS: Array<{ id: string; say: string; label: string; answ
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ").trim();
 
 const FOOD = /\b(eat|dinner|lunch|brunch|breakfast|food|restaurant)\b/i;
-/** The first token of this name the call's fact menu offers: "@date(maya's bday)". */
+/** The first token of this name the call's fact menu offers: "@date(wren's bday)". */
 const offered = (menu: string | undefined, name: string) => new RegExp(`@${name}(\\([^()=]*?\\))?(?= =|, also| ·)`).exec(menu ?? "")?.[0].replace(/, also.*$/, ")") ?? null;
 
 /** Words that name a card and nothing to put in it ("add a poll"): no card comes back. */
@@ -161,7 +161,7 @@ export function standInFor(said: string, menu?: string): StandIn | null {
     case "rsvp":
       return { card, settings: { title: title.slice(0, 40) } };
     case "wheel":
-      return { card, settings: { title: title.slice(0, 32), options: named.length ? named : coming ? [coming] : ["jules", "sam", "maya"] } };
+      return { card, settings: { title: title.slice(0, 32), options: named.length ? named : coming ? [coming] : ["theo", "priya", "wren"] } };
     case "question":
       return { card, settings: { question: title.slice(0, 90) } };
     default:

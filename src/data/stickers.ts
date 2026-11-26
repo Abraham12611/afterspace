@@ -17,8 +17,8 @@ export const STICKER_CATALOG: StickerDefinition[] = [
     rotate: -5,
   },
   {
-    id: "rio-socks",
-    label: "Rio in socks",
+    id: "socks-terrier",
+    label: "terrier in socks",
     src: "/assets/stickers/socks-terrier.png",
     width: 148,
     height: 151,
@@ -49,8 +49,8 @@ export const STICKER_CATALOG: StickerDefinition[] = [
     rotate: -4,
   },
   {
-    id: "maya-cake",
-    label: "Maya's matcha cake",
+    id: "matcha-cake",
+    label: "matcha cake",
     src: "/assets/stickers/matcha-cake.png",
     width: 150,
     height: 155,

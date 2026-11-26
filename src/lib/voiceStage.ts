@@ -112,7 +112,7 @@ export type StageFeed = {
   by: string;
 };
 
-/** A room token in a person's words: "@date(maya's bday)" → "the maya's bday countdown". */
+/** A room token in a person's words: "@date(wren's bday)" → "the wren's bday countdown". */
 function sourceName(token: string) {
   const m = /^@([a-z-]+)(?:\((.*)\))?$/i.exec(token);
   const of = m?.[2] ? `“${m[2].split(",")[0]}” ` : "";

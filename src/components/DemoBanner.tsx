@@ -121,8 +121,8 @@ export function DemoBanner({ onJoinWaitlist, onMakeSpace, pending = false }: { o
             <div className="demo-poster-collage">
               <div className="demo-poster-paper" />
               <figure className="demo-poster-photo">
-                <img src="/assets/the-crew-snapshot.webp" alt="" />
-                <figcaption>friday at maya's <span>♡</span></figcaption>
+                <img src="/assets/placeholder-photo.svg" alt="" />
+                <figcaption>friday at wren's <span>♡</span></figcaption>
               </figure>
               <img className="demo-poster-sticker" src="/assets/stickers/glad-ur-here.png" alt="" />
             </div>

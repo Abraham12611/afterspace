@@ -19,7 +19,7 @@ export type MailArrivalEvent = {
   because?: string;
   /** where it filed: the envelope flies to this widget's rect */
   widgetId?: string;
-  /** the reply went out — `↩ told holly` */
+  /** the reply went out — `↩ told theo` */
   repliedAt?: number;
   hasDocument: boolean;
 };
@@ -42,7 +42,7 @@ export function mailSlow(event: MailArrivalEvent, now: number, scale = 1) {
   return (now - event.createdAt) / scale >= MAIL_SLOW_AFTER_MS;
 }
 
-/** `Holly Nguyen <holly@x.com>` → "holly"; bare address → the local part. */
+/** `Theo Okafor <theo@x.com>` → "theo"; bare address → the local part. */
 export function mailSender(from: string): string {
   const display = from.match(/^\s*"?([^"<]+?)"?\s*</)?.[1]?.trim();
   const name = display || from.split("@")[0].replace(/[._-]+/g, " ").trim() || "someone";
@@ -98,27 +98,27 @@ const MOCK_MAIL: Record<
   { from: string; subject: string; because?: string; hasDocument: boolean; replies: boolean }
 > = {
   receipt: {
-    from: "Holly <holly@example.com>",
+    from: "Theo <theo@example.com>",
     subject: "Fwd: Your order is confirmed — #4417",
-    because: "it's the receipt for the cake, $126 from holly",
+    because: "it's the receipt for the cake, $126 from theo",
     hasDocument: true,
     replies: true,
   },
   booking: {
-    from: "Holly <holly@example.com>",
+    from: "Theo <theo@example.com>",
     subject: "Fwd: booking confirmed — kyoto stay",
     because: "nov 11 has the kyoto stay now",
     hasDocument: false,
     replies: true,
   },
   letter: {
-    from: "Thomas <thomas@example.com>",
+    from: "Wren <wren@example.com>",
     subject: "from the train",
     hasDocument: false,
     replies: true,
   },
   links: {
-    from: "Sam <sam@example.com>",
+    from: "Priya <priya@example.com>",
     subject: "three for the pile",
     because: "3 links inside",
     hasDocument: false,

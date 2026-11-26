@@ -14,7 +14,7 @@ import type { RoomFacts } from "./deck/resolve";
 export type KnowSection = "who" | "soon" | "decided" | "habits" | "made";
 
 export type KnowLine = {
-  /** Stable name of the fact ("payer:Jules", "date:maya's bday"): what a cross-out stores. */
+  /** Stable name of the fact ("payer:Theo", "date:wren's bday"): what a cross-out stores. */
   key: string;
   section: KnowSection;
   /** The fact in plain words. */
@@ -95,7 +95,7 @@ export function standing(k: RoomKnows): number {
   return k.lines.filter((l) => l.section !== "made" && !gone.has(l.key)).length + k.told.length;
 }
 
-/** "Maya, Jules and Sam". */
+/** "Wren, Theo and Priya". */
 export function listNames(names: string[]): string {
   if (names.length <= 1) return names[0] ?? "";
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;

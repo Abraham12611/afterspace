@@ -1749,7 +1749,7 @@ body.voice-stage-up .voice-found-pulse {
 }
 
 /* ================= one continuous motion (V-smooth, Oct 10) =================
-   Thomas: "the voice stage stutters". Nothing on the stage reflows while you
+   Wren: "the voice stage stutters". Nothing on the stage reflows while you
    talk or while it builds: the card's own moves are FLIPped in VoiceStage.tsx
    (StageCard), the group grows out of the card it already shows, and what
    would change layout here changes a transform instead. */

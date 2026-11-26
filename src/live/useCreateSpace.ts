@@ -6,7 +6,7 @@ import { createDemoWidget } from "../lib/widgetDefaults";
 import { getIdentity } from "./identity";
 
 /** A made room starts with nobody else's words in it: the template cards'
- *  sample people (the crew's Maya, Jules, Sam) come out (N1). */
+ *  sample people (the crew's Wren, Theo, Priya) come out (N1). */
 function ownRoomData(data: Record<string, unknown>): Record<string, unknown> {
   const out = { ...data };
   if (Array.isArray(out.messages)) out.messages = [];

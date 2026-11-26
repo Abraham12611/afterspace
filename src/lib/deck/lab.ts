@@ -32,7 +32,7 @@ function demoAnswer() {
     `{"card":"poll","settings":{"question":"where do we eat saturday?","options":["tacos","pho","pizza"]}}`,
     `{"card":"checklist","settings":{"title":"tahoe packing","items":["sleeping bags","cooler","speaker","sunscreen"]}}`,
     `{"card":"countdown","settings":{"event":"tahoe weekend","date":"${isoIn(12)}"}}`,
-    `{"card":"wheel","settings":{"title":"who drives?","options":["Maya","Jules","Sam","Kenji"]}}`,
+    `{"card":"wheel","settings":{"title":"who drives?","options":["Wren","Theo","Priya","Juno"]}}`,
     `{"card":"itinerary","settings":{"title":"tahoe · 2 nights","days":[{"day":"fri","plan":"drive up, late tacos"},{"day":"sat","plan":"lake + hike"},{"day":"sun","plan":"brunch, home"}]}}`,
     `{"card":"split","settings":{"title":"cabin","total":640}}`,
     `{"card":"rsvp","settings":{"title":"tahoe weekend","when":"fri 5pm"}}`,

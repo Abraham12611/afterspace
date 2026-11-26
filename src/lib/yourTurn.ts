@@ -81,7 +81,7 @@ function listOf<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
 
-/** "ash" · "ash and kenji" · "ash and 3 more" */
+/** "kai" · "kai and juno" · "kai and 3 more" */
 function namesLine(names: string[]) {
   const shown = names.map((name) => name.toLowerCase());
   if (shown.length <= 2) return shown.join(" and ");
@@ -122,7 +122,7 @@ export function yourTurn(input: TurnInput): TurnItem[] {
   const now = input.now ?? Date.now();
   const me = lower(viewer.name);
   /* With a user id (live) the id decides: two people can share a name, and a
-     seeded "Maya" is not the guest who picked that name. */
+     seeded "Wren" is not the guest who picked that name. */
   const isMe = (name: unknown, userId?: unknown) =>
     lower(name) === "you" ||
     (viewer.userId ? userId === viewer.userId : lower(name) === me);
@@ -400,7 +400,7 @@ export function yourTurn(input: TurnInput): TurnItem[] {
   return [...firsts, ...seconds].slice(0, TURN_SHOWN);
 }
 
-/** `?as=Rio` — mock mode plays the room as one of its fixture people. */
+/** `?as=Dante` — mock mode plays the room as one of its fixture people. */
 export function playAsFromUrl(): string | undefined {
   const name = new URLSearchParams(window.location.search).get("as")?.trim();
   return name || undefined;

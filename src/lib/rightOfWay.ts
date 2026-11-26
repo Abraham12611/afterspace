@@ -1,5 +1,5 @@
 /**
- * Right of Way: the gate every AI write passes (nebius R1, R2).
+ * Right of Way: the gate every AI write passes (R1, R2).
  *
  * The AI never moves or changes what someone is touching, and never
  * overrides a choice someone made: that becomes a vote of the people whose
@@ -30,11 +30,11 @@
  * | 2 | the space places the last puzzle piece           | anyone or nobody  | never(last one is ours)  |
  * | 3 | a write to a card nobody holds                   | nobody            | go                       |
  * | 4 | a person moves what they hold                    | that person       | go                       |
- * | 5 | an AI write holly asked for, on a card she holds | holly (asker)     | go (her own hand)        |
- * | 6 | an AI write on a card someone else holds         | holly             | wait(holly, the card)    |
- * | 7 | a person reaches for what someone else holds     | holly             | wait(holly, the thing)   |
+ * | 5 | an AI write theo asked for, on a card she holds | theo (asker)     | go (her own hand)        |
+ * | 6 | an AI write on a card someone else holds         | theo             | wait(theo, the card)    |
+ * | 7 | a person reaches for what someone else holds     | theo             | wait(theo, the thing)   |
  * | 8 | a person reaches for what the space holds        | the space         | go (the space lets go)   |
- * | 9 | a new card whose spot overlaps a held card       | holly             | never(spot held: move it)|
+ * | 9 | a new card whose spot overlaps a held card       | theo             | never(spot held: move it)|
  * |10 | a new card in a free spot                        | (others elsewhere)| go                       |
  */
 
@@ -85,44 +85,44 @@ export function rightOfWay(write: Write, leases: readonly Lease[]): Verdict {
   return { kind: "go", handover: true };
 }
 
-const holly: Hand = { kind: "person", id: "u-holly", name: "holly" };
-const sam: Hand = { kind: "person", id: "u-sam", name: "sam" };
-const held = (thing: string, by: Hand = holly, kind: Lease["kind"] = "drag"): Lease => ({ thing, by, kind });
+const theo: Hand = { kind: "person", id: "u-theo", name: "theo" };
+const priya: Hand = { kind: "person", id: "u-priya", name: "priya" };
+const held = (thing: string, by: Hand = theo, kind: Lease["kind"] = "drag"): Lease => ({ thing, by, kind });
 const tara: Hand = { kind: "space", asker: "u-tara", askerName: "tara" };
 const voted = (ids: string[]): Choice => ({ stake: `${ids.length} voted for pizza`, people: ids.map((id) => ({ id, name: id.slice(2) })) });
 
-/** The table above as data: the eval replays these (nebius/eval/row/). */
+/** The table above as data: the eval replays these. */
 export const CASES: { n: number | string; name: string; write: Write; leases: Lease[]; want: Verdict["kind"] }[] = [
-  { n: 1, name: "remove an option 3 people voted for", write: { thing: "poll", by: tara, choice: voted(["u-holly", "u-sam", "u-jo"]) }, leases: [], want: "ask" },
-  { n: 1, name: "one person's claimed slot (a direct question)", write: { thing: "list", by: tara, choice: { stake: "jules has towels", people: [{ id: "u-jules", name: "jules" }] } }, leases: [], want: "ask" },
-  { n: 1, name: "an rsvp time 3 people said yes to", write: { thing: "rsvp", by: tara, choice: { stake: "3 people said yes to friday", people: [{ id: "u-holly", name: "holly" }, { id: "u-sam", name: "sam" }, { id: "u-jo", name: "jo" }] } }, leases: [], want: "ask" },
-  { n: 1, name: "someone who paid into the split (name only)", write: { thing: "split", by: tara, choice: { stake: "maya paid $600", people: [{ name: "maya" }] } }, leases: [], want: "ask" },
-  { n: 1, name: "check-ins already logged", write: { thing: "challenge", by: tara, choice: { stake: "2 people logged past day 3", people: [{ name: "holly" }, { name: "sam" }] } }, leases: [], want: "ask" },
-  { n: 1, name: "a date someone set by hand", write: { thing: "countdown", by: tara, choice: { stake: "holly set sun oct 11 by hand", people: [{ id: "u-holly", name: "holly" }] } }, leases: [], want: "ask" },
-  { n: 1, name: "the asker is one of 3 voters: ask the other 2", write: { thing: "poll", by: tara, choice: voted(["u-tara", "u-sam", "u-jo"]) }, leases: [], want: "ask" },
-  { n: 1, name: "choices first: others voted, the asker holds the card", write: { thing: "poll", by: tara, choice: voted(["u-holly"]) }, leases: [held("poll", { kind: "person", id: "u-tara", name: "tara" })], want: "ask" },
+  { n: 1, name: "remove an option 3 people voted for", write: { thing: "poll", by: tara, choice: voted(["u-theo", "u-priya", "u-jo"]) }, leases: [], want: "ask" },
+  { n: 1, name: "one person's claimed slot (a direct question)", write: { thing: "list", by: tara, choice: { stake: "theo has towels", people: [{ id: "u-theo", name: "theo" }] } }, leases: [], want: "ask" },
+  { n: 1, name: "an rsvp time 3 people said yes to", write: { thing: "rsvp", by: tara, choice: { stake: "3 people said yes to friday", people: [{ id: "u-theo", name: "theo" }, { id: "u-priya", name: "priya" }, { id: "u-jo", name: "jo" }] } }, leases: [], want: "ask" },
+  { n: 1, name: "someone who paid into the split (name only)", write: { thing: "split", by: tara, choice: { stake: "wren paid $600", people: [{ name: "wren" }] } }, leases: [], want: "ask" },
+  { n: 1, name: "check-ins already logged", write: { thing: "challenge", by: tara, choice: { stake: "2 people logged past day 3", people: [{ name: "theo" }, { name: "priya" }] } }, leases: [], want: "ask" },
+  { n: 1, name: "a date someone set by hand", write: { thing: "countdown", by: tara, choice: { stake: "theo set sun oct 11 by hand", people: [{ id: "u-theo", name: "theo" }] } }, leases: [], want: "ask" },
+  { n: 1, name: "the asker is one of 3 voters: ask the other 2", write: { thing: "poll", by: tara, choice: voted(["u-tara", "u-priya", "u-jo"]) }, leases: [], want: "ask" },
+  { n: 1, name: "choices first: others voted, the asker holds the card", write: { thing: "poll", by: tara, choice: voted(["u-theo"]) }, leases: [held("poll", { kind: "person", id: "u-tara", name: "tara" })], want: "ask" },
   { n: "1b", name: "only the asker's own vote", write: { thing: "poll", by: tara, choice: voted(["u-tara"]) }, leases: [], want: "go" },
   { n: "1b", name: "only the asker's own claim, by id", write: { thing: "list", by: tara, choice: { stake: "tara has towels", people: [{ id: "u-tara", name: "Tara" }] } }, leases: [], want: "go" },
   // R4: the misses R3 named (eval/right-of-way X23 X30 X34 X35 X36 X53), as rows
   { n: 1, name: "a claim with only the asker's name: not provably hers (X30, X53)", write: { thing: "list", by: tara, choice: { stake: "tara has towels", people: [{ name: "Tara" }] } }, leases: [], want: "ask" },
-  { n: 1, name: "a link over a hand-set date (X36)", write: { thing: "countdown", by: { kind: "space", askerName: "link" }, choice: { stake: "holly set fri oct 16 by hand", people: [{ id: "u-holly", name: "holly" }] } }, leases: [], want: "ask" },
-  { n: 1, name: "a link re-split that lowers a payment (X35)", write: { thing: "split", by: { kind: "space", askerName: "link" }, choice: { stake: "maya paid $200", people: [{ id: "u-maya", name: "Maya" }] } }, leases: [], want: "ask" },
+  { n: 1, name: "a link over a hand-set date (X36)", write: { thing: "countdown", by: { kind: "space", askerName: "link" }, choice: { stake: "theo set fri oct 16 by hand", people: [{ id: "u-theo", name: "theo" }] } }, leases: [], want: "ask" },
+  { n: 1, name: "a link re-split that lowers a payment (X35)", write: { thing: "split", by: { kind: "space", askerName: "link" }, choice: { stake: "wren paid $200", people: [{ id: "u-wren", name: "Wren" }] } }, leases: [], want: "ask" },
   { n: 1, name: "a passed vote resent: only the vote cast since it opened is in the way (X34)", write: { thing: "poll", by: tara, choice: voted(["u-jo"]) }, leases: [], want: "ask" },
   { n: 5, name: "the asker's other seat, folded into her account (the door resolves it; X23 when linked)", write: { thing: "poll", by: tara }, leases: [held("poll", { kind: "person", id: "u-tara", name: "tara" })], want: "go" },
   { n: "1b", name: "a passed vote, nobody holds it", write: { thing: "poll", by: tara }, leases: [], want: "go" },
-  { n: "1b", name: "a passed vote while holly holds it (composed)", write: { thing: "poll", by: tara }, leases: [held("poll")], want: "wait" },
+  { n: "1b", name: "a passed vote while theo holds it (composed)", write: { thing: "poll", by: tara }, leases: [held("poll")], want: "wait" },
   { n: "1c", name: "edit code refused", write: { thing: "poll", by: tara, refused: "a poll needs two options" }, leases: [], want: "never" },
   { n: 2, name: "space places the last piece", write: { thing: "piece:7", by: { kind: "space" }, finishes: true }, leases: [], want: "never" },
-  { n: 3, name: "nobody holds it", write: { thing: "poll", by: { kind: "space", asker: "u-sam" } }, leases: [held("split")], want: "go" },
-  { n: 4, name: "a person moves what they hold", write: { thing: "poll", by: holly }, leases: [held("poll")], want: "go" },
-  { n: 5, name: "the asker holds it", write: { thing: "poll", by: { kind: "space", asker: "u-holly" } }, leases: [held("poll")], want: "go" },
-  { n: 6, name: "someone else holds it (drag)", write: { thing: "poll", by: { kind: "space", asker: "u-sam" } }, leases: [held("poll")], want: "wait" },
-  { n: 6, name: "someone else holds it (typing)", write: { thing: "poll", by: { kind: "space", asker: "u-sam" } }, leases: [held("poll", holly, "type")], want: "wait" },
-  { n: 6, name: "someone else holds it (unsent vote)", write: { thing: "poll", by: { kind: "space", asker: "u-sam" } }, leases: [held("poll", holly, "vote")], want: "wait" },
+  { n: 3, name: "nobody holds it", write: { thing: "poll", by: { kind: "space", asker: "u-priya" } }, leases: [held("split")], want: "go" },
+  { n: 4, name: "a person moves what they hold", write: { thing: "poll", by: theo }, leases: [held("poll")], want: "go" },
+  { n: 5, name: "the asker holds it", write: { thing: "poll", by: { kind: "space", asker: "u-theo" } }, leases: [held("poll")], want: "go" },
+  { n: 6, name: "someone else holds it (drag)", write: { thing: "poll", by: { kind: "space", asker: "u-priya" } }, leases: [held("poll")], want: "wait" },
+  { n: 6, name: "someone else holds it (typing)", write: { thing: "poll", by: { kind: "space", asker: "u-priya" } }, leases: [held("poll", theo, "type")], want: "wait" },
+  { n: 6, name: "someone else holds it (unsent vote)", write: { thing: "poll", by: { kind: "space", asker: "u-priya" } }, leases: [held("poll", theo, "vote")], want: "wait" },
   { n: 6, name: "a link fills a held card", write: { thing: "standings", by: { kind: "space" } }, leases: [held("standings")], want: "wait" },
-  { n: 6, name: "the space's hand, a held piece", write: { thing: "piece:3", by: { kind: "space" } }, leases: [held("piece:3", holly, "piece")], want: "wait" },
-  { n: 7, name: "a person reaches for a held piece", write: { thing: "piece:3", by: sam }, leases: [held("piece:3", holly, "piece")], want: "wait" },
-  { n: 8, name: "a person takes the space's piece", write: { thing: "piece:3", by: sam }, leases: [{ thing: "piece:3", by: { kind: "space" }, kind: "piece" }], want: "go" },
-  { n: 9, name: "a new card on a held spot", write: { by: { kind: "space", asker: "u-sam" }, spot: ["poll"] }, leases: [held("poll")], want: "never" },
-  { n: 10, name: "a new card in a free spot", write: { by: { kind: "space", asker: "u-sam" }, spot: [] }, leases: [held("poll")], want: "go" },
+  { n: 6, name: "the space's hand, a held piece", write: { thing: "piece:3", by: { kind: "space" } }, leases: [held("piece:3", theo, "piece")], want: "wait" },
+  { n: 7, name: "a person reaches for a held piece", write: { thing: "piece:3", by: priya }, leases: [held("piece:3", theo, "piece")], want: "wait" },
+  { n: 8, name: "a person takes the space's piece", write: { thing: "piece:3", by: priya }, leases: [{ thing: "piece:3", by: { kind: "space" }, kind: "piece" }], want: "go" },
+  { n: 9, name: "a new card on a held spot", write: { by: { kind: "space", asker: "u-priya" }, spot: ["poll"] }, leases: [held("poll")], want: "never" },
+  { n: 10, name: "a new card in a free spot", write: { by: { kind: "space", asker: "u-priya" }, spot: [] }, leases: [held("poll")], want: "go" },
 ];

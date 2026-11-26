@@ -58,7 +58,7 @@ export function AwardSticker({ award, size = "md", i = 0, land = false }: { awar
   );
 }
 
-/** "ash" · "ash and kenji" · "ash, kenji and rio" */
+/** "kai" · "kai and juno" · "kai, juno and dante" */
 /** `next →` after a reveal. Live, the round moves on when everyone in has
     pressed it: once you have, the key says who it is waiting on (dashed, like
     every other wait in the room). */

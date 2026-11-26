@@ -2,35 +2,20 @@
  * Faces are content, not identity logic. Keeping the catalog in one place lets
  * seeded people and named visitor personas share the same visual language.
  */
+/** Placeholder looks (public/avatars/look-01..12.png); our own art replaces them later. */
 export const AVATAR_CATALOG: Record<string, string> = {
-  maya: "/avatars/maya.png",
-  jules: "/avatars/jules.png",
-  sam: "/avatars/sam.png",
-  rio: "/avatars/rio.png",
-  kenji: "/avatars/kenji.png",
-  ash: "/avatars/ash.png",
-  noor: "/avatars/noor.png",
-  theo: "/avatars/theo.png",
-  gigi: "/avatars/gigi.png",
-  marco: "/avatars/marco.png",
-  ren: "/avatars/ren.png",
-  sky: "/avatars/sky.png",
-  alex: "/avatars/alex.png",
-  jordan: "/avatars/jordan.png",
-  riley: "/avatars/riley.png",
-  morgan: "/avatars/morgan.png",
-  priya: "/avatars/priya.png",
-  casey: "/avatars/casey.png",
-  mina: "/avatars/priya.png",
-  dev: "/avatars/dev.png",
-  juno: "/avatars/juno.png",
-  momo: "/avatars/momo.png",
-  pico: "/avatars/pico.png",
-  wren: "/avatars/wren.png",
-  ziggy: "/avatars/ziggy.png",
-  clover: "/avatars/clover.png",
-  pepper: "/avatars/pepper.png",
-  kiwi: "/avatars/kiwi.png",
+  wren: "/avatars/look-01.png",
+  theo: "/avatars/look-02.png",
+  priya: "/avatars/look-03.png",
+  dante: "/avatars/look-04.png",
+  juno: "/avatars/look-05.png",
+  kai: "/avatars/look-06.png",
+  momo: "/avatars/look-07.png",
+  pico: "/avatars/look-08.png",
+  ziggy: "/avatars/look-09.png",
+  clover: "/avatars/look-10.png",
+  pepper: "/avatars/look-11.png",
+  kiwi: "/avatars/look-12.png",
 };
 
 export function getAvatarSrc(name: string): string | undefined {

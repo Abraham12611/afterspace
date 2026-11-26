@@ -1,5 +1,5 @@
 /**
- * How a choice vote resolves (nebius R2). Pure: no clock (the caller says
+ * How a choice vote resolves (R2). Pure: no clock (the caller says
  * whether it ran out), no database, no model. convex/choiceVotes.ts runs it
  * after every answer and at the end of the vote's life; screens run it to
  * draw the count.
@@ -81,16 +81,16 @@ const v = (...names: string[]) => names.map((name) => ({ id: `u-${name}`, name }
 const said = (...pairs: [string, string][]) => pairs.map(([who, option]) => ({ voter: `u-${who}`, option }));
 const two = [{ id: KEEP }, { id: "c1" }];
 
-/** The table above as data (nebius/eval/row/cases.mjs replays it). */
+/** The table above as data. */
 export const VOTE_CASES: { n: number; name: string; voters: Voter[]; options: { id: string }[]; answers: Answer[]; expired?: boolean; want: string }[] = [
-  { n: 1, name: "2 of 3 say change it", voters: v("holly", "sam", "jo"), options: two, answers: said(["holly", "c1"], ["sam", "c1"]), want: "change" },
-  { n: 1, name: "one voter says ok", voters: v("jules"), options: two, answers: said(["jules", "c1"]), want: "change" },
-  { n: 1, name: "a second ask joined: 2 of 3 pick it", voters: v("holly", "sam", "jo"), options: [...two, { id: "c2" }], answers: said(["holly", "c2"], ["jo", "c2"]), want: "change" },
-  { n: 2, name: "2 of 3 say keep it", voters: v("holly", "sam", "jo"), options: two, answers: said(["holly", KEEP], ["sam", KEEP]), want: "keep" },
-  { n: 2, name: "one voter says no", voters: v("jules"), options: two, answers: said(["jules", KEEP]), want: "keep" },
-  { n: 3, name: "a tie, 1 to 1", voters: v("holly", "sam"), options: two, answers: said(["holly", "c1"], ["sam", KEEP]), want: "keep" },
-  { n: 3, name: "three ways, nobody has half", voters: v("holly", "sam", "jo"), options: [...two, { id: "c2" }], answers: said(["holly", "c1"], ["sam", "c2"], ["jo", KEEP]), want: "keep" },
-  { n: 4, name: "ran out with 1 of 3 for change", voters: v("holly", "sam", "jo"), options: two, answers: said(["holly", "c1"]), expired: true, want: "keep" },
-  { n: 5, name: "1 of 3 so far", voters: v("holly", "sam", "jo"), options: two, answers: said(["holly", "c1"]), want: "open" },
-  { n: 5, name: "a non-voter's answer doesn't count", voters: v("holly", "sam", "jo"), options: two, answers: said(["holly", "c1"], ["tara", "c1"]), want: "open" },
+  { n: 1, name: "2 of 3 say change it", voters: v("theo", "priya", "jo"), options: two, answers: said(["theo", "c1"], ["priya", "c1"]), want: "change" },
+  { n: 1, name: "one voter says ok", voters: v("theo"), options: two, answers: said(["theo", "c1"]), want: "change" },
+  { n: 1, name: "a second ask joined: 2 of 3 pick it", voters: v("theo", "priya", "jo"), options: [...two, { id: "c2" }], answers: said(["theo", "c2"], ["jo", "c2"]), want: "change" },
+  { n: 2, name: "2 of 3 say keep it", voters: v("theo", "priya", "jo"), options: two, answers: said(["theo", KEEP], ["priya", KEEP]), want: "keep" },
+  { n: 2, name: "one voter says no", voters: v("theo"), options: two, answers: said(["theo", KEEP]), want: "keep" },
+  { n: 3, name: "a tie, 1 to 1", voters: v("theo", "priya"), options: two, answers: said(["theo", "c1"], ["priya", KEEP]), want: "keep" },
+  { n: 3, name: "three ways, nobody has half", voters: v("theo", "priya", "jo"), options: [...two, { id: "c2" }], answers: said(["theo", "c1"], ["priya", "c2"], ["jo", KEEP]), want: "keep" },
+  { n: 4, name: "ran out with 1 of 3 for change", voters: v("theo", "priya", "jo"), options: two, answers: said(["theo", "c1"]), expired: true, want: "keep" },
+  { n: 5, name: "1 of 3 so far", voters: v("theo", "priya", "jo"), options: two, answers: said(["theo", "c1"]), want: "open" },
+  { n: 5, name: "a non-voter's answer doesn't count", voters: v("theo", "priya", "jo"), options: two, answers: said(["theo", "c1"], ["tara", "c1"]), want: "open" },
 ];

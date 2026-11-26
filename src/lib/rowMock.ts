@@ -33,8 +33,8 @@ export function useRowMock(widgets: Widget[], members: Member[]) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, pick, widgets.length]);
   const others = members.filter((m) => m.name.toLowerCase() !== "you");
-  const holder = others[1] ?? others[0] ?? { name: "jules", color: "var(--color-crew)" };
-  const asker = others[0] ?? { name: "maya", color: "var(--color-couple)" };
+  const holder = others[1] ?? others[0] ?? { name: "theo", color: "var(--color-crew)" };
+  const asker = others[0] ?? { name: "wren", color: "var(--color-couple)" };
   const [t0] = useState(() => Date.now());
   const [phase, setPhase] = useState<"held" | "letting" | "landed">("held");
   /* the vote: answers so far (yours from a tap, theirs on a script) */
@@ -59,7 +59,7 @@ export function useRowMock(widgets: Widget[], members: Member[]) {
     if (mode === "ask" || mode === "askland") {
       const opts = (card.data.options as { id: string; label: string }[] | undefined) ?? [];
       const top = opts[0];
-      const third = others[2] ?? { name: "rio" };
+      const third = others[2] ?? { name: "dante" };
       const voters = [{ id: "you", name: "you", why: `voted for ${top?.label ?? "it"}` }, { id: "scripted-2", name: holder.name, why: `voted for ${top?.label ?? "it"}` }, { id: "scripted-3", name: third.name, why: `voted for ${top?.label ?? "it"}` }];
       const options = [{ id: KEEP, ask: "" }, { id: "c1", ask: `take ${top?.label.toLowerCase() ?? "it"} off the poll?`, by: asker.name, byUserId: "scripted-asker" }];
       const out = tally(voters, options, answers);

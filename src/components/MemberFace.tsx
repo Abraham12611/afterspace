@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { getAvatarSrc } from "../data/avatars";
 
 const FACE_POSITIONS: Record<string, string> = {
-  Maya: "31% 48%",
-  Jules: "91% 48%",
-  Sam: "66% 50%",
-  Kenji: "12% 48%",
-  Rio: "49% 48%",
-  Ash: "78% 48%",
+  Wren: "31% 48%",
+  Theo: "91% 48%",
+  Priya: "66% 50%",
+  Juno: "12% 48%",
+  Dante: "49% 48%",
+  Kai: "78% 48%",
 };
 
 /** A person with no photo wears their initial on a colour: theirs, or a steady one from their name. */
@@ -53,7 +53,7 @@ export function MemberFace({
           : resolvedAvatar
             ? undefined
             : {
-              backgroundImage: "url('/assets/the-crew-snapshot-thumb.webp')",
+              backgroundImage: "url('/assets/placeholder-photo.svg')",
               backgroundPosition: FACE_POSITIONS[name] ?? "50% 50%",
             }),
       }}

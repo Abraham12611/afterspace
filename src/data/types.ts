@@ -14,8 +14,6 @@ export type WidgetType =
   | "decision"
   | "availability"
   | "photoWall"
-  | "linkCard"
-  | "linkShelf"
   | "playlist"
   | "jokeRegistry"
   | "expenseSplit"
@@ -24,14 +22,9 @@ export type WidgetType =
   | "quote"
   | "weather"
   | "sports"
-  | "backendLive"
   | "wheel"
   | "dualClock"
   | "cozyColor"
-  | "linkPile"
-  | "hotLinks"
-  | "shipPost"
-  | "roundtable"
   | "letter"
   | "checkIn"
   | "standings"
@@ -53,19 +46,6 @@ export type Widget = {
 
 /** A poll's optional rules (src/lib/pollRules.ts): when voting closes, a local "YYYY-MM-DDTHH:MM" like a check-in's revealAt, and the votes an option needs to pass. Without them a poll is as it always was. */
 export type PollRules = { closesAt?: string; needs?: number };
-
-export type LinkCardScrape = {
-  url: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  siteName: string;
-  author: string;
-  publishedAt: string;
-  discussionUrl: string;
-  points: number;
-  commentCount: number;
-};
 
 export type SpaceMember = {
   name: string;

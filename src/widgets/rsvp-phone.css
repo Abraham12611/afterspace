@@ -3,7 +3,7 @@
    "waiting on the poll" ticket under the dock. While it waits, the card says each thing
    once and is only as tall as what it says; the ticket rides its foot. */
 @media (max-width: 800px) {
-  /* "waiting on maya + jules + …" already says no one has answered */
+  /* "waiting on wren + theo + …" already says no one has answered */
   .widget-group-body:has(> .card-waiting) > .widget-rsvp .rsvp-empty:has(~ .rsvp-waiting) {
     display: none;
   }
@@ -22,7 +22,7 @@
 
 /* The waiting line runs as one sentence on a phone. The card is 200px wide and the crew board
    sets this line at 14px, so seven names take four lines; as a flex row the dots and faces
-   hung mid-list, as if "Jules + Sam" were the faces. Inline, they lead the sentence and the
+   hung mid-list, as if "Theo + Priya" were the faces. Inline, they lead the sentence and the
    names wrap under them across the card. */
 @media (max-width: 800px) {
   .widget-rsvp .rsvp-waiting {

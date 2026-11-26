@@ -4,12 +4,12 @@
 
 [build.environment]
   NODE_VERSION = "22"
-  VITE_CONVEX_URL = "https://necessary-cobra-892.convex.cloud"
-  VITE_CONVEX_SITE_URL = "https://necessary-cobra-892.convex.site"
+  # Set VITE_CONVEX_URL and VITE_CONVEX_SITE_URL in the Netlify UI for our own deployment (P5).
 
 [[redirects]]
   from = "/api/*"
-  to = "https://necessary-cobra-892.convex.site/api/:splat"
+  # P5: point this at our own deployment, https://<name>.convex.site/api/:splat
+  to = "/api/:splat"
   status = 200
   force = true
 

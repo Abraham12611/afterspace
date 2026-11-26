@@ -13,7 +13,7 @@ import type { RoomFacts } from "./resolve";
 type Data = Record<string, unknown>;
 const str = (v: unknown) => (typeof v === "string" ? v : "");
 const arr = (v: unknown): Data[] => (Array.isArray(v) ? (v as Data[]) : []);
-/** A card's title without its emoji: "maya's bday 🎂" → "maya's bday". */
+/** A card's title without its emoji: "wren's bday 🎂" → "wren's bday". */
 const plain = (s: string) => s.replace(/[^\p{L}\p{N}\p{P}\p{Zs}]/gu, "").replace(/\s+/g, " ").trim();
 const titleOf = (d: Data) => plain(str(d.title) || str(d.question) || str(d.event) || str(d.text));
 

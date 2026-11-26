@@ -1,5 +1,5 @@
 /**
- * The hot seat: "how well do you know maya". Five questions about one person,
+ * The hot seat: "how well do you know wren". Five questions about one person,
  * every one built by code from something the room already knows. Pure: no
  * React, no clock of its own, nothing simulated.
  *
@@ -23,7 +23,7 @@ const str = (v: unknown) => (typeof v === "string" ? v : "");
 const arr = (v: unknown): Data[] => (Array.isArray(v) ? (v as Data[]) : []);
 const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 const low = (s: string) => s.trim().toLowerCase();
-/** a title without its emoji: "maya's bday 🎂" → "maya's bday" */
+/** a title without its emoji: "wren's bday 🎂" → "wren's bday" */
 const plain = (s: string) => s.replace(/[^\p{L}\p{N}\p{P}\p{Zs}]/gu, "").replace(/\s+/g, " ").trim();
 const mentions = (text: string, name: string) => new RegExp(`(^|[^a-z])${low(name).replace(/[^a-z0-9]/g, "")}('s)?([^a-z]|$)`).test(low(text));
 export const PRYING = /\b(ex|crush|kiss\w*|dating|owes?|owed|debt|iou|weigh\w*|diet|body|bod)\b/i;

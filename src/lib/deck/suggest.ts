@@ -17,7 +17,7 @@ export type AskOffer = {
   from: string;
 };
 
-/** A title as someone would say it: no emoji ("maya's bday 🎂" → "maya's bday"). */
+/** A title as someone would say it: no emoji ("wren's bday 🎂" → "wren's bday"). */
 const spoken = (s: string) => s.replace(/[^\p{L}\p{N}\p{P}\p{Zs}]/gu, "").replace(/\s+/g, " ").trim();
 
 export function offersFor(f: RoomFacts | null, card: string): AskOffer[] {

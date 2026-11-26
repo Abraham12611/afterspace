@@ -1,6 +1,6 @@
 /**
  * The deal's wire format, as the speed spike validated it (prompt v2, 96% valid
- * on Lightning): a fixed system prompt carrying the deck plus one worked
+ * on the fast model): a fixed system prompt carrying the deck plus one worked
  * example, and an answer of one compact `{"card":"id","settings":{…}}` per line.
  */
 import { CATALOG } from "./catalog";
@@ -19,10 +19,10 @@ export function catalogJson() {
 }
 
 const EXAMPLE = `EXAMPLE
-Room: the group chat · today 2026-10-04 · Thomas, Holly, Sam, Priya
-Said: "potluck at Sam's on the 18th, who's bringing what, and a countdown"
-{"card":"checklist","settings":{"title":"Potluck at Sam's","items":["mains","salad","dessert","drinks"]}}
-{"card":"countdown","settings":{"event":"Potluck at Sam's","date":"2026-10-18"}}`;
+Room: the group chat · today 2026-10-04 · Wren, Theo, Priya, Dev
+Said: "potluck at Priya's on the 18th, who's bringing what, and a countdown"
+{"card":"checklist","settings":{"title":"Potluck at Priya's","items":["mains","salad","dessert","drinks"]}}
+{"card":"countdown","settings":{"event":"Potluck at Priya's","date":"2026-10-18"}}`;
 
 /** The system prompt. `cards`: only these deck cards (the per-ask shortlist, `shortlist.ts`); without, the whole deck. */
 export function deckPrompt(opts: { cards?: string[] } = {}): string {

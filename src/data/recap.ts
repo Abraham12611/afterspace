@@ -2,8 +2,8 @@
  * "catch me up" — the one thing a canvas structurally cannot show you.
  *
  * You can see the board's current state by looking at it. What you can't see
- * is how it got there: that matcha overtook chocolate, that Jules claimed
- * balloons yesterday. Change over time is invisible at any canvas size, so
+ * is how it got there: that hill house overtook coraline, that theo claimed
+ * the candles yesterday. Change over time is invisible at any canvas size, so
  * that — and only that — is what this answers.
  *
  * It never writes to the canvas. It reports, and points at where things moved.
@@ -52,15 +52,15 @@ export function cleanRecapText(text: string) {
 
 export const RECAP_LINES: RecapLine[] = [
   {
-    text: "Jules claimed balloons, so two items are still open",
+    text: "theo claimed the candles, so two items are still open",
     widgetId: "potluck",
   },
   {
-    text: "matcha pulled ahead of chocolate, 3 to 1",
-    widgetId: "poll-cake",
+    text: "hill house pulled ahead of coraline, 3 to 1",
+    widgetId: "poll-movie",
   },
   {
-    text: "Sam said 6pm at their place, and it's still only in chat",
+    text: "priya said 7pm at her place, and it's still only in chat",
     messageId: "g3",
   },
 ];

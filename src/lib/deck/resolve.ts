@@ -1,6 +1,6 @@
 /**
  * Room tokens: the model points at room facts instead of copying them. A
- * setting may hold `@coming`, `@everyone-but(Maya)`, `@leader(cake flavor?)`,
+ * setting may hold `@coming`, `@everyone-but(Wren)`, `@leader(cake flavor?)`,
  * … and code expands them after the answer, from the same rows the room brief
  * is built from (`convex/roomBrief.ts` → `RoomFacts`). Names, dates and
  * filtering are code, so they can't be invented; the model only picks which
@@ -378,7 +378,7 @@ const TITLE_KEY: Record<string, string> = {
 function duplicateOf(card: string, settings: Record<string, unknown>, f: RoomFacts): Resolved["duplicateOf"] {
   const title = settings[TITLE_KEY[card] ?? "title"];
   if (typeof title !== "string" || !title.trim()) return undefined;
-  // A title naming someone the board's card doesn't ("ash's birthday" vs "birthday messages") is a new card.
+  // A title naming someone the board's card doesn't ("kai's birthday" vs "birthday messages") is a new card.
   const named = (t: string) => f.people.filter((p) => words(t).has(norm(p).replace(/s$/, ""))).join();
   const same = f.board.filter((b) => b.card === card && named(b.title) === named(title));
   const hit = match(same, title, (b) => [b.title], true);

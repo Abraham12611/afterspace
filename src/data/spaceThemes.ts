@@ -50,21 +50,11 @@ export const SPACE_ACCENTS = [
 ];
 
 const SPACE_DEFAULT_THEMES: Record<string, SpaceThemeId> = {
-  buildroom: "torch",
-  crew: "lagoon",
-  league: "mint",
-  couple: "violet",
-  house: "butter",
-  family: "cobalt",
-  // the real house on the dev lane (convex/seed.ts seedHouse) wears the family look
-  "our-house": "cobalt",
+  coven: "violet",
 };
 
 /** A room whose wall is its own colour takes a second colour for tape, frames and pins. */
-const SPACE_DEFAULT_ACCENTS: Record<string, string> = {
-  family: "#ffb02e",
-  "our-house": "#ffb02e",
-};
+const SPACE_DEFAULT_ACCENTS: Record<string, string> = {};
 
 export function defaultSpaceCustomization(space: SpaceMeta): SpaceCustomization {
   const theme = SPACE_DEFAULT_THEMES[space.id] ?? "blush";

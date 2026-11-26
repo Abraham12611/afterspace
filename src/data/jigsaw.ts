@@ -20,15 +20,7 @@ export type RoomJigsaw = {
   photos: JigsawPhoto[];
 };
 
-export const ROOM_JIGSAW: Record<string, RoomJigsaw> = {
-  crew: {
-    mat: { x: 384, y: 16 },
-    starter: "Maya",
-    photos: [
-      { key: "friday", widgetId: "media", src: "/photos/crew/friday-at-mayas.jpg", caption: "friday at maya's" },
-      { key: "tahoe", widgetId: "photo-wall", src: "/photos/crew/tahoe-sunrise.jpg", caption: "tahoe sunrise" },
-    ],
-  },
-};
+/** No mock puzzle ships yet: the demo room has no photos (our own art comes later). */
+export const ROOM_JIGSAW: Record<string, RoomJigsaw> = {};
 
 export const hasJigsaw = (room: string) => Boolean(ROOM_JIGSAW[room]);

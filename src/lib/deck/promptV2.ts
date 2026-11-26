@@ -1,5 +1,5 @@
 /**
- * The deal prompt with room tokens (eval: nebius/eval/brief/v2.md). The model
+ * The deal prompt with room tokens. The model
  * sees each room fact as `@token = its value` and writes the token, never the
  * value; `resolve.ts` expands it after the answer. Only the facts the words
  * point at are sent (a keyword pass, no model), so a wifi note never sees the
@@ -45,16 +45,16 @@ ${[...new Set(CARD_RULES.filter(([id]) => has(id)).map(([, line]) => line))].map
 
 /* Worked examples, one per card kind that takes a token, in a room that is
    none of the eval rooms. The note is the control: room facts don't touch it. */
-const EXAMPLE_ROOM = `Room: the group chat · today Sun 2026-10-04 · people: Thomas, Holly, Priya, Dev
-@home = Thomas, Holly, Priya (away: Dev)
-@all = Thomas, Holly, Priya, Dev
+const EXAMPLE_ROOM = `Room: the group chat · today Sun 2026-10-04 · people: Wren, Theo, Priya, Dev
+@home = Wren, Theo, Priya (away: Dev)
+@all = Wren, Theo, Priya, Dev
 @chores = dishes, bins
-@coming(game night) = Thomas, Holly, Priya
+@coming(game night) = Wren, Theo, Priya
 @leader(dessert?) = tiramisu (2 of 3 votes)
-@on-trip(lake weekend) = Thomas, Holly, Dev · @payer = Holly
+@on-trip(lake weekend) = Wren, Theo, Dev · @payer = Theo
 @places = taco window, lucia's
-@date(holly's graduation) = Fri 2026-10-23, in 19 days
-@zones = Thomas London · Holly NY · @call-times = Mon 7p·2p, Tue 7p·2p, Wed 7p·2p, Thu 7p·2p, Fri 7p·2p
+@date(theo's graduation) = Fri 2026-10-23, in 19 days
+@zones = Wren London · Theo NY · @call-times = Mon 7p·2p, Tue 7p·2p, Wed 7p·2p, Thu 7p·2p, Fri 7p·2p
 titles: lowercase`;
 
 /** One worked example per card kind (the note is the control: room facts don't touch it); only the shown cards' go out. */
@@ -66,8 +66,8 @@ const EXAMPLES: Array<[string, string]> = [
   ["poll", "Said: \"poll for brunch spots\"\n{\"card\":\"poll\",\"settings\":{\"question\":\"brunch where?\",\"options\":[\"@places\",\"somewhere new\"]}}"],
   ["split", "Said: \"split the lake house, 300\"\n{\"card\":\"split\",\"settings\":{\"title\":\"lake house\",\"total\":300,\"paidBy\":\"@payer\",\"among\":\"@on-trip(lake weekend)\"}}"],
   ["availability", "Said: \"find a night for a movie call\"\n{\"card\":\"availability\",\"settings\":{\"title\":\"movie call · @zones\",\"days\":[\"@call-times\"]}}"],
-  ["checklist", "Said: \"bake the winning dessert, done 2 days before the graduation\"\n{\"card\":\"checklist\",\"settings\":{\"title\":\"@leader(dessert?) by @date(holly's graduation, -2d)\",\"items\":[\"buy what it needs\",\"bake it\",\"bring it\"]}}"],
-  ["countdown", "Said: \"countdown to Holly's graduation\"\n{\"card\":\"countdown\",\"settings\":{\"event\":\"holly's graduation\",\"date\":\"@date(holly's graduation)\"}}"],
+  ["checklist", "Said: \"bake the winning dessert, done 2 days before the graduation\"\n{\"card\":\"checklist\",\"settings\":{\"title\":\"@leader(dessert?) by @date(theo's graduation, -2d)\",\"items\":[\"buy what it needs\",\"bake it\",\"bring it\"]}}"],
+  ["countdown", "Said: \"countdown to Theo's graduation\"\n{\"card\":\"countdown\",\"settings\":{\"event\":\"theo's graduation\",\"date\":\"@date(theo's graduation)\"}}"],
   ["challenge", "Said: \"plank challenge for all of us this week, loser makes dinner\"\n{\"card\":\"challenge\",\"settings\":{\"activity\":\"planks\",\"unit\":\"seconds\",\"days\":7,\"stake\":\"loser makes dinner\",\"who\":\"@all\"}}"],
   ["dinner", "Said: \"plan brunch sunday\"\n{\"card\":\"dinner\",\"settings\":{\"meal\":\"brunch\",\"day\":\"sunday\",\"options\":[\"@places\",\"somewhere new\"]}}"],
   ["hangout", "Said: \"when can we all get together for a movie\"\n{\"card\":\"hangout\",\"settings\":{\"what\":\"a movie\",\"days\":[\"fri\",\"sat\",\"sun\"]}}"],
@@ -231,7 +231,7 @@ const factName = (line: string) => line.split(/ = |: /)[0];
 /**
  * Which fill this ask gets. The per-ask fact picker (`tokenMenu`) already
  * knows which room facts the words point at: none → today's fast fill on
- * Lightning, unchanged; some → the token prompt on the brain model.
+ * the fast model, unchanged; some → the token prompt on the brain model.
  */
 export function routeAsk(f: RoomFacts | null, said: string): AskRoute {
   if (!f) return { route: "fast", why: "no room brief yet", menu: null, facts: [] };
@@ -285,7 +285,7 @@ export function scrubTokens<T>(v: T): T {
 
 /* ---------- The decide pass: one letter from the big model, while you talk ---------- */
 
-/** Deck cards A…Q, then none and several. "several" is the one-vs-several question (the separate count question was dropped: nebius/eval/decide). */
+/** Deck cards A…Q, then none and several. "several" is the one-vs-several question. */
 /** Flows aren't choices here: their words pick them by code (recipes.ts `flowFor`), so the decide prompt doesn't grow with them. */
 export const DECIDE_CHOICES: string[] = [...CATALOG.map((c) => c.id), ...RECIPES.filter((r) => !isFlow(r.id)).map((r) => r.id), "none", "several"];
 export const DECIDE_LETTERS = DECIDE_CHOICES.map((_, i) => String.fromCharCode(65 + i));
@@ -293,11 +293,11 @@ export const DECIDE_LETTERS = DECIDE_CHOICES.map((_, i) => String.fromCharCode(6
 const DECIDE_SYSTEM =
   "You read one request said aloud in a shared space for a group of friends and answer one multiple-choice question about it. Reply with the single letter of the best option and nothing else.";
 
-/** The fan-out's second question, as measured (Ultra 16 of 18, nebius/eval/decide/head.md). Same prefix as the card question. */
+/** The fan-out's second question, as measured. Same prefix as the card question. */
 const BOARD_Q = "Is a card already on the board that does what the request asks?\nA yes\nB no";
 export const BOARD_LETTERS = ["A", "B"];
 
-/** The decide prompt as measured (nebius/eval/decide/prompts.mjs), board titles in. `q: "board"` asks the yes/no instead, about `match` when code found one. */
+/** The decide prompt as measured, board titles in. `q: "board"` asks the yes/no instead, about `match` when code found one. */
 export function decideMessages(r: { context: string; board: string[]; said: string; q?: "card" | "board"; match?: string }) {
   const q =
     r.q === "board"

@@ -14,8 +14,8 @@
  *   &reveal=a|b|c   the reveal direction (default: the pick)
  *   ?board=open     the scoreboard face up without playing
  *   &fly=scoreboard the camera goes to the scoreboard (there's no header chip any more)
- *   &play=seat      the game is the hot seat ("how well do you know maya")
- *     &about=Sam    who sits (default: the space's pick)
+ *   &play=seat      the game is the hot seat ("how well do you know wren")
+ *     &about=Priya    who sits (default: the space's pick)
  *     &react=ha|wrong|who-told-you   a held reveal with your reaction already on it
  *   ?game=keepsake&play=seat   a finished hot seat, only its keepsake left on the board
  */
@@ -61,7 +61,7 @@ export type GamesApi = {
   rematch: () => void;
   /** hot seat: who the space would put in the seat here, best offer first */
   seatPicks: SeatPick[];
-  /** the hot seat's name in this room ("how well do you know maya") */
+  /** the hot seat's name in this room ("how well do you know wren") */
   seatName: string;
   /** what the last hot seat left on the board */
   keepsake?: Keepsake;
@@ -79,7 +79,7 @@ export type GamesApi = {
   notice?: string;
   /** a running challenge in this room, ranked on the same card (face down until you log) */
   challenge?: ChallengeBoard | null;
-  /** a spoken start ("let's play most likely to", "how well do you know maya"): the slip's line */
+  /** a spoken start ("let's play most likely to", "how well do you know wren"): the slip's line */
   voice?: (said: string) => Promise<string>;
   /** mock only: the people the tab is pretending to be, for the dev readout */
   simulated?: string[];

@@ -35,8 +35,8 @@ const LAB_PARAMS = new URLSearchParams(
 const LAB_SYNC = LAB_PARAMS.get("sync");
 const LAB_ROOM = LAB_PARAMS.get("room");
 const LAB_COLORS: Record<string, string> = {
-  holly: "var(--color-couple)",
-  thomas: "var(--color-crew)",
+  theo: "var(--color-couple)",
+  wren: "var(--color-crew)",
 };
 const LAB_AS = LAB_PARAMS.get("as");
 const LAB_IDENTITY: CozyColorIdentity | undefined = LAB_AS

@@ -59,7 +59,7 @@ const MAKE_Q =
 const ANSWER_Q =
   /\b(did we|have we|hasn'?t|haven'?t|didn'?t|paid|owes?|how much|how many|winning|ahead|behind|leading|when'?s|when is|when does|what'?s the|what is the|who said|away|anyone|left|still|decided|decide|picked|landed|what are we doing|where are we|what time)\b/;
 
-/* ---------- Plan a named place (TV2d: convex/tavily.ts planPlace) ---------- */
+/* ---------- Plan a named place ---------- */
 
 /** "let's do Spina Farms pumpkin patch on Saturday", "plan Spina Farms on Sunday": a named place, on a day. */
 const PLAN_LEAD = /^(?:(?:hey|ok|okay|so|um|uh|yeah|alright),?\s+)*(?:(?:let'?s|let us|we should|can we)\s+(?:do|go to|hit|check out|try)|(?:let'?s\s+)?plan)\s+/i;
@@ -106,7 +106,7 @@ export function routeVerb(said: string, ctx: { people: string[]; me: string; sel
   if (GAME.test(t)) return { verb: "game", sure: true, why: `"${GAME.exec(t)![0]}"` };
   // A named place on a day: the web looks it up (only where the room hands in the lookup)
   if (ctx.place && planSoFar(said, ctx.people)) return { verb: "plan", sure: true, why: "a named place: the web looks it up" };
-  // Do my part for somebody else: put maya down, jules is in, vote matcha for sam
+  // Do my part for somebody else: put wren down, theo is in, vote matcha for priya
   for (const name of othersNamed(t, ctx.people, ctx.me)) {
     const n = name.toLowerCase();
     const forThem = new RegExp(
@@ -214,7 +214,7 @@ export function answerFor(said: string, f: RoomFacts | null, widgets: W[], frame
     }
   }
 
-  // a date: "when's maya's birthday", "how long till the party"
+  // a date: "when's wren's birthday", "how long till the party"
   if (/\b(when'?s|when is|when does|how long|how many days|what day)\b/.test(t)) {
     const ws = of("countdown");
     const w = pick(ws, q, (x) => lower(x.data.event));
@@ -339,7 +339,7 @@ export function cardAnswer(w: W): Answer | null {
   return w.type === "poll" ? pollAnswer(w) : w.type === "rsvp" ? rsvpAnswer(w) : null;
 }
 
-/** An rsvp's standing, read by code (live, the model added "at maya's place" to one). */
+/** An rsvp's standing, read by code (live, the model added "at wren's place" to one). */
 function rsvpAnswer(w: W): Answer {
   const rows = (w.data.responses as { name: string; status: string }[] | undefined) ?? [];
   const by = (st: string) => rows.filter((r) => r.status === st).map((r) => r.name.toLowerCase());

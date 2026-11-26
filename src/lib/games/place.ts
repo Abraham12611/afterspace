@@ -10,7 +10,7 @@ export const SCOREBOARD_CARD = { w: 300, h: 560 };
 /** Rooms whose corner has a spot of its own: the crew's is right of the challenge corner (convex/seed.ts CREW_CANVAS
     widens the board for it), so a hero ask still finds that corner clear. There the scoreboard comes first, hugging
     the challenge, and a game opens beyond it (not a blank slot between them). */
-const GAME_CORNERS: Record<string, { x: number; y: number }> = { "the-crew": { x: 1690, y: 48 } };
+const GAME_CORNERS: Record<string, { x: number; y: number }> = { coven: { x: 1690, y: 48 } };
 
 const spots = new Map<string, { card: { x: number; y: number }; board: { x: number; y: number } }>();
 

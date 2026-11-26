@@ -1,5 +1,5 @@
 /**
- * The hot seat ("how well do you know maya"), drawn on the game card: the
+ * The hot seat ("how well do you know wren"), drawn on the game card: the
  * same four beats as any game, with a question about one person where "most
  * likely to" has faces to tap. The questions and their facts come from
  * `lib/games/hotSeat.ts`; this file never words or checks one. Also here:

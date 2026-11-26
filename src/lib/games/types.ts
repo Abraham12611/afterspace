@@ -28,7 +28,7 @@ export type GamePrompt = {
   award: string;
   /** the sticker's mark */
   glyph: string;
-  /** a key on "what this space knows" (`payer:Jules`, `places`, `told:…`) */
+  /** a key on "what this space knows" (`payer:Theo`, `places`, `told:…`) */
   fact: string;
   /** that fact in a few words, printed small under the prompt */
   from: string;
