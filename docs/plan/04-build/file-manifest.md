@@ -125,3 +125,51 @@ Update this file when reality differs (provenance rule).
 | M | `netlify.toml` | Site name |
 | C | `README.md` (rewrite) | What, run, Built on, Prior art, license, demo URL |
 | C | `docs/kiro-writeup.md` | Source for the Devpost Kiro section |
+
+## P1 as built (deviations from the lists above)
+Recorded when P1 landed. Where reality differed from the plan:
+
+**Deleted beyond the list**
+| Path | Why |
+|---|---|
+| `convex/digest.ts` | The weekly digest only existed to send email through AgentMail. Its cron, workflow and `digest` AI job went with it. |
+| `convex/shootReset.ts`, `harness.ts`, `playLab.ts`, `pilot.ts` | Lab/eval helpers that read `emailEvents` or the removed rooms. |
+| `convex/questions.ts`, `streaming.ts` | Link-card conversation starters and the ask-stream (S4/S5). No stream for the s�ance yet; it can use `streamChat` when built. |
+| `src/components/CodeSlots.tsx` | Six-digit email code input (S1). |
+| `src/lib/backendCounts.ts`, `src/lib/playPresets.ts` | backendLive card (S8) and the play lab (S6). |
+| `src/data/crew.ts`, `src/data/family.ts`, `family.css` | Upstream cast (S7). |
+| `src/widgets/poll-web.css`, `widgets/linkShelf`/`linkCard`/`backendLive` renderers in `extras.tsx` | Tavily/Firecrawl/backendLive leftovers. |
+| `public/storyboard.html`, `public/assets/the-crew-snapshot*`, `public/assets/email/`, `firecrawl-*.svg`, `space-covers/the-family.png` | Upstream marketing, group photo, removed services. |
+| `scripts/dev-lane.sh`, `sync-storyboard.sh`, `sync-codex-skills.sh`, `gen-video-srt.mjs` | Pointed at upstream deployments or deleted folders. |
+| `package.json` scripts `deploy`, `deploy:dev`, `dev:lane`, `sync:*` | The deploy script targeted upstream's Netlify site. |
+
+**Kept although the plan listed them**
+| Path | Why |
+|---|---|
+| `src/components/LinkThreads.tsx`, `link-threads.css` | The plan lists them under S4, but they draw the red string between flow cards (`convex/links.ts`), not Firecrawl links. Restored. |
+| `src/pages/labs.css` | `Admin.tsx` imports it for the `admin-lab` styles. |
+| `convex/photos.ts` | Photo uploads for the memory wall and avatars. Only its crew-photo backfill was removed. |
+| `convex/work.ts`, `useSpaceWork.ts`, `SpaceLiveStrip` | Generic work log; nothing writes to it yet. Kept for receipts/s�ance narration. |
+| `src/components/MailArrival.tsx`, `src/lib/mailArrival.ts` | Kept for F6 (sealed letters). Trimmed to the stage component; nothing feeds it. |
+| `@convex-dev/action-retrier`, `workflow`, `workpool`, `presence` mounts | Listed as keepers in the strip plan. |
+
+**Changed**
+- `convex/openrouter.ts` also exports `completeJsonWithUsage`, `pingOpenRouter`, `chooseLetter`, `parseJsonObject` and an internal `routes` action.
+- `convex/tables/after.ts` was created in P1 with only `modelCalls` (the metrics table). The rest of the plan's tables arrive with their features.
+- `convex/guard.ts` model keys are tiers (`fast`, `mid`, `vision`), not model names. `noteSpend` takes optional `job` and `ms` and writes the `modelCalls` row.
+- `SPEND_CEILING_USD` is 1 (the plan's starting value).
+- `createSpace` is open to guests everywhere (`roomsOpen` always true): with email codes gone, gating it on a registered account would leave only Google users able to make a space.
+- The demo space is now `coven` (wren, theo, priya, dante, juno, kai); `DEFAULT_SPACE_SLUG` is `coven`. The mock-mode fixtures (`src/data/spaces.ts`, `chat.ts`, `roomKnows.ts`, `games.ts`, `jigsaw.ts`, `recap.ts`) and `convex/seed.ts` were rewritten around it. Seed helpers for the old house/crew/family rooms were removed.
+- Upstream names in comments, examples and prompt fixtures were mapped to the coven cast (Maya to Wren, Jules to Theo, Sam to Priya, Rio to Dante, Kenji to Juno, Ash to Kai, Thomas to Wren, Holly to Theo).
+- `src/pages/About.tsx` is a placeholder until the P2 rewrite.
+- `README.md` is a short placeholder with the "Built on" section; P5 rewrites it.
+- `netlify.toml` no longer points at upstream's Convex deployment; set our own in P5.
+- Dev-lane detection now reads `VITE_DEV_LANE=1` instead of upstream's deployment name.
+- `package.json` gained `typecheck` and `lint` scripts (oxlint).
+- Convex codegen could not run here (`convex dev --once` stalls downloading the local backend), so `convex/_generated/api.d.ts` and the `Env` type in `server.d.ts` were edited by hand. Run `npx convex dev` once on a real deployment to regenerate them.
+
+**Still to do in later phases**
+- `.github/devpost/` holds upstream marketing screenshots; replace or delete in P5.
+- `public/assets/` still holds upstream art (stickers, space covers, link-card art, textures); P2 replaces it.
+- `convex/paint.ts` has a self-heal for the old "couple" room; delete when cozy-color is reworked or cut.
+- `src/index.css` still carries CSS for removed cards (reading room, build room, link read). Prune during the P2 restyle.

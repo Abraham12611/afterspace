@@ -30,15 +30,15 @@ Deadline: **Fri Dec 4, 2026, 2:00 PM PT (11:00 PM GMT+1)**. Aim to submit Dec 4 
 - [ ] **P0.5 Kiro setup.** Hooks and MCP from `kiro-usage.md`. Add Vitest + fast-check, `npm test`.
 
 ## P1. Strip (docs: `03-architecture/strip-plan.md`)
-- [ ] P1.1 S1 AgentMail + OTP out
-- [ ] P1.2 S2 Nebius → OpenRouter (`openrouter.md`); choose model ids; canned fallbacks work
-- [ ] P1.3 S3 Tavily out
-- [ ] P1.4 S4 Firecrawl, build room, link cards out
-- [ ] P1.5 S5 RAG, agent, similar out
-- [ ] P1.6 S6 labs, reels, pilot, eval, upstream docs out
-- [ ] P1.7 S7 personal data + assets out; placeholder assets in
-- [ ] P1.8 S8 flappy / backendLive out
-- [ ] P1.9 S9 green build + U1-U4 pass
+- [x] P1.1 S1 AgentMail + OTP out
+- [x] P1.2 S2 Nebius → OpenRouter (`openrouter.md`); choose model ids; canned fallbacks work
+- [x] P1.3 S3 Tavily out
+- [x] P1.4 S4 Firecrawl, build room, link cards out
+- [x] P1.5 S5 RAG, agent, similar out
+- [x] P1.6 S6 labs, reels, pilot, eval, upstream docs out
+- [x] P1.7 S7 personal data + assets out; placeholder assets in
+- [x] P1.8 S8 flappy / backendLive out
+- [ ] P1.9 S9 green build + U1-U4 pass (typecheck, lint, build are green; `npx convex dev` codegen and U1-U4 not run yet: see file-manifest.md "P1 as built")
 **Exit:** builds and runs with only `OPENROUTER_API_KEY`; no reference to removed services (`grep` clean).
 
 ## P2. Rebrand (docs: `02-design/*`)
