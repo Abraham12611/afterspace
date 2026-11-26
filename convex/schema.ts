@@ -5,6 +5,7 @@ import * as mail from "./tables/mail";
 import * as voice from "./tables/voice";
 import * as row from "./tables/rightOfWay";
 import * as games from "./tables/games";
+import * as after from "./tables/after";
 
 // The whole data model at a glance; each table's fields and indexes live in
 // convex/tables/<area>.ts. Shape rationale: docs/data-model-plan.md §11.
@@ -14,7 +15,7 @@ export default defineSchema({
   // the room
   users: rooms.users, // a person: auth fields plus the colour and emoji that follow them (docs/accounts.md)
   waitlist: rooms.waitlist, // emails from the landing page
-  spaces: rooms.spaces, // a room: name, colour, slug, its inbox
+  spaces: rooms.spaces, // a room: name, colour, slug
   members: rooms.members, // who is in which room, by name and colour
   widgets: rooms.widgets, // the cards on the board, data validated per type (widgetData.ts)
   messages: rooms.messages, // chat, room-wide or on a card
@@ -24,7 +25,7 @@ export default defineSchema({
   baselines: rooms.baselines, // what #/admin resets a room to
 
   // what comes in
-  work: mail.work, // the steps a mail or link took, as they happen
+  work: mail.work, // the steps a link took, as they happen
   recaps: mail.recaps, // "what moved", daily and asked
   askStreams: mail.askStreams, // a streamed answer's question
   linkRefreshQueue: mail.linkRefreshQueue, // link cards waiting for a fresh scrape
@@ -47,4 +48,7 @@ export default defineSchema({
   gameAnswers: games.gameAnswers, // each pick, held back until the reveal
   awards: games.awards, // stickers a round gave out
   puzzlePieces: games.puzzlePieces, // where each jigsaw piece is
+
+  // afterspace
+  modelCalls: after.modelCalls, // one metrics row per model call (job, model, ms, tokens, usd)
 });

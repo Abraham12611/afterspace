@@ -6,7 +6,7 @@ import { action, internalMutation, internalQuery, mutation, query } from "./_gen
 import { internal } from "./_generated/api";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { chooseLetter, pingTokenFactory, streamChat } from "./nebius";
+import { chooseLetter, pingOpenRouter, streamChat } from "./openrouter";
 import { touchSpace } from "./activity";
 import { addLink } from "./links";
 import { isFlow } from "../src/lib/deck/recipes";
@@ -27,7 +27,6 @@ import {
 } from "../src/lib/deck";
 import { VERB_CHOICES, VERB_LETTERS, VERB_Q } from "../src/lib/deck/verbs";
 import { rightOfWay } from "./rightOfWay";
-import { lookupAfterBuild } from "./tavily";
 import { noteSpendIn, type Gate } from "./guard";
 
 /**
@@ -60,9 +59,9 @@ import { noteSpendIn, type Gate } from "./guard";
  * later what was committed and the asker's measured stage times.
  */
 
-const FAST = { model: "lightning", name: "Lightning", maxTokens: 220 } as const;
-/** The brain route: Ultra (nebius/eval/brief/v2.md; Super failed 2 of 10 guard asks on the same prompt). */
-const BRAIN = { model: "ultra", name: "Ultra", maxTokens: 300 } as const;
+const FAST = { job: "deal", tier: "fast", name: "fast", maxTokens: 220 } as const;
+/** The brain route: the mid tier, for asks that need the group's facts or several cards. */
+const BRAIN = { job: "brain", tier: "mid", name: "mid", maxTokens: 300 } as const;
 
 type DealOut = {
   dealId: Id<"deals"> | null;
@@ -160,7 +159,7 @@ export const deal = action({
     };
 
     const result = await streamChat({
-      model: M.model,
+      job: M.job,
       maxTokens: M.maxTokens,
       messages: [
         { role: "system", content: brain ? deckPromptV2({ cards: deck, ...(deck && args.focus ? { focus: [...args.focus, ...(card ? [card] : [])] } : {}) }) : deckPrompt({ cards: deck }) },
@@ -192,7 +191,9 @@ export const deal = action({
     if (dealId) {
       await ctx.runMutation(internal.voiceBuild.finish, {
         dealId,
-        model: M.model,
+        model: M.tier,
+        job: M.job,
+        ms: result.totalMs,
         usage: out.usage ?? undefined,
         patch: JSON.stringify({
           ...out,
@@ -239,13 +240,15 @@ export const finish = internalMutation({
     dealId: v.id("deals"),
     patch: v.string(),
     // the call's tokens, for the day's spend (convex/guard.ts)
-    model: v.optional(v.union(v.literal("lightning"), v.literal("ultra"))),
+    model: v.optional(v.union(v.literal("fast"), v.literal("mid"))),
+    job: v.optional(v.union(v.literal("deal"), v.literal("brain"))),
+    ms: v.optional(v.number()),
     usage: v.optional(v.object({ prompt: v.number(), completion: v.number() })),
   },
   returns: v.null(),
-  handler: async (ctx, { dealId, patch, model, usage }) => {
+  handler: async (ctx, { dealId, patch, model, job, ms, usage }) => {
     await patchRun(ctx, dealId, JSON.parse(patch) as Record<string, unknown>);
-    if (model) await noteSpendIn(ctx, [{ model, usage: usage ? { prompt_tokens: usage.prompt, completion_tokens: usage.completion } : null }]);
+    if (model) await noteSpendIn(ctx, [{ model, job, ms, usage: usage ? { prompt_tokens: usage.prompt, completion_tokens: usage.completion } : null }]);
     return null;
   },
 });
@@ -424,8 +427,6 @@ export const noteCommitted = internalMutation({
     if (!dealId || !row) return null;
     const before = (JSON.parse(row.run) as { committed?: string[] }).committed ?? [];
     await patchRun(ctx, dealId, { committed: [...before, ...args.ids], committedAt: args.at });
-    // Tavily, the lookup: a "where should we eat …" poll gets real places under the house's own (tavily.ts)
-    await lookupAfterBuild(ctx, { spaceId: args.spaceId, dealId, run: row.run, ids: args.ids });
     return null;
   },
 });
@@ -535,7 +536,7 @@ export const decide = action({
     if (!gate.ok) return { verb: null, onBoard: null, card: null, conf: null, top: [], ms: 0, usage: null, error: `${gate.why}: ${refusal(gate.why)}` };
     const verbQ = args.verb
       ? chooseLetter({
-          model: "ultra",
+          job: "decide",
           messages: [
             decideMessages(prefix)[0],
             { role: "user" as const, content: `${prefix.context}${prefix.board.length ? `\nOn the board: ${prefix.board.join(" · ")}` : ""}\nSaid: "${prefix.said}"\n\n${VERB_Q}` },
@@ -544,17 +545,17 @@ export const decide = action({
         })
       : null;
     const [r, b, vq] = await Promise.all([
-      args.card === false ? skipped : chooseLetter({ model: "ultra", messages: decideMessages(prefix), letters: DECIDE_LETTERS }),
+      args.card === false ? skipped : chooseLetter({ job: "decide", messages: decideMessages(prefix), letters: DECIDE_LETTERS }),
       args.onBoard && prefix.board.length
         ? chooseLetter({
-            model: "ultra",
+            job: "decide",
             messages: decideMessages({ ...prefix, ...(args.match ? { match: args.match.slice(0, 60) } : {}), q: "board" }),
             letters: BOARD_LETTERS,
           })
         : null,
       verbQ,
     ]);
-    const spent = [r === skipped ? null : r, b, vq].flatMap((x) => (x ? [{ model: "ultra" as const, prompt: x.usage?.prompt_tokens ?? 0, completion: x.usage?.completion_tokens ?? 0 }] : []));
+    const spent = [r === skipped ? null : r, b, vq].flatMap((x) => (x ? [{ model: "fast" as const, job: "decide" as const, ms: x.ms, prompt: x.usage?.prompt_tokens ?? 0, completion: x.usage?.completion_tokens ?? 0 }] : []));
     if (spent.length) await ctx.runMutation(internal.guard.noteSpend, { calls: spent });
     const cardOf = (l: string) => DECIDE_CHOICES[DECIDE_LETTERS.indexOf(l)] ?? l;
     const usageOf = (u: typeof r.usage) => (u ? { prompt: u.prompt_tokens ?? 0, completion: u.completion_tokens ?? 0 } : null);
@@ -646,7 +647,7 @@ export const answer = action({
     const snippets = ranked.map((p, i) => `[${i + 1}] ${p.text}`);
     if (!ranked.length) return { answer: null, why: "nothing on the board or in the chat shares a word with the question", ms: Date.now() - t0, usage: null, snippets };
     const result = await streamChat({
-      model: "ultra",
+      job: "ask",
       maxTokens: 60,
       messages: [
         {
@@ -658,7 +659,7 @@ export const answer = action({
       ],
     });
     const usage = result.usage ? { prompt: result.usage.prompt_tokens ?? 0, completion: result.usage.completion_tokens ?? 0 } : null;
-    await ctx.runMutation(internal.guard.noteSpend, { calls: [{ model: "ultra", prompt: usage?.prompt ?? 0, completion: usage?.completion ?? 0 }] });
+    await ctx.runMutation(internal.guard.noteSpend, { calls: [{ model: "mid", job: "ask", ms: result.totalMs, prompt: usage?.prompt ?? 0, completion: usage?.completion ?? 0 }] });
     let parsed: { answer?: unknown; from?: unknown } = {};
     try {
       parsed = JSON.parse(/\{[\s\S]*\}/.exec(result.content)?.[0] ?? "{}");
@@ -728,7 +729,7 @@ export const warm = action({
   args: {},
   returns: v.object({ status: v.number(), ms: v.number() }),
   // a signed-in person, a few a minute (convex/guard.ts): it costs nothing, but it is not an open relay
-  handler: async (ctx): Promise<{ status: number; ms: number }> => ((await ctx.runMutation(internal.guard.warm, {})) ? await pingTokenFactory() : { status: 429, ms: 0 }),
+  handler: async (ctx): Promise<{ status: number; ms: number }> => ((await ctx.runMutation(internal.guard.warm, {})) ? await pingOpenRouter() : { status: 429, ms: 0 }),
 });
 
 /** The asker's screen saw the card: ms from the last word, plus every stage mark. */

@@ -27,6 +27,8 @@ const app = defineApp({
     // Any non-empty value switches off embeddings, the one model call that
     // goes through the Convex AI Gateway (convex/rag.ts).
     AI_GATEWAY_DISABLED: v.optional(v.string()),
+    // OpenRouter, every model call (convex/openrouter.ts). Unset = no model: AI features return canned output.
+    OPENROUTER_API_KEY: v.optional(v.string()),
     SITE_URL: v.optional(v.string()),
     // Google sign-in (docs/accounts.md). Unset = the button never shows.
     AUTH_GOOGLE_ID: v.optional(v.string()),

@@ -10,7 +10,7 @@ import {
 } from "./_generated/server";
 import { components, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { completeJson } from "./ai";
+import { completeJson } from "./openrouter";
 import schema from "./schema";
 import { pollTallies } from "./votes";
 import { messagesCounter } from "./stats";
@@ -225,7 +225,7 @@ function cannedAsk(snapshot: Snapshot, question: string): { reply: string; widge
   };
 }
 
-async function askNemotron(
+async function askModel(
   kind: "recap" | "ask",
   snapshot: Snapshot,
   extra?: string,
@@ -253,7 +253,7 @@ async function askNemotron(
   // downstream (cannedRecap / cannedAsk), which is exactly how the gateway's
   // json_schema downgrade hid for hours.
   const parsed = await completeJson({ job: kind, system, user }).catch((error) => {
-    console.error(`recap.askNemotron(${kind}) failed:`, error);
+    console.error(`recap.askModel(${kind}) failed:`, error);
     return null;
   });
   if (!parsed) return null;
@@ -465,7 +465,7 @@ async function buildRecap(
   kind: "daily" | "ask",
 ): Promise<RecapPayload> {
   const snap = await ctx.runQuery(internal.recap.snapshot, { spaceId });
-  const generated = (await askNemotron("recap", snap).catch((error) => {
+  const generated = (await askModel("recap", snap).catch((error) => {
     console.error("recap.buildRecap fell back to canned prose:", error);
     return null;
   })) as RecapPayload | null;

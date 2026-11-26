@@ -13,7 +13,7 @@ import { dayIndexOf, isRevealed, rank, readCheckIn } from "../src/lib/challenge"
 import type { RoomKnows } from "../src/lib/roomKnows";
 import { buildBrief } from "./roomBrief";
 import { rightOfWay } from "./rightOfWay";
-import { streamChat } from "./nebius";
+import { streamChat } from "./openrouter";
 
 /**
  * Games, live (features/games.md). The rules are the same pure functions
@@ -463,8 +463,8 @@ export const word = internalAction({
       await ctx.runMutation(internal.games.setWording, { gameId, rounds: [], worded: "templates (the day's model ceiling)" });
       return null;
     }
-    const res = await streamChat({ model: "super", messages: [{ role: "system", content: ask.system }, { role: "user", content: ask.user }], maxTokens: 320 });
-    await ctx.runMutation(internal.guard.noteSpend, { calls: [{ model: "super", prompt: res.usage?.prompt_tokens ?? 0, completion: res.usage?.completion_tokens ?? 0 }] });
+    const res = await streamChat({ job: "game", messages: [{ role: "system", content: ask.system }, { role: "user", content: ask.user }], maxTokens: 320 });
+    await ctx.runMutation(internal.guard.noteSpend, { calls: [{ model: "mid", job: "game", ms: res.totalMs, prompt: res.usage?.prompt_tokens ?? 0, completion: res.usage?.completion_tokens ?? 0 }] });
     if (res.error || !res.content.trim()) {
       await ctx.runMutation(internal.games.setWording, { gameId, rounds: [], worded: `templates (model failed: ${(res.error ?? "empty").slice(0, 60)})` });
       return null;

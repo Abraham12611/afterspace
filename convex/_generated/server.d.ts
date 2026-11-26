@@ -31,8 +31,6 @@ type Env = {
   readonly CONVEX_CLOUD_URL: string;
   readonly CONVEX_SITE_URL: string;
   readonly ADMIN_KEY: string | undefined;
-  readonly AGENTMAIL_API_KEY: string;
-  readonly AGENTMAIL_WEBHOOK_SECRET: string | undefined;
   readonly AI_GATEWAY_DISABLED: string | undefined;
   readonly AUTH_GOOGLE_ID: string | undefined;
   readonly AUTH_GOOGLE_SECRET: string | undefined;
@@ -40,8 +38,8 @@ type Env = {
   readonly FIRECRAWL_WEBHOOK_SECRET: string | undefined;
   readonly JWKS: string | undefined;
   readonly JWT_PRIVATE_KEY: string | undefined;
+  readonly OPENROUTER_API_KEY: string | undefined;
   readonly SITE_URL: string | undefined;
-  readonly TAVILY_API_KEY: string | undefined;
 };
 
 /**

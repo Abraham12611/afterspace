@@ -18,7 +18,7 @@ export const rateLimiter = new RateLimiter(components.rateLimiter, {
   // Per-user: a stroke lands once per completed drag, not per point, so this
   // is generous headroom for normal drawing while still bounding abuse.
   paintStroke: { kind: "token bucket", rate: 60, period: MINUTE, capacity: 20 },
-  /* Token Factory, the voice orb (convex/guard.ts; nebius/eval/s3-audit.md).
+  /* The model door, the voice orb (convex/guard.ts).
      Keyed by the caller's seat, which the session proves, so these can be per
      person. One ask is about a dozen calls (≤6 speculative fills, the final
      fill, 3–4 decides): the burst covers five asks back to back, the refill
@@ -40,18 +40,17 @@ export const rateLimiter = new RateLimiter(components.rateLimiter, {
 });
 
 /**
- * The deployment's daily Token Factory ceiling (convex/guard.ts): estimated
+ * The deployment's daily model-spend ceiling (convex/guard.ts): estimated
  * dollars (tokens × list price) across every room, per UTC day. Past it the
  * voice orb stops calling the model and says so; what code answers alone
  * (edits, answers from the room's facts, cards filled from answers) still
- * works. Thomas's account holds a few dollars with no cap on Nebius's side.
+ * works. Keep the OpenRouter key's own credit limit low as a second fence.
  */
-export const SPEND_CEILING_USD = 0.5;
+export const SPEND_CEILING_USD = 1;
 
-/** List price, USD per million tokens (Token Factory /v1/models, Oct 2026). */
+/** List price, USD per million tokens, per model tier (convex/ai.ts MODELS; openrouter.ai/api/v1/models). */
 export const PRICE_PER_M = {
-  nano: { prompt: 0.06, completion: 0.24 },
-  lightning: { prompt: 0.06, completion: 0.24 },
-  super: { prompt: 0.3, completion: 0.9 },
-  ultra: { prompt: 1, completion: 3 },
+  fast: { prompt: 0.15, completion: 0.6 }, // openai/gpt-4o-mini
+  mid: { prompt: 0.4, completion: 1.6 }, // openai/gpt-4.1-mini
+  vision: { prompt: 0.4, completion: 1.6 }, // openai/gpt-4.1-mini
 } as const;

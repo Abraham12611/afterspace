@@ -7,11 +7,10 @@ import type { Id } from "./_generated/dataModel";
 import { components } from "./_generated/api";
 import { rateLimiter, PRICE_PER_M, SPEND_CEILING_USD } from "./rateLimits";
 import { seatOf, seatOrMaker } from "./seat";
-import type { NemotronModel } from "./nebius";
+import { MODELS, type AiJob, type ModelTier } from "./ai";
 
 /**
- * The door in front of every Token Factory call a browser can start (S3,
- * nebius/eval/s3-audit.md). One mutation, before the model is called: the
+ * The door in front of every model call a browser can start. One mutation, before the model is called: the
  * caller has a seat in the room (from the session, never an argument), the
  * person's burst and the room's day have room for these calls, and the
  * deployment hasn't passed its day's ceiling. The numbers live in
@@ -29,7 +28,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 export type Usage = { prompt_tokens?: number; completion_tokens?: number } | null | undefined;
 
 /** Micro-dollars for one call: tokens × list price. */
-export function microsOf(model: NemotronModel, usage: Usage): number {
+export function microsOf(model: ModelTier, usage: Usage): number {
   const price = PRICE_PER_M[model];
   return Math.ceil((usage?.prompt_tokens ?? 0) * price.prompt + (usage?.completion_tokens ?? 0) * price.completion);
 }
@@ -40,20 +39,43 @@ async function spentToday(ctx: QueryCtx) {
   return { day, usd: micros / 1e6, calls };
 }
 
-/** Count calls that happened (from an action, after the model answered). */
-export async function noteSpendIn(ctx: MutationCtx, calls: { model: NemotronModel; usage: Usage }[]) {
+/** One finished call: the tier it ran on, its token usage, and (for the metrics row) which job and how long. */
+export type SpendCall = { model: ModelTier; usage: Usage; job?: AiJob; ms?: number };
+
+/** Count calls that happened (from an action, after the model answered). Calls
+ * that name a job also leave a `modelCalls` row (metrics only, no text). */
+export async function noteSpendIn(ctx: MutationCtx, calls: SpendCall[]) {
   if (!calls.length) return;
   const day = today();
   const micros = calls.reduce((sum, c) => sum + microsOf(c.model, c.usage), 0);
   await spend.add(ctx, `tf-calls:${day}`, calls.length);
   if (micros) await spend.add(ctx, `tf-micro:${day}`, micros);
+  const at = Date.now();
+  for (const c of calls) {
+    if (!c.job) continue;
+    await ctx.db.insert("modelCalls", {
+      job: c.job,
+      model: MODELS[c.model],
+      ms: c.ms ?? 0,
+      inTok: c.usage?.prompt_tokens ?? 0,
+      outTok: c.usage?.completion_tokens ?? 0,
+      usd: microsOf(c.model, c.usage) / 1e6,
+      at,
+    });
+  }
 }
 
+const tierValidator = v.union(v.literal("fast"), v.literal("mid"), v.literal("vision"));
+const jobValidator = v.union(
+  v.literal("deal"), v.literal("brain"), v.literal("decide"), v.literal("ask"), v.literal("recap"),
+  v.literal("questions"), v.literal("epitaph"), v.literal("game"), v.literal("receipt"),
+);
+
 export const noteSpend = internalMutation({
-  args: { calls: v.array(v.object({ model: v.union(v.literal("nano"), v.literal("lightning"), v.literal("super"), v.literal("ultra")), prompt: v.number(), completion: v.number() })) },
+  args: { calls: v.array(v.object({ model: tierValidator, prompt: v.number(), completion: v.number(), job: v.optional(jobValidator), ms: v.optional(v.number()) })) },
   returns: v.null(),
   handler: async (ctx, { calls }) => {
-    await noteSpendIn(ctx, calls.map((c) => ({ model: c.model, usage: { prompt_tokens: c.prompt, completion_tokens: c.completion } })));
+    await noteSpendIn(ctx, calls.map((c) => ({ model: c.model, job: c.job, ms: c.ms, usage: { prompt_tokens: c.prompt, completion_tokens: c.completion } })));
     return null;
   },
 });
@@ -74,7 +96,7 @@ export type Gate =
   | { ok: false; why: "limit" | "spent"; retryAfter: number | null };
 
 /**
- * `calls`: how many Token Factory calls the action is about to make. With
+ * `calls`: how many model calls the action is about to make. With
  * `run`, the ask's `deals` row is opened in the same transaction (deal).
  */
 export const voice = internalMutation({
@@ -126,16 +148,16 @@ export const firecrawl = internalMutation({
  * ask, the ask stream, a link's spark questions): a seat in the room, and
  * under the day's ceiling. Those calls report no tokens back
  * (convex/ai.ts completeJson), so the call is counted here, up front, at the
- * size b2 measured for an Ultra answer with a board in the prompt.
+ * size of a mid-tier answer with a board in the prompt.
  */
-export async function modelDoor(ctx: MutationCtx, spaceId: Id<"spaces">, model: NemotronModel = "ultra") {
+export async function modelDoor(ctx: MutationCtx, spaceId: Id<"spaces">, model: ModelTier = "mid") {
   if (!(await seatOrMaker(ctx, spaceId))) throw new Error("not in this room");
   if ((await spentToday(ctx)).usd >= SPEND_CEILING_USD) throw new ConvexError("spent: the space's AI is resting until tomorrow");
   await noteSpendIn(ctx, [{ model, usage: { prompt_tokens: 2000, completion_tokens: 300 } }]);
 }
 
 export const model = internalMutation({
-  args: { spaceId: v.id("spaces"), model: v.optional(v.union(v.literal("lightning"), v.literal("ultra"))) },
+  args: { spaceId: v.id("spaces"), model: v.optional(v.union(v.literal("fast"), v.literal("mid"))) },
   returns: v.null(),
   handler: async (ctx, { spaceId, model }) => {
     await modelDoor(ctx, spaceId, model);
