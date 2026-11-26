@@ -24,11 +24,9 @@ export default defineSchema({
   presence: rooms.presence, // live cursors, and who holds a drag
   baselines: rooms.baselines, // what #/admin resets a room to
 
-  // what comes in
+  // the room's AI log
   work: mail.work, // the steps a link took, as they happen
   recaps: mail.recaps, // "what moved", daily and asked
-  askStreams: mail.askStreams, // a streamed answer's question
-  linkRefreshQueue: mail.linkRefreshQueue, // link cards waiting for a fresh scrape
 
   // voice
   deals: voice.deals, // a voice ask's receipt

@@ -65,6 +65,3 @@ export const MODEL_BY_JOB: Record<AiJob, JobSpec> = {
   game: { tier: "mid", maxTokens: 320, temperature: 0 },
   receipt: { tier: "vision", maxTokens: 600, temperature: 0 },
 };
-
-/** Width of every stored vector (rag, widgets.by_embedding). */
-export const EMBEDDING_DIMENSIONS = 1536;

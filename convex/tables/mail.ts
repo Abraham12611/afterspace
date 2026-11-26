@@ -1,7 +1,7 @@
 import { defineTable } from "convex/server";
 import { v } from "convex/values";
 
-/** What comes in from outside: mail, links, the work log, recaps (schema.ts lists them). */
+/** What the room keeps about its own AI: the work log and recaps (schema.ts lists them). */
 
 export const work = defineTable({
   spaceId: v.id("spaces"), runId: v.string(), step: v.string(), line: v.string(),
@@ -15,16 +15,3 @@ export const recaps = defineTable({
   lines: v.array(v.object({ text: v.string(), widgetId: v.optional(v.string()), messageId: v.optional(v.string()) })),
   createdAt: v.number(),
 }).index("by_space", ["spaceId"]).index("by_space_kind_created", ["spaceId", "kind", "createdAt"]);
-
-// /api/ask-stream gets a streamId only; the rest lives here.
-export const askStreams = defineTable({
-  spaceId: v.id("spaces"), streamId: v.string(), question: v.string(),
-  messageId: v.id("messages"), // the recap turn to fill in when done
-})
-  .index("by_stream", ["streamId"]).index("by_space", ["spaceId"]);
-
-// batch-worker queue: stale linkCards awaiting Firecrawl refresh.
-export const linkRefreshQueue = defineTable({
-  widgetId: v.id("widgets"),
-  queuedAt: v.commitTs(), // commit-order cursor, not a wall-clock read
-}).index("queuedAt", ["queuedAt"]);

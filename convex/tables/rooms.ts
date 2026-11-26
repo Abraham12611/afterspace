@@ -2,7 +2,6 @@ import { defineTable } from "convex/server";
 import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 import { widgetDataValidator } from "../widgetData";
-import { EMBEDDING_DIMENSIONS } from "../ai";
 
 /** The room itself: people, the board, chat, votes, cursors (schema.ts lists them). */
 
@@ -21,7 +20,6 @@ export const spaces = defineTable({
   icon: v.string(), color: v.string(), createdAt: v.number(), lastActivityAt: v.number(),
   eventAt: v.optional(v.number()), archivedAt: v.optional(v.number()), slug: v.optional(v.string()),
   canvasW: v.optional(v.number()), canvasH: v.optional(v.number()), tagline: v.optional(v.string()),
-  askThreadId: v.optional(v.string()), ragIndexedAt: v.optional(v.number()),
   // Unset on seeded spaces, load-bearing: "no owner" means nobody can
   // rename or delete it from the client. Only createSpace writes it from
   // the caller's identity, never an argument.
@@ -45,16 +43,11 @@ export const widgets = defineTable({
   type: v.string(),
   x: v.number(), y: v.number(), w: v.number(), h: v.number(), z: v.number(),
   data: widgetDataValidator, createdBy: v.string(), createdAt: v.number(), rotate: v.optional(v.number()),
-  // Set by convex/similar.ts so an arriving card can ask if the board
-  // already holds it. Optional — embeddings may be unconfigured.
-  embedding: v.optional(v.array(v.float64())),
-  embeddedText: v.optional(v.string()),
 })
   .index("by_space", ["spaceId"])
   // Room-wide reads of one card type (every poll, the check-in): a subscription
   // on this range doesn't re-run when some other card on the board moves.
-  .index("by_space_and_type", ["spaceId", "type"])
-  .vectorIndex("by_embedding", { vectorField: "embedding", dimensions: EMBEDDING_DIMENSIONS, filterFields: ["spaceId"] });
+  .index("by_space_and_type", ["spaceId", "type"]);
 
 export const messages = defineTable({
   spaceId: v.id("spaces"),
