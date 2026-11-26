@@ -9,10 +9,7 @@ import type { Widget } from "../data/types";
 import { MemberFace } from "../components/MemberFace";
 import { playSound } from "../lib/sounds";
 import "./phone-cards.css";
-import "./poll-web.css";
 import "./poll-rules.css";
-import { PlanReadWidget } from "./linkRead";
-import { WebPic } from "./webPic";
 import { PollRulesLine, PollStamp, pollRulesClass, usePollRules } from "./pollRules";
 
 type Style = CSSProperties;
@@ -216,9 +213,8 @@ function ClockCell({ value, unit }: { value: string; unit: string }) {
   );
 }
 
-/** A countdown, or the plan card a pasted link makes (`read`, convex/tavily.ts readLink). */
 export function CountdownWidget({ widget, style }: { widget: Widget; style: Style }) {
-  return widget.data.read ? <PlanReadWidget widget={widget} style={style} /> : <CountdownFace widget={widget} style={style} />;
+  return <CountdownFace widget={widget} style={style} />;
 }
 
 function CountdownFace({ widget, style }: { widget: Widget; style: Style }) {
@@ -356,9 +352,6 @@ function CountdownFace({ widget, style }: { widget: Widget; style: Style }) {
   );
 }
 
-/** A review count short enough for the row: exact under a thousand, else "1.3k" (the receipt keeps the page's exact number). */
-const reviewCount = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k` : n.toLocaleString("en-US"));
-
 function PollWidgetComponent({
   widget: card,
   style,
@@ -379,8 +372,6 @@ function PollWidgetComponent({
     votes: number;
     total: number;
     voters?: string[];
-    /** a real place the lookup found (convex/tavily.ts) */
-    web?: { url: string; host: string; rating?: number; reviews?: number; img?: string; emoji?: string };
   }[], [widget.data.options]);
   const waitingOn = (widget.data.waitingOn as string[] | undefined) ?? [];
   const tone = String(widget.data.tone ?? "blush");
@@ -419,8 +410,6 @@ function PollWidgetComponent({
         <ul className="poll-options">
           {options.map((option, optionIndex) => {
             const selected = selectedOptionId === option.id;
-            // the web's rows arrive 40 ms apart, counted among themselves
-            const webIndex = option.web ? options.slice(0, optionIndex).filter((o) => o.web).length : 0;
             const votes = option.votes + (selected ? 1 : 0);
             const total = option.total + (hasLocalVote ? 1 : 0);
             const percent = Math.round((votes / Math.max(total, 1)) * 100);
@@ -434,24 +423,7 @@ function PollWidgetComponent({
             const rowInner = (
               <>
                 <span className="poll-check" />
-                {option.web ? (
-                  // a place the web found: two lines, the name over one number the page said (its rating, else its review
-                  // count; none when it had none) · the site · the mark. Keyed on the words: a waiting row's fill-in glides in.
-                  <span className="poll-option-label" key={option.label}>
-                    <WebPic img={option.web.img} emoji={option.web.emoji ?? "🍽️"} className="poll-web-pic" />
-                    <span className="poll-web-name">{option.label}</span>
-                    <small className="poll-web" data-testid="poll-web" data-url={option.web.url}>
-                      <span className="poll-web-src">
-                        {option.web.rating !== undefined ? <b>{option.web.rating}</b> : option.web.reviews !== undefined ? <b>{reviewCount(option.web.reviews)} reviews</b> : null}
-                        {(option.web.rating !== undefined || option.web.reviews !== undefined) && " · "}
-                        {option.web.host}
-                      </span>
-                      <i className="poll-web-mark">from the web</i>
-                    </small>
-                  </span>
-                ) : (
-                  <span className="poll-option-label">{option.label}</span>
-                )}
+                <span className="poll-option-label">{option.label}</span>
                 {selected && <span className="poll-you-tag">you</span>}
                 {shownVoters.length > 0 && (
                   <span className="poll-row-faces" aria-hidden="true">
@@ -472,7 +444,7 @@ function PollWidgetComponent({
             return (
               <li
                 key={option.id}
-                style={{ "--i": optionIndex, "--wi": webIndex } as Style}
+                style={{ "--i": optionIndex } as Style}
                 className={`${selected ? "is-selected" : ""} ${leading ? "is-leading" : ""}`}
               >
                 <button
@@ -817,12 +789,12 @@ export function MediaWidget({ widget, style }: { widget: Widget; style: Style })
         src={String(
           widget.data.thumbnailSrc ??
             widget.data.src ??
-            "/assets/the-crew-snapshot-thumb.webp",
+            "/assets/placeholder-photo.svg",
         )}
         alt={String(widget.data.caption)}
         onError={(event) => {
           event.currentTarget.onerror = null;
-          event.currentTarget.src = "/assets/the-crew-snapshot-thumb.webp";
+          event.currentTarget.src = "/assets/placeholder-photo.svg";
         }}
       />
       <figcaption>

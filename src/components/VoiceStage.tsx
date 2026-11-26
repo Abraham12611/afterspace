@@ -378,7 +378,7 @@ function layoutPos(el: HTMLElement): Pos {
 }
 
 /** The room in the hash, for the widget's own lookups. */
-const spaceInHash = () => /#\/space\/([^/?]+)/.exec(window.location.hash)?.[1] ?? "crew";
+const spaceInHash = () => /#\/space\/([^/?]+)/.exec(window.location.hash)?.[1] ?? "coven";
 
 /** How much bigger than on the board the card stands on the stage. */
 function stageScale(w: number, h: number) {

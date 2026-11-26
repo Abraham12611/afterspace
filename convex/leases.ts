@@ -6,7 +6,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { landWaiting } from "./rightOfWay";
 
 /**
- * Leases: who is holding what, on the server (Right of Way, nebius R1).
+ * Leases: who is holding what, on the server (Right of Way, R1).
  *
  * A person holds a card while they drag it, type in it (any field or the
  * title) or press a choice they haven't let go of; a puzzle piece while it's
@@ -89,7 +89,7 @@ export const hold = mutation({
     const id = ctx.db.normalizeId("widgets", a.thing);
     const w = id && (await ctx.db.get(id));
     if (!w || w.spaceId !== a.spaceId) return null;
-    // a hold is always the caller's own: a hand "by Holly" can't be faked to stall the space
+    // a hold is always the caller's own: a hand "by Theo" can't be faked to stall the space
     const me = await seatOf(ctx, a.spaceId);
     if (!me) return null;
     await holdThing(ctx, { ...a, userId: me.userId, name: me.name, color: me.color || a.color });

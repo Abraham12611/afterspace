@@ -56,15 +56,11 @@ function OnlineDot({ spaceId }: { spaceId: string }) {
  * rule under them (no label) and everything below is what a person makes. */
 const EXAMPLE_COUNT = 4;
 
-/** The build room and the house stay real rooms (links, voice) but leave the dock. */
-const OFF_DOCK = new Set(["buildroom", "house"]);
+const OFF_DOCK = new Set<string>();
 const DOCK = SPACES.filter((space) => !OFF_DOCK.has(space.id));
 
 const SPACE_COVERS: Record<string, string> = {
-  crew: "/assets/the-crew-snapshot-thumb.webp",
-  couple: "/assets/space-covers/us-two.png",
-  family: "/assets/space-covers/the-family.png",
-  league: "/assets/space-covers/game-day.png",
+  coven: "/assets/placeholder-photo.svg",
 };
 
 /** Spaces you made, or were invited into. Live only — see OnlineCount. */

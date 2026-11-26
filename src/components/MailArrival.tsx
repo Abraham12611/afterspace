@@ -135,7 +135,7 @@ function MailArrivalStage({
     })
     .slice(0, STACK);
 
-  /* `↩ told holly` — only once the envelope landed on the widget AND the
+  /* `↩ told theo` — only once the envelope landed on the widget AND the
      reply really went out; fades on its own. */
   const ticks = events.filter((event) => {
     const info = landed[event.id];

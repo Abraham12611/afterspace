@@ -1,6 +1,6 @@
 /**
  * STAND-IN, NOT A MODEL. Mock mode (`?mock=1`) has no backend, so a voice ask
- * there gets this one fixed answer instead of a Nemotron call. The room still
+ * there gets this one fixed answer instead of a the model call. The room still
  * runs the real path on it (guess, skeleton, parseDeal → applyCard →
  * placeCards), so shots and takes work without a key. Nothing is sent and
  * nothing is measured: the dev readout says so.

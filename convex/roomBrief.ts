@@ -26,8 +26,8 @@ import { applyCorrections, listNames, TOLD_CHARS, TOLD_MAX, type Forgot, type Kn
  * `inspect` is the public, read-only view with a source note per line.
  */
 
-/** Nemotron reads this text at ~2.7 chars a token (quotes, dates, emoji;
- * measured as prompt_tokens with and without it in nebius/eval/brief):
+/** the model reads this text at ~2.7 chars a token (quotes, dates, emoji;
+ * measured as prompt_tokens with and without it in:
  * 640 chars ≈ 237 tokens, under the 250 the brief may never pass. */
 const MAX_CHARS = 640;
 const MIN_EVIDENCE = 2;

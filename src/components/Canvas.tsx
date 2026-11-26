@@ -7,7 +7,6 @@ import {
   usePeerMotion,
 } from "../live/peerMotion";
 import { DECISION_WIDGET, getSpace, SPACE_CURSORS } from "../data/spaces";
-import type { BackendCount } from "../lib/backendCounts";
 import type { SpaceMember, SpaceMeta, Widget } from "../data/types";
 import { useSpaceEntrance, wavefrontDelays } from "../lib/entrance";
 import { isPointing } from "../live/presenceTypes";
@@ -21,7 +20,6 @@ import type {
 import { FirstRunSticky, type CanvasPoint } from "./FirstRunSticky";
 import { PlacementGhost, type PlacingItem } from "./PlacementGhost";
 import { MemberFace } from "./MemberFace";
-import type { BuildRoomFeed, RoundtableReply } from "../widgets/buildroom";
 import { widgetIsInsideFrame } from "../lib/frameMembership";
 import { WidgetCard } from "./WidgetCard";
 import "./phone-board.css";
@@ -149,7 +147,6 @@ export function Canvas({
   dailyReactions = {},
   recapCites = [],
   deletedWidgetIds = [],
-  backendLiveCounts,
   firstRunActive = false,
   onFirstRunPlace,
   placingItem,
@@ -171,8 +168,6 @@ export function Canvas({
   onCheckIn,
   waiting,
   flows,
-  buildRoomFeed,
-  roundtableRepliesByWidget = {},
   paintStrokesByWidget = {},
   paintIdentity,
   onPaintStroke,
@@ -222,7 +217,6 @@ export function Canvas({
   /** Widget ids "catch me up" reported changes on. */
   recapCites?: string[];
   deletedWidgetIds?: string[];
-  backendLiveCounts?: BackendCount[];
   firstRunActive?: boolean;
   onFirstRunPlace?: (point: CanvasPoint) => void;
   /** Something picked off the tray, riding the cursor until it's clicked down. */
@@ -255,8 +249,6 @@ export function Canvas({
   flows?: { threads: ThreadLink[]; callIt: (widgetId: string) => void; cut: (id: string) => void; lock: (id: string) => void; deal: (id: string) => void };
   onPlaylistTune?: (widgetId: string, tune: PlaylistTune) => void;
   onLetterOpen?: (widgetId: string, open: boolean) => void;
-  buildRoomFeed?: BuildRoomFeed;
-  roundtableRepliesByWidget?: Record<string, RoundtableReply[]>;
   paintStrokesByWidget?: Record<string, CozyColorStroke[]>;
   paintIdentity?: CozyColorIdentity;
   onPaintStroke?: (
@@ -272,20 +264,16 @@ export function Canvas({
     () => widgetsProp ?? [
       ...space.widgets,
       ...addedWidgets,
-      ...(promoted && spaceId === "crew" ? [DECISION_WIDGET] : []),
+      ...(promoted && spaceId === "coven" ? [DECISION_WIDGET] : []),
     ]
       .filter((widget) => !deletedWidgetIds.includes(widget.id))
       .map((widget) => ({
         ...widget,
         ...widgetPlacements[widget.id],
-        data:
-          widget.type === "backendLive" && backendLiveCounts
-            ? { counts: backendLiveCounts }
-            : (widgetDataOverrides[widget.id] ?? widget.data),
+        data: widgetDataOverrides[widget.id] ?? widget.data,
       })),
     [
       addedWidgets,
-      backendLiveCounts,
       deletedWidgetIds,
       promoted,
       space.widgets,
@@ -485,8 +473,6 @@ export function Canvas({
         onWheelSpin={onWheelSpin}
         onPlaylistTune={onPlaylistTune}
         onLetterOpen={onLetterOpen}
-        buildRoomFeed={buildRoomFeed}
-        roundtableReplies={roundtableRepliesByWidget[widget.id]}
         paintStrokes={paintStrokesByWidget[widget.id]}
         paintIdentity={paintIdentity}
         onPaintStroke={onPaintStroke}
@@ -537,8 +523,6 @@ export function Canvas({
       onWidgetMove,
       onWidgetSelect,
       pollSelections,
-      buildRoomFeed,
-      roundtableRepliesByWidget,
       paintIdentity,
       paintStrokesByWidget,
       promoted,

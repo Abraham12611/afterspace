@@ -24,7 +24,4 @@ crons.cron("nightly room reset", "0 7 * * *", internal.admin.nightlyReset, {});
 // one stored row instead of the board (roomBrief.ts).
 crons.interval("room briefs", { minutes: 10 }, internal.roomBrief.refreshActive, {});
 
-// Friday 17:00 UTC — enqueue stale linkCards for the batch-worker to refresh.
-crons.cron("refresh stale links", "0 17 * * 5", internal.batch.enqueueStaleLinkRefresh, {});
-
 export default crons;

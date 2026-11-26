@@ -16,8 +16,6 @@ import { pollTallies } from "./votes";
 import { messagesCounter } from "./stats";
 import { rateLimiter } from "./rateLimits";
 import { Workpool } from "@convex-dev/workpool";
-import { z } from "zod";
-import { askAgent } from "./agent";
 
 // workpool: bound the daily recap fan-out to a few concurrent LLM calls
 // instead of an unbounded Promise.all across every space at once.
@@ -516,27 +514,6 @@ export const generateAll = internalAction({
   },
 });
 
-export const getAskThreadId = internalQuery({
-  args: { spaceId: v.id("spaces") },
-  returns: v.union(v.string(), v.null()),
-  handler: async (ctx, { spaceId }) => (await ctx.db.get(spaceId))?.askThreadId ?? null,
-});
-
-export const setAskThreadId = internalMutation({
-  args: { spaceId: v.id("spaces"), threadId: v.string() },
-  returns: v.null(),
-  handler: async (ctx, { spaceId, threadId }) => {
-    await ctx.db.patch(spaceId, { askThreadId: threadId });
-    return null;
-  },
-});
-
-const askReplySchema = z.object({
-  reply: z.string(),
-  widgetId: z.string().optional(),
-  messageId: z.string().optional(),
-});
-
 export const ask = action({
   args: { spaceId: v.id("spaces"), question: v.string() },
   returns: askPayload,
@@ -548,49 +525,7 @@ export const ask = action({
     await rateLimiter.limit(ctx, "recapAsk", { key: spaceId, throws: true });
     await ctx.runMutation(internal.guard.model, { spaceId });
     const snap: Snapshot = await ctx.runQuery(internal.recap.snapshot, { spaceId });
-    // rag: retrieve the widgets/messages most relevant to this specific
-    // question (vector search) instead of dumping the whole board every
-    // time — falls back to "" (snapshot-only grounding) if unconfigured.
-    const retrieved = await ctx
-      .runAction(internal.rag.groundQuestion, { spaceId, question })
-      .catch((error) => {
-        console.error("recap.ask lost rag grounding:", error);
-        return "";
-      });
-
-    let threadId = await ctx.runQuery(internal.recap.getAskThreadId, { spaceId });
-    if (!threadId) {
-      const created = await askAgent.createThread(ctx, {});
-      threadId = created.threadId;
-      await ctx.runMutation(internal.recap.setAskThreadId, { spaceId, threadId });
-    }
-
-    const generated = await askAgent
-      .generateObject(
-        ctx,
-        { threadId },
-        {
-          schema: askReplySchema,
-          prompt:
-            `Space: ${snap.space}\nBoard: ${JSON.stringify(snap.widgets).slice(0, 2500)}\n` +
-            `Chat: ${JSON.stringify(snap.chat).slice(0, 1000)}` +
-            (retrieved ? `\n\nMost relevant to this question:\n${retrieved.slice(0, 2000)}` : "") +
-            `\n\nQuestion: ${question}` +
-            // Naming the shape — and the word "json" — keeps the answer
-            // parseable even when a provider drops json_schema to json_object
-            // (which rejects a request whose messages never say "json"); that
-            // once sent every ask to cannedAsk. The streaming twin in
-            // streaming.ts writes prose and must NOT get this.
-            '\n\nAnswer with one JSON object: {"reply":"<1-2 sentences, lowercase>",' +
-            '"widgetId":"<id from the board, optional>",' +
-            '"messageId":"<id from the chat, optional>"}',
-        },
-      )
-      .then((result) => result.object)
-      .catch((error) => {
-        console.error("recap.ask fell back to canned prose:", error);
-        return null;
-      });
+    const generated = (await askModel("ask", snap, question).catch(() => null)) as { reply: string; widgetId?: string; messageId?: string } | null;
 
     const answer = generated ?? cannedAsk(snap, question);
     await ctx.runMutation(internal.recap.reply, { spaceId, text: answer.reply });

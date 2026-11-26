@@ -3,21 +3,20 @@ import { v, type Infer } from "convex/values";
 /**
  * Typed shapes for `widgets.data`, keyed by the widget's `type` field.
  * Reverse-engineered from every producer (seed.ts, widgetDefaults.ts,
- * inbox.ts, firecrawl.ts, questions.ts, WidgetEditorPanel.tsx) and
- * cross-checked against the live shape of every widget on the deployment.
+ * WidgetEditorPanel.tsx) and cross-checked against the live shape of every
+ * widget on the deployment.
  *
- * The 12 core types with backend logic come first; the lighter-weight
+ * The core types with backend logic come first; the lighter-weight
  * "long tail" types follow. Every type in `src/data/types.ts` has an arm, and
- * every producer payload validates against one — nothing we ship reaches the
+ * every producer payload validates against one, so nothing we ship reaches the
  * permissive record at the end of the union. See the note above
  * `fallbackData` for the two reasons it is still there.
  *
- * The union itself is at the bottom of the file: 35 arms, in order — poll,
- * note, decision, countdown, linkCard, letter, photoWall, expenseSplit,
- * itinerary, potluck, rsvp, dailyQ (the 12 core types, defined first), then
- * frame, sticker, media, availability, linkShelf, playlist, jokeRegistry,
- * messageWall, chat, backendLive, quote, weather, sports, wheel, dualClock,
- * cozyColor, linkPile, hotLinks, shipPost, roundtable, checkIn, standings, and `fallbackData`
+ * The union itself is at the bottom of the file, in order: poll, note,
+ * decision, countdown, letter, photoWall, expenseSplit, itinerary, potluck,
+ * rsvp, dailyQ (the core types, defined first), then frame, sticker, media,
+ * availability, playlist, jokeRegistry, messageWall, chat, quote, weather,
+ * sports, wheel, dualClock, cozyColor, checkIn, standings, and `fallbackData`
  * last. `convex/schema.ts` uses it as the validator for `widgets.data`.
  */
 
@@ -30,9 +29,6 @@ const pollData = v.object({
       votes: v.number(),
       total: v.number(),
       voters: v.optional(v.array(v.string())),
-      // a real place the lookup found (convex/tavily.ts): its page, the host, and a number only when the page had one;
-      // img only when Tavily returned it for that place, emoji from code (what was asked / what the place is)
-      web: v.optional(v.object({ url: v.string(), host: v.string(), rating: v.optional(v.number()), reviews: v.optional(v.number()), img: v.optional(v.string()), emoji: v.optional(v.string()) })),
     }),
   ),
   waitingOn: v.optional(v.array(v.string())),
@@ -64,27 +60,6 @@ const decisionData = v.object({
   promotedFromMessageId: v.optional(v.id("messages")),
 });
 
-const linkReadData = v.object({
-  url: v.string(),
-  host: v.string(),
-  at: v.number(),
-  step: v.union(v.literal("post"), v.literal("site"), v.literal("done")),
-  venue: v.optional(v.string()),
-  town: v.optional(v.string()),
-  day: v.optional(v.string()),
-  fee: v.optional(v.object({ item: v.string(), amount: v.number(), cash: v.boolean() })),
-  source: v.optional(v.object({ label: v.string(), url: v.string(), host: v.string() })),
-  post: v.optional(v.object({ amount: v.number(), url: v.string() })),
-  note: v.optional(v.string()),
-  ms: v.optional(v.number()),
-  // the card's picture: the first photo on the venue's own page; else the emoji for what kind of place it is (code)
-  img: v.optional(v.string()),
-  emoji: v.optional(v.string()),
-  // a voice ask (tavily.ts planPlace), not a paste: the sentence; the post was found by search
-  via: v.optional(v.literal("voice")),
-  said: v.optional(v.string()),
-});
-
 const countdownData = v.object({
   event: v.optional(v.string()),
   targetDate: v.optional(v.string()),
@@ -93,26 +68,6 @@ const countdownData = v.object({
   tone: v.optional(v.string()),
   // who set the date by hand (the editor); a voice edit moving it asks them first (choiceVotes.ts)
   dateBy: v.optional(v.object({ id: v.optional(v.string()), name: v.string() })),
-  // a pasted link, read (convex/tavily.ts readLink): the venue, one fee for one day from its own site, and what the post said only when it differs
-  read: v.optional(linkReadData),
-});
-
-// Matches firecrawl.ts's scrape payload plus the savedBy/savedAt/questions
-// fields the app layers on before persisting.
-const linkCardData = v.object({
-  url: v.string(),
-  title: v.string(),
-  description: v.string(),
-  imageUrl: v.string(),
-  siteName: v.string(),
-  author: v.string(),
-  publishedAt: v.string(),
-  savedBy: v.string(),
-  savedAt: v.number(),
-  discussionUrl: v.optional(v.string()),
-  points: v.optional(v.number()),
-  commentCount: v.optional(v.number()),
-  questions: v.optional(v.array(v.object({ id: v.string(), text: v.string() }))),
 });
 
 // Mail-sourced letters set fromAddress + unfiled; seeded ones don't.
@@ -202,9 +157,6 @@ const rsvpData = v.object({
   waitingOn: v.optional(v.array(v.string())),
   waitingNote: v.optional(v.string()),
   tone: v.optional(v.string()),
-  // what to bring, from a read link's fee ("bring $30 cash"); pending while the read runs (convex/tavily.ts readLink)
-  bring: v.optional(v.string()),
-  bringPending: v.optional(v.boolean()),
 });
 
 const dailyQData = v.object({
@@ -273,14 +225,6 @@ const availabilityData = v.object({
   ),
 });
 
-const linkShelfData = v.object({
-  title: v.string(),
-  tone: v.string(),
-  links: v.array(
-    v.object({ label: v.string(), url: v.string(), by: v.string() }),
-  ),
-});
-
 // `tone` is absent on the seeded rows but written by both the picker's fresh
 // payload and the editor panel — optional, not missing.
 const playlistData = v.object({
@@ -313,12 +257,6 @@ const chatData = v.object({
       promotable: v.optional(v.boolean()),
     }),
   ),
-});
-
-// Counts are overwritten from live queries on render (Canvas.tsx); the stored
-// copy is just the placeholder the widget is born with.
-const backendLiveData = v.object({
-  counts: v.array(v.object({ label: v.string(), value: v.number() })),
 });
 
 const quoteData = v.object({
@@ -369,67 +307,6 @@ const dualClockData = v.object({
 
 const cozyColorData = v.object({ title: v.string(), src: v.string() });
 
-// One link dropped into the reading pile — by inbound mail (convex/inbox.ts)
-// or by hand in the reading room. Exported so inbox.ts validates against the
-// same shape it writes, instead of keeping a second copy.
-export const droppedLinkValidator = v.object({
-  id: v.string(),
-  url: v.string(),
-  domain: v.string(),
-  title: v.string(),
-  description: v.string(),
-  imageUrl: v.string(),
-  kind: v.string(),
-  whyItMatters: v.string(),
-  questions: v.array(v.object({ id: v.string(), text: v.string() })),
-  status: v.string(),
-  batchKey: v.string(),
-  droppedBy: v.string(),
-  droppedByName: v.string(),
-  droppedAt: v.number(),
-  voters: v.array(v.string()),
-});
-
-// The partial written back once a scrape resolves (or fails).
-export const droppedLinkPatchValidator = v.object({
-  title: v.optional(v.string()),
-  description: v.optional(v.string()),
-  imageUrl: v.optional(v.string()),
-  domain: v.optional(v.string()),
-  whyItMatters: v.optional(v.string()),
-  questions: v.optional(
-    v.array(v.object({ id: v.string(), text: v.string() })),
-  ),
-  status: v.optional(v.string()),
-});
-
-// hotLinks renders from the reading-room feed. linkPile owns the rows: the
-// `dropped` array plus `linkState`, a per-link UI map keyed by dynamic link
-// id (src/lib/buildRoomFeed.ts), which is a record by nature.
-const linkPileData = v.object({
-  title: v.string(),
-  cta: v.string(),
-  dropped: v.optional(v.array(droppedLinkValidator)),
-  linkState: v.optional(v.record(v.string(), v.any())),
-});
-
-const hotLinksData = v.object({ title: v.string(), limit: v.number() });
-
-const shipPostData = v.object({
-  title: v.string(),
-  body: v.string(),
-  by: v.string(),
-  date: v.string(),
-  imageUrl: v.string(),
-  feedbackWanted: v.optional(v.boolean()),
-});
-
-const roundtableData = v.object({
-  title: v.string(),
-  body: v.string(),
-  category: v.string(),
-});
-
 // A challenge the group is in together (src/lib/challenge.ts). The check-in
 // holds the data, one row of daily numbers per person; standings is only a
 // pointer at a check-in and ranks it on every render.
@@ -454,7 +331,7 @@ const standingsData = v.object({
 
 // Last resort. Nothing we ship lands here: all 32 types in src/data/types.ts
 // have an arm above, and every producer payload (seed, picker defaults, editor
-// panel, inbox, firecrawl) was replayed against the typed arms alone and
+// panel) was replayed against the typed arms alone and
 // passed. It stays for the two cases the arms can't cover:
 //   1. `widgets.updateWidgetData` and `questions.setQuestions` patch a widget
 //      by id without checking its `type`, so a shape can drift off-arm.
@@ -469,7 +346,6 @@ export const widgetDataValidator = v.union(
   noteData,
   decisionData,
   countdownData,
-  linkCardData,
   letterData,
   photoWallData,
   expenseSplitData,
@@ -481,22 +357,16 @@ export const widgetDataValidator = v.union(
   stickerData,
   mediaData,
   availabilityData,
-  linkShelfData,
   playlistData,
   jokeRegistryData,
   messageWallData,
   chatData,
-  backendLiveData,
   quoteData,
   weatherData,
   sportsData,
   wheelData,
   dualClockData,
   cozyColorData,
-  linkPileData,
-  hotLinksData,
-  shipPostData,
-  roundtableData,
   checkInData,
   standingsData,
   fallbackData,
@@ -512,8 +382,6 @@ export type CheckInWidgetData = Infer<typeof checkInData>;
 export type NoteData = Infer<typeof noteData>;
 export type DecisionData = Infer<typeof decisionData>;
 export type CountdownData = Infer<typeof countdownData>;
-export type LinkRead = Infer<typeof linkReadData>;
-export type LinkCardData = Infer<typeof linkCardData>;
 export type LetterData = Infer<typeof letterData>;
 export type PhotoWallData = Infer<typeof photoWallData>;
 export type ExpenseSplitData = Infer<typeof expenseSplitData>;

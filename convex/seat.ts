@@ -6,7 +6,7 @@ import type { Id } from "./_generated/dataModel";
 export type Seat = { userId: string; name: string; color: string; emoji?: string; avatarUrl?: string };
 
 /**
- * Who is calling, in this room (N1 audit, nebius/eval/n1-new-space.md §6).
+ * Who is calling, in this room.
  * Every browser is signed in (guests anonymously), so the caller is always
  * their own `members` row: a name or id the client sends is ignored, and a
  * call with no session, or from someone who hasn't entered the room, acts as
@@ -26,7 +26,7 @@ export async function seatOf(ctx: QueryCtx, spaceId: Id<"spaces">): Promise<Seat
  * The caller's seat, or the room's maker before they've walked in: a made
  * room's starter cards are written before its maker passes the gate
  * (src/live/useCreateSpace.ts). Card writes use this (S3 audit,
- * nebius/eval/s3-audit.md).
+ *.
  */
 export async function seatOrMaker(ctx: QueryCtx, spaceId: Id<"spaces">): Promise<Seat | null> {
   const seat = await seatOf(ctx, spaceId);

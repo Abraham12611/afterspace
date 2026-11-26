@@ -19,11 +19,3 @@ export function widgetIsInsideFrame(widget: Widget, frame: Widget) {
     cy <= frame.y + frame.h
   );
 }
-
-/** The link pile living inside this frame, if it holds one. */
-export function pileInsideFrame(frame: Widget, widgets: Widget[]) {
-  if (frame.type !== "frame") return undefined;
-  return widgets.find(
-    (widget) => widget.type === "linkPile" && widgetIsInsideFrame(widget, frame),
-  );
-}

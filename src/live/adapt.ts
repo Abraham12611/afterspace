@@ -98,7 +98,6 @@ export function spaceFromLive(row: {
   type: "ongoing" | "event";
   canvasW?: number;
   canvasH?: number;
-  inboxAddress?: string;
 }): Space {
   return {
     id: row.slug ?? "",
@@ -112,7 +111,6 @@ export function spaceFromLive(row: {
     activity: true,
     kind: row.type,
     tagline: row.tagline ?? "",
-    inboxAddress: row.inboxAddress,
     members: [],
     widgets: [],
   };

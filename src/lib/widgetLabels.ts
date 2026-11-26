@@ -33,10 +33,6 @@ export function widgetLabel(widget: Widget): string {
       return String(widget.data.title ?? "itinerary");
     case "availability":
       return String(widget.data.title ?? "availability");
-    case "linkShelf":
-      return String(widget.data.title ?? "saved links");
-    case "linkCard":
-      return String(widget.data.title || widget.data.siteName || "web post");
     case "jokeRegistry":
       return String(widget.data.title ?? "inside jokes");
     case "expenseSplit":
@@ -49,22 +45,12 @@ export function widgetLabel(widget: Widget): string {
       return String(widget.data.title ?? "decision receipt");
     case "quote":
       return "quote of the week";
-    case "backendLive":
-      return "live backend";
     case "wheel":
       return String(widget.data.title ?? "spin wheel");
     case "dualClock":
       return String(widget.data.title ?? "two clocks");
     case "cozyColor":
       return String(widget.data.title ?? "color together");
-    case "linkPile":
-      return String(widget.data.title ?? "the pile");
-    case "hotLinks":
-      return String(widget.data.title ?? "hot now");
-    case "shipPost":
-      return String(widget.data.title ?? "ship post");
-    case "roundtable":
-      return String(widget.data.title ?? "roundtable");
     case "checkIn":
       return String(widget.data.title ?? "check-in");
     case "standings":

@@ -9,7 +9,7 @@ import { KEEP, MAX_OPTIONS, since, tally, voterKey, voterOf } from "../src/lib/c
 import { cardCtx, commitEdit, rightOfWay } from "./rightOfWay";
 
 /**
- * Choices become a vote (nebius R2). When the door says `ask` (an AI write
+ * Choices become a vote (R2). When the door says `ask` (an AI write
  * would override what people chose), the write doesn't happen: a small vote
  * rides on the card instead, "move game night to sunday? tara asked · 3
  * people said yes to friday", keep it / change it. Only the people whose

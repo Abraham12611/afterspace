@@ -3,8 +3,6 @@ import { createRoot } from "react-dom/client";
 import { ConvexReactClient } from "convex/react";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache";
-// the family board's layout; not imported from src/data/family.ts, which the Convex seed bundles
-import "./data/family.css";
 import App from "./App.tsx";
 import { getDataMode } from "./live/dataMode.ts";
 import { AuthIdentityBridge } from "./live/useAuthIdentity.ts";
@@ -43,7 +41,7 @@ function MissingConvexConfig() {
 /* The dev lane is known from the URL before the query answers, so its first
    paint already says "make your own" (keep in step with convex/spaces.ts
    `OPEN_ROOM_DEPLOYMENTS`). Anywhere else the strip waits for the answer. */
-const OPEN_LANE = /dusty-condor-648/.test(url ?? "");
+const OPEN_LANE = import.meta.env.VITE_DEV_LANE === "1";
 
 /** Live: the banner asks the deployment whether rooms are open (by lane, convex/spaces.ts `roomsOpen`). */
 function LiveDemoBanner() {

@@ -94,15 +94,9 @@ export const getDemoSpace = query({
   handler: async (ctx) => {
     const bySlug = await ctx.db
       .query("spaces")
-      .withIndex("by_slug", (q) => q.eq("slug", "crew"))
+      .withIndex("by_slug", (q) => q.eq("slug", "coven"))
       .unique();
-    if (bySlug) return bySlug;
-    /* Pre-slug rows only. This is the HISTORICAL name, not the current display
-       name (that room is "the group chat" now) — don't "fix" it to match. */
-    return await ctx.db
-      .query("spaces")
-      .withIndex("by_name", (q) => q.eq("name", "the crew"))
-      .unique();
+    return bySlug;
   },
 });
 
@@ -471,7 +465,7 @@ export const joinDemoSpace = mutation({
   handler: async (ctx, { spaceId, userId: tabId, name, color, emoji, avatarUrl }) => {
     /* The seat is the signed-in id (guests are anonymous accounts). Before the
        session lands there is no seat at all (S3): a tab id could be anyone's,
-       a seeded "seed:crew:maya" included, and nothing honours a tab-id seat
+       a seeded "seed:crew:wren" included, and nothing honours a tab-id seat
        now. The screen joins again when its id turns into the session's. */
     void tabId;
     const authId = await getAuthUserId(ctx);

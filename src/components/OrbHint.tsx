@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import "./orbHint.css";
 
 /**
- * The orb hint (FM1b, nebius/eval/fm1b-first-minute-designer.md): one black
+ * The orb hint: one black
  * slip pinned above the orb the first time a browser lands in a tour room.
  * It names the move (tap the orb and talk), carries three starter asks that
  * play through the orb the way NewRoom's do, and folds into the orb on the

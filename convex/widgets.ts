@@ -70,7 +70,7 @@ export const createWidget = mutation({
  * holding its id. `paint.addStroke` and `presence.claimGesture` already scope
  * their writes this way; these mutations did not.
  *
- * And only for a caller with a seat in that room (S3, nebius/eval/s3-audit.md):
+ * And only for a caller with a seat in that room:
  * no session or no seat and the write is ignored. Not an ownership check: any
  * seat may move anyone's card, and the tour's rooms give every visitor a seat
  * at the gate (docs/data-model-plan.md §1).

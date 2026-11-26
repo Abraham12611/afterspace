@@ -27,7 +27,7 @@ const DONE_LINGER_MS = 9_000;
  * A running line holds the strip while the work runs. The cap is the failsafe:
  * an action that dies between its "running" row and its "done" row must not
  * pin `fetching example.com` to the canvas forever. Generously past a slow
- * Firecrawl scrape, well short of permanent.
+ * link scrape, well short of permanent.
  */
 const RUNNING_MAX_MS = 45_000;
 

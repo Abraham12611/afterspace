@@ -1,5 +1,5 @@
 /**
- * The deck a fill is shown, per ask (eval: nebius/eval/v1-verbs.md). The
+ * The deck a fill is shown, per ask. The
  * prompt carries only the 6–8 cards the words could plausibly mean, and only
  * their worked examples, so it stops growing with the deck. Code picks them,
  * no model: the cards the words name (every cue, `guessCards`), the decide's

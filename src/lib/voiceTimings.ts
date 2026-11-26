@@ -17,7 +17,7 @@
 
    The call numbers are the newest runs on the code that sends a call per
    word (2026-10-04 night, eval/b2-wired.md); round one's are kept only where
-   nothing newer exists. Docs live in the local eval folder (`nebius/eval/`, not in the repo).
+   nothing newer exists. Docs live in the local eval folder.
    `?slow=3` plays every one of these at a third of the speed. The dev
    readout (`?timing=1`) prints the same rows next to what this run did. */
 

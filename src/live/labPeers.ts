@@ -3,7 +3,7 @@ import type { LivePeer } from "./presenceTypes";
 
 /* The peers lab — three or four hands on the board that aren't anyone.
  *
- * `/?mock=1&peers=4#/space/crew` (any mock space; `seed=` picks a different
+ * `/?mock=1&peers=4#/space/coven` (any mock space; `seed=` picks a different
  * take). Built for the demo video's "always live" beat: the crew's online
  * roster gets a cursor each, and the cursors move the way people's do —
  * a quick wrist move onto a card, a small overshoot and correction, a slow

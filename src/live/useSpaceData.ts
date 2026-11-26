@@ -2,7 +2,6 @@ import { useEffect, useMemo } from "react";
 import { useQuery } from "convex-helpers/react/cache";
 import { api } from "../../convex/_generated/api";
 import type { Widget } from "../data/types";
-import { withBuildRoomLayout } from "../lib/buildRoomPresentation";
 import { toWidget } from "./adapt";
 import { getDataMode } from "./dataMode";
 import { readSpaceSnapshot, writeSpaceSnapshot } from "./snapshot";
@@ -17,10 +16,7 @@ export function useSpaceData(slug: string) {
   const space = result?.space;
   const liveWidgets: Widget[] | undefined = useMemo(
     () => mode === "live" && result
-      ? result.widgets.map((row) => {
-          const widget = toWidget(row);
-          return slug === "buildroom" ? withBuildRoomLayout(widget) : widget;
-        })
+      ? result.widgets.map((row) => toWidget(row))
       : undefined,
     [mode, result, slug],
   );

@@ -1,5 +1,5 @@
 /**
- * Choices become a vote (nebius R2), on the board. A vote rides on the card
+ * Choices become a vote (R2), on the board. A vote rides on the card
  * it's about, an ink ticket off its bottom edge like the waiting ticket:
  * "move game night to sunday?" / "tara asked · 3 people said yes to friday",
  * and for the people whose choice it is, keep it / change it (one person:

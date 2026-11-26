@@ -1,19 +1,13 @@
 import { defineApp } from "convex/server";
 import { v } from "convex/values";
 import staticHosting from "@convex-dev/static-hosting/convex.config";
-import firecrawl from "@firecrawl/firecrawl-convex/convex.config";
 import migrations from "@convex-dev/migrations/convex.config";
 import aggregate from "@convex-dev/aggregate/convex.config";
 import shardedCounter from "@convex-dev/sharded-counter/convex.config";
 import rateLimiter from "@convex-dev/rate-limiter/convex.config";
 import actionRetrier from "@convex-dev/action-retrier/convex.config";
-import actionCache from "@convex-dev/action-cache/convex.config";
 import workpool from "@convex-dev/workpool/convex.config";
 import workflow from "@convex-dev/workflow/convex.config";
-import batchWorker from "@convex-dev/batch-worker/convex.config";
-import agent from "@convex-dev/agent/convex.config";
-import rag from "@convex-dev/rag/convex.config";
-import persistentTextStreaming from "@convex-dev/persistent-text-streaming/convex.config";
 import presence from "@convex-dev/presence/convex.config";
 import authWellKnown from "./components/authWellKnown/convex.config";
 
@@ -22,11 +16,6 @@ import authWellKnown from "./components/authWellKnown/convex.config";
 const app = defineApp({
   httpPrefix: "/api",
   env: {
-    FIRECRAWL_API_KEY: v.string(),
-    FIRECRAWL_WEBHOOK_SECRET: v.optional(v.string()),
-    // Any non-empty value switches off embeddings, the one model call that
-    // goes through the Convex AI Gateway (convex/rag.ts).
-    AI_GATEWAY_DISABLED: v.optional(v.string()),
     // OpenRouter, every model call (convex/openrouter.ts). Unset = no model: AI features return canned output.
     OPENROUTER_API_KEY: v.optional(v.string()),
     SITE_URL: v.optional(v.string()),
@@ -44,15 +33,6 @@ const app = defineApp({
 
 app.use(staticHosting, { httpPrefix: "/" });
 
-// Firecrawl: links become structured cards. Webhook at /api/firecrawl/webhook.
-app.use(firecrawl, {
-  httpPrefix: "/firecrawl/",
-  env: {
-    FIRECRAWL_API_KEY: app.env.FIRECRAWL_API_KEY,
-    FIRECRAWL_WEBHOOK_SECRET: app.env.FIRECRAWL_WEBHOOK_SECRET,
-  },
-});
-
 // Data/infra: backfills, tallies, live counters, quotas, resilient externals.
 app.use(migrations);
 // Two named instances: poll vote tallies (namespaced by widget) and
@@ -62,17 +42,10 @@ app.use(aggregate, { name: "memberCounts" });
 app.use(shardedCounter);
 app.use(rateLimiter);
 app.use(actionRetrier);
-app.use(actionCache);
 
-// Orchestration: bounded fan-out, durable multi-step flows, batch jobs.
+// Orchestration: bounded fan-out, durable multi-step flows.
 app.use(workpool);
 app.use(workflow);
-app.use(batchWorker);
-
-// AI: agent threads, retrieval, token streaming.
-app.use(agent);
-app.use(rag);
-app.use(persistentTextStreaming);
 
 // Realtime.
 app.use(presence);

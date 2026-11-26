@@ -3,7 +3,7 @@ import { inviteUrlForSpace } from "../lib/routes";
 import "./newRoom.css";
 
 /**
- * A room someone just made (N1, nebius/eval/n1-new-space.md). Two small
+ * A room someone just made. Two small
  * things on the live page, nothing else:
  * - `NewRoomStart`: the empty board says "say the first thing" with three
  *   starter asks; a tap plays the words into the orb as if they were said.

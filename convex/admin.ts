@@ -1,5 +1,4 @@
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
 import { env, internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { messagesCounter, widgetsCounter } from "./stats";
@@ -238,10 +237,6 @@ async function restoreBaseline(ctx: MutationCtx, space: Doc<"spaces">) {
     await ctx.db.delete(recap._id);
     removed.other += 1;
   }
-  for (const stream of await ctx.db.query("askStreams").withIndex("by_space", (q) => q.eq("spaceId", space._id)).collect()) {
-    await ctx.db.delete(stream._id);
-    removed.other += 1;
-  }
   for (const step of await ctx.db.query("work").withIndex("by_space", (q) => q.eq("spaceId", space._id)).collect()) {
     await ctx.db.delete(step._id);
     removed.other += 1;
@@ -250,15 +245,7 @@ async function restoreBaseline(ctx: MutationCtx, space: Doc<"spaces">) {
     await ctx.db.delete(cursor._id);
     removed.other += 1;
   }
-  // Queued Firecrawl refreshes for widgets that just stopped existing.
-  for (const queued of await ctx.db.query("linkRefreshQueue").collect()) {
-    if (!(await ctx.db.get(queued.widgetId))) {
-      await ctx.db.delete(queued._id);
-      removed.other += 1;
-    }
-  }
-
-  // 3 · the space row's look. Slug, owner and askThread are routing —
+  // 3 · the space row's look. Slug and owner are routing —
   // restoring those would hand the room to whoever saved it.
   await ctx.db.patch(space._id, {
     name: baseline.space.name,
@@ -270,7 +257,6 @@ async function restoreBaseline(ctx: MutationCtx, space: Doc<"spaces">) {
     canvasH: baseline.space.canvasH,
     eventAt: baseline.space.eventAt,
     lastActivityAt: Date.now(),
-    ragIndexedAt: undefined,
   });
 
   // 4 · replay. New ids, so everything that referenced one gets translated.
@@ -316,10 +302,6 @@ async function restoreBaseline(ctx: MutationCtx, space: Doc<"spaces">) {
       widgetId: widgetId as Id<"widgets">,
     });
   }
-
-  // 5 · the two indexes that point at the ids we just replaced.
-  await ctx.scheduler.runAfter(0, internal.rag.reindexSpace, { spaceId: space._id });
-  await ctx.scheduler.runAfter(0, internal.similar.backfillSpace, { spaceId: space._id });
 
   return {
     slug: space.slug!,

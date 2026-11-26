@@ -8,7 +8,6 @@ const QUICK_TYPES: WidgetType[] = [
   "photoWall",
   "poll",
   "countdown",
-  "linkCard",
   "dailyQ",
   "rsvp",
   "potluck",
@@ -19,27 +18,20 @@ const WIDGET_DETAILS: Partial<Record<WidgetType, { description: string; category
   photoWall: { description: "Keep the good moments", category: "Share" },
   poll: { description: "Let the group decide", category: "Plan" },
   countdown: { description: "Count down to a good day", category: "Plan" },
-  linkCard: { description: "Turn a URL into a post", category: "Share" },
   dailyQ: { description: "Get everyone talking", category: "Play" },
   rsvp: { description: "See who's coming", category: "Plan" },
   potluck: { description: "Pick what you're bringing", category: "Plan" },
   availability: { description: "Find a time that works", category: "Plan" },
-  linkShelf: { description: "Save links worth keeping", category: "Share" },
   playlist: { description: "Put something on together", category: "Play" },
   jokeRegistry: { description: "Keep the inside jokes alive", category: "Play" },
   expenseSplit: { description: "Work out who owes what", category: "Plan" },
   itinerary: { description: "Give the trip a plan", category: "Plan" },
   weather: { description: "Check the forecast", category: "Plan" },
   sports: { description: "Follow the game together", category: "Play" },
-  backendLive: { description: "See the space's live activity", category: "Build" },
   wheel: { description: "Leave the choice to chance", category: "Play" },
   cozyColor: { description: "Color a picture together", category: "Play" },
-  linkPile: { description: "Collect finds from the web", category: "Build" },
-  hotLinks: { description: "See what everyone's into", category: "Build" },
-  shipPost: { description: "Show the thing you made", category: "Build" },
-  roundtable: { description: "Start a shared discussion", category: "Build" },
 };
-const CATEGORIES = ["All", "Share", "Plan", "Play", "Build"];
+const CATEGORIES = ["All", "Share", "Plan", "Play"];
 
 function WidgetPreview({ item }: { item: WidgetTemplate }) {
   const previewClassName = `widget-picker-preview widget-picker-preview-${item.type}`;
@@ -83,28 +75,6 @@ function WidgetPreview({ item }: { item: WidgetTemplate }) {
         <span className={previewClassName} aria-hidden="true">
           <strong>12</strong>
           <span>days</span>
-        </span>
-      );
-    case "linkShelf":
-      return (
-        <span className={previewClassName} aria-hidden="true">
-          <span className="preview-link-mark">↗</span>
-          <span className="preview-link-copy">
-            <span />
-            <span />
-          </span>
-        </span>
-      );
-    case "linkCard":
-      return (
-        <span className={previewClassName} aria-hidden="true">
-          <span className="preview-link-card-cover" />
-          <span className="preview-link-card-paper">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span className="preview-link-card-tab">↗</span>
         </span>
       );
     case "availability":
@@ -190,12 +160,9 @@ function WidgetPreview({ item }: { item: WidgetTemplate }) {
     case "itinerary":
       return <span className={`${previewClassName} preview-mini-route`} aria-hidden="true"><i /><i /><i /></span>;
     case "jokeRegistry":
-    case "roundtable":
-      return <span className={`${previewClassName} preview-mini-talk`} aria-hidden="true"><b>{item.type === "jokeRegistry" ? "ha!" : "..."}</b><i /></span>;
-    case "backendLive":
-      return <span className={`${previewClassName} preview-mini-pulse`} aria-hidden="true"><i /><i /><i /><i /><i /></span>;
+      return <span className={`${previewClassName} preview-mini-talk`} aria-hidden="true"><b>ha!</b><i /></span>;
     default:
-      return <span className={`${previewClassName} preview-mini-post`} aria-hidden="true"><b>{item.type === "shipPost" ? "✦" : "↗"}</b><i /><i /></span>;
+      return <span className={`${previewClassName} preview-mini-post`} aria-hidden="true"><b>↗</b><i /><i /></span>;
   }
 }
 
@@ -203,7 +170,6 @@ const CATEGORY_TITLES: Record<string, string> = {
   Share: "a little of you",
   Plan: "make a plan",
   Play: "just for fun",
-  Build: "make something together",
 };
 
 function CatalogPreview({ item }: { item: WidgetTemplate }) {
@@ -220,17 +186,13 @@ function CatalogPreview({ item }: { item: WidgetTemplate }) {
       ) : item.type === "dailyQ" ? (
         <span className="catalog-question"><small>today's question</small><strong>what's your<br />comfort show?</strong><span>your turn ↗</span></span>
       ) : item.type === "potluck" ? (
-        <span className="catalog-paper catalog-list"><strong>who's bringing what</strong><span>✓ <b>snacks</b><i>maya</i></span><span>✓ <b>drinks</b><i>sam</i></span><span>○ <b>something sweet</b></span></span>
+        <span className="catalog-paper catalog-list"><strong>who's bringing what</strong><span>✓ <b>snacks</b><i>wren</i></span><span>✓ <b>drinks</b><i>priya</i></span><span>○ <b>something sweet</b></span></span>
       ) : item.type === "rsvp" ? (
         <span className="catalog-rsvp"><small>see you friday</small><strong>3 <span>in!</span></strong><span className="catalog-faces"><i>M</i><i>J</i><i>S</i></span></span>
       ) : item.type === "expenseSplit" ? (
         <span className="catalog-paper catalog-receipt"><small>weekend split</small><strong>$48.00</strong><span>pizza night <b>$36</b></span><span>snacks <b>$12</b></span><small>we're even ♡</small></span>
       ) : item.type === "itinerary" ? (
         <span className="catalog-paper catalog-list"><small>the weekend away</small><strong>a little adventure</strong><span>01 <b>hit the road</b></span><span>02 <b>find good coffee</b></span><span>03 <b>see where we end up</b></span></span>
-      ) : item.type === "linkCard" ? (
-        <span className="catalog-web"><span className="catalog-web-cover">↗</span><strong>found this.<br />thought of you.</strong><small>something worth sharing</small></span>
-      ) : item.type === "linkShelf" || item.type === "linkPile" || item.type === "hotLinks" || item.type === "shipPost" ? (
-        <span className="catalog-stack"><span /><span /><span><WidgetPreview item={item} /><strong>{item.type === "shipPost" ? "look what I made" : item.type === "hotLinks" ? "worth a look" : "the good finds"}</strong></span></span>
       ) : (
         <span className="catalog-icon-preview"><WidgetPreview item={item} /></span>
       )}

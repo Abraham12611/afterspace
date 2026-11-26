@@ -1,4 +1,4 @@
-import { RateLimiter, MINUTE, HOUR, DAY } from "@convex-dev/rate-limiter";
+import { RateLimiter, MINUTE, DAY } from "@convex-dev/rate-limiter";
 import { components } from "./_generated/api";
 
 /**
@@ -28,13 +28,6 @@ export const rateLimiter = new RateLimiter(components.rateLimiter, {
      fast ask ≈ $0.0021 over ~8 calls, a brain ask ≈ $0.0045 over ~5). */
   // sharded: everyone asking in one room shares this row, and a busy minute shouldn't queue on one document
   voiceRoomDay: { kind: "fixed window", rate: 300, period: DAY, shards: 5 },
-  // Firecrawl credit (convex/firecrawl.ts), per person: a link dropped on the
-  // board, a topic searched, a site crawled (up to 50 pages each, so rare).
-  firecrawlScrape: { kind: "token bucket", rate: 20, period: MINUTE, capacity: 10 },
-  firecrawlSearch: { kind: "token bucket", rate: 10, period: MINUTE, capacity: 5 },
-  firecrawlCrawl: { kind: "token bucket", rate: 3, period: HOUR, capacity: 2 },
-  // Tavily, the lookup (convex/tavily.ts): a search credit or two per ask, per room per day.
-  tavilyRoomDay: { kind: "fixed window", rate: 40, period: DAY },
   // The orb's wake-up ping costs nothing, but it is not an open relay.
   voiceWarm: { kind: "token bucket", rate: 6, period: MINUTE, capacity: 6 },
 });

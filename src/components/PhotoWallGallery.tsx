@@ -32,7 +32,7 @@ export type PhotoComment = {
 
 type PrintOrigin = { x: number; y: number; w: number; h: number };
 
-const FALLBACK_PHOTO = "/assets/the-crew-snapshot.webp";
+const FALLBACK_PHOTO = "/assets/placeholder-photo.svg";
 
 const GLIDE = "cubic-bezier(0.16, 1, 0.3, 1)";
 const POP = "cubic-bezier(0.2, 0.9, 0.3, 1.18)";

@@ -8,7 +8,6 @@ import "./itinerary.css";
 import "./rsvp-phone.css";
 import { getIdentity } from "../live/identity";
 import { getDataMode } from "../live/dataMode";
-import { RsvpBring } from "./linkRead";
 import {
   DEFAULT_STATION_ID,
   getRadioSnapshot,
@@ -40,41 +39,6 @@ type AvailabilityMember = {
   name: string;
   slots?: boolean[];
 };
-
-type ShelfLink = {
-  label: string;
-  url: string;
-  by?: string;
-  contributor?: string;
-};
-
-const LINK_CARD_FALLBACK = "/assets/link-card-fallback.webp";
-
-function linkCardHref(value: string) {
-  const url = value.trim();
-  return url.includes("://") ? url : `https://${url}`;
-}
-
-function linkCardDomain(value: string) {
-  try {
-    return new URL(linkCardHref(value)).hostname.replace(/^www\./, "");
-  } catch {
-    return "shared from the web";
-  }
-}
-
-function linkCardDate(publishedAt: string, savedAt: unknown) {
-  const published = publishedAt.trim();
-  const date = published
-    ? new Date(published)
-    : new Date(typeof savedAt === "number" ? savedAt : Date.now());
-  if (Number.isNaN(date.getTime())) return "saved today";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
 
 const REACTION_EMOJIS = ["❤️", "😂", "👀"];
 
@@ -311,7 +275,7 @@ export function DailyQWidget({
   style: Style;
   /** Your answer this session — posting it unlocks the scribbled answers. */
   localAnswer?: string;
-  /** Your reaction per answer author, e.g. { Maya: "😂" }. */
+  /** Your reaction per answer author, e.g. { Wren: "😂" }. */
   localReactions?: Record<string, string>;
   onAnswer?: (text: string) => void;
   onReact?: (answerName: string, emoji: string) => void;
@@ -653,7 +617,6 @@ export function RsvpWidget({
           <span>waiting on {waitingOn.join(" + ")}</span>
         </p>
       )}
-      <RsvpBring widget={widget} />
       {waitingOn.length > 0 && waitingNote && (
         <p className="rsvp-waiting-note">
           <span aria-hidden="true">💬</span>“{waitingNote}”
@@ -982,12 +945,12 @@ export function PhotoWallWidget({ widget, style }: { widget: Widget; style: Styl
             >
               <span className="photo-wall-frame">
                 <img
-                  src={photo.thumbnailSrc ?? photo.src ?? "/assets/the-crew-snapshot-thumb.webp"}
+                  src={photo.thumbnailSrc ?? photo.src ?? "/assets/placeholder-photo.svg"}
                   alt={photo.caption}
                   style={{ objectPosition: photo.focus ?? "center" }}
                   onError={(event) => {
                     event.currentTarget.onerror = null;
-                    event.currentTarget.src = "/assets/the-crew-snapshot-thumb.webp";
+                    event.currentTarget.src = "/assets/placeholder-photo.svg";
                   }}
                 />
               </span>
@@ -998,12 +961,12 @@ export function PhotoWallWidget({ widget, style }: { widget: Widget; style: Styl
             <span className="photo-wall-tape" aria-hidden="true" />
             <span className="photo-wall-frame">
               <img
-                src={cover.thumbnailSrc ?? cover.src ?? "/assets/the-crew-snapshot-thumb.webp"}
+                src={cover.thumbnailSrc ?? cover.src ?? "/assets/placeholder-photo.svg"}
                 alt={cover.caption}
                 style={{ objectPosition: cover.focus ?? "center 35%" }}
                 onError={(event) => {
                   event.currentTarget.onerror = null;
-                  event.currentTarget.src = "/assets/the-crew-snapshot-thumb.webp";
+                  event.currentTarget.src = "/assets/placeholder-photo.svg";
                 }}
               />
             </span>
@@ -1031,184 +994,6 @@ export function PhotoWallWidget({ widget, style }: { widget: Widget; style: Styl
         </div>
       )}
     </div>
-  );
-}
-
-export function LinkShelfWidget({ widget, style }: { widget: Widget; style: Style }) {
-  const links = Array.isArray(widget.data.links)
-    ? (widget.data.links as ShelfLink[]).filter(
-        (link) => typeof link?.label === "string" && typeof link?.url === "string",
-      )
-    : [];
-  const title = String(widget.data.title ?? "saved links");
-  const tone = String(widget.data.tone ?? "sky");
-  const [copiedKey, setCopiedKey] = useState<string | null>(null);
-
-  const domainFor = (url: string) => {
-    const value = url.trim();
-    try {
-      return new URL(value.includes("://") ? value : `https://${value}`).hostname.replace(/^www\./, "");
-    } catch {
-      return value.split("/")[0] || "shared link";
-    }
-  };
-
-  const hrefFor = (url: string) => {
-    const value = url.trim();
-    return value.includes("://") ? value : `https://${value}`;
-  };
-
-  const copyLink = async (link: ShelfLink, key: string) => {
-    setCopiedKey(key);
-    playSound("tap");
-    try {
-      await navigator.clipboard?.writeText(hrefFor(link.url));
-    } catch {
-      // Clipboard permissions are optional in the prototype; the visible state is the affordance.
-    }
-    window.setTimeout(() => setCopiedKey((current) => (current === key ? null : current)), 1600);
-  };
-
-  return (
-    <section className={`widget-shell widget-link-shelf link-shelf-tone-${tone}`} style={style}>
-      <header className="link-shelf-heading">
-        <div>
-          <span className="link-shelf-kicker">shared shelf</span>
-          <h3>{title}</h3>
-        </div>
-        <span className="link-shelf-count">{links.length} {links.length === 1 ? "link" : "links"}</span>
-      </header>
-      {links.length > 0 ? (
-        <ol className="link-shelf-list">
-          {links.map((link, index) => {
-            const key = `${link.label}-${index}`;
-            const copied = copiedKey === key;
-            const contributor = link.by ?? link.contributor;
-            const domain = domainFor(link.url);
-            return (
-              <li key={key} className={`link-shelf-row${copied ? " is-copied" : ""}`}>
-                <span className="link-shelf-icon" aria-hidden="true">↗</span>
-                <span className="link-shelf-copy">
-                  <a href={hrefFor(link.url)} target="_blank" rel="noreferrer">
-                    {link.label}
-                  </a>
-                  <span>
-                    {domain}
-                    {contributor ? ` · ${contributor}` : ""}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  className="link-copy-button"
-                  onClick={() => void copyLink(link, key)}
-                  aria-label={`${copied ? "Copied" : "Copy"} ${link.label}`}
-                  aria-live="polite"
-                >
-                  {copied ? "copied ✓" : "copy"}
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      ) : (
-        <div className="link-shelf-empty">
-          <span aria-hidden="true">↗</span>
-          <p>save a link here when the group finds the good stuff.</p>
-        </div>
-      )}
-    </section>
-  );
-}
-
-export function LinkCardWidget({ widget, style }: { widget: Widget; style: Style }) {
-  const url = String(widget.data.url ?? "").trim();
-  const imageUrl = String(widget.data.imageUrl ?? "").trim();
-  const title = String(widget.data.title ?? "").trim() || "paste a link";
-  const description = String(widget.data.description ?? "").trim() ||
-    "Send the article everyone should read. This space will turn it into something worth keeping.";
-  const siteName = String(widget.data.siteName ?? "").trim() ||
-    (url ? linkCardDomain(url) : "new web post");
-  const author = String(widget.data.author ?? "").trim();
-  const savedBy = String(widget.data.savedBy ?? "you").trim();
-  const publishedAt = String(widget.data.publishedAt ?? "");
-  const discussionUrl = String(widget.data.discussionUrl ?? "").trim();
-  const points = Number(widget.data.points ?? 0) || 0;
-  const commentCount = Number(widget.data.commentCount ?? 0) || 0;
-  const [artSrc, setArtSrc] = useState(imageUrl || LINK_CARD_FALLBACK);
-
-  useEffect(() => {
-    setArtSrc(imageUrl || LINK_CARD_FALLBACK);
-  }, [imageUrl]);
-
-  /* The cover is the zoom target — clicks on it bubble to the card shell,
-     which zooms into the reading circle. Only the paper clipping links out. */
-  const cover = (
-    <div className="link-card-cover" aria-hidden="true">
-      <img
-        className="link-card-cover-image"
-        src={artSrc}
-        alt={artSrc === LINK_CARD_FALLBACK ? "torn paper collage" : `${title} cover`}
-        referrerPolicy="no-referrer"
-        draggable={false}
-        onError={() => setArtSrc(LINK_CARD_FALLBACK)}
-      />
-      <span className="link-card-date-tab">
-        {url ? linkCardDate(publishedAt, widget.data.savedAt) : "add a link"}
-      </span>
-      {discussionUrl ? (
-        <span
-          className="link-card-hn-tab"
-          title="open the Hacker News thread"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            window.open(discussionUrl, "_blank", "noopener");
-          }}
-        >
-          ▲ {points} · {commentCount} comments
-        </span>
-      ) : null}
-    </div>
-  );
-
-  const paper = (
-    <div className="link-card-paper">
-      <span className="link-card-tape" aria-hidden="true" />
-      <span className="link-card-source">
-        <i aria-hidden="true">{siteName.slice(0, 1).toLowerCase()}</i>
-        <span>{author ? `${author} · ${siteName}` : siteName}</span>
-      </span>
-      <h3>{title}</h3>
-      <p>{description}</p>
-      <footer>
-        <span>{url ? `saved by ${savedBy}` : "edit this widget to paste a URL"}</span>
-        <strong>{url ? "read ↗" : "paste ↗"}</strong>
-      </footer>
-    </div>
-  );
-
-  return (
-    <article
-      className={`widget-shell widget-link-card${url ? " is-ready" : " is-empty"}`}
-      style={style}
-    >
-      <div className="link-card-open">
-        {cover}
-        {url ? (
-          <a
-            className="link-card-read"
-            href={linkCardHref(url)}
-            target="_blank"
-            rel="noreferrer"
-            draggable={false}
-          >
-            {paper}
-          </a>
-        ) : (
-          paper
-        )}
-      </div>
-    </article>
   );
 }
 
@@ -1719,23 +1504,3 @@ export function SportsWidget({ widget, style }: { widget: Widget; style: Style }
   );
 }
 
-export function BackendLiveWidget({ widget, style }: { widget: Widget; style: Style }) {
-  const counts = widget.data.counts as { label: string; value: number }[];
-
-  return (
-    <div className="widget-shell widget-backend-live" style={style}>
-      <div className="backend-live-heading">
-        <span className="presence-pulse" aria-hidden="true" />
-        <span>live backend</span>
-      </div>
-      <div className="backend-live-pills">
-        {counts.map((item) => (
-          <div key={item.label} className="backend-live-pill">
-            <span className="backend-live-value">{item.value}</span>
-            <span className="backend-live-label">{item.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}

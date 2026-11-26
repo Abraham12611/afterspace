@@ -33,7 +33,6 @@ import { WelcomePill } from "./components/WelcomePill";
 import {
   getGlobalThread,
   getThread,
-  getThreadsForSpace,
   type ChatMessage,
 } from "./data/chat";
 import { RECAP_LINES, type RecapTurn } from "./data/recap";
@@ -67,7 +66,6 @@ import {
   preloadSounds,
   setSoundEnabled as persistSoundEnabled,
 } from "./lib/sounds";
-import { computeBackendCounts } from "./lib/backendCounts";
 import {
   completeBuildClubFirstRun,
   getBuildClubFirstRunPending,
@@ -82,8 +80,6 @@ import {
   WIDGET_SIZES,
 } from "./lib/widgetDefaults";
 import { widgetSupportsThread } from "./lib/widgetThreads";
-import { linkCardQuestions, questionThreadId } from "./lib/linkQuestions";
-import { LinkQuestionStrip } from "./components/LinkQuestionStrip";
 import { LiveSpacePage } from "./pages/LiveSpace";
 import { RoomKnowsDoor, RoomKnowsPage, type KnowsChange } from "./components/RoomKnows";
 import { standing, type RoomKnows } from "./lib/roomKnows";
@@ -91,26 +87,8 @@ import { mockRoomKnows } from "./data/roomKnows";
 import { getDataMode } from "./live/dataMode";
 import { getIdentity } from "./live/identity";
 import { useCanvasSpacePan } from "./lib/canvasSpacePan";
-import {
-  buildRoomOverviewScale,
-  keeperNoteSlot,
-  withBuildRoomCover,
-} from "./lib/buildRoomPresentation";
-import { flushSync } from "react-dom";
-import { flyWidgetIn } from "./lib/flipLanding";
 import { DEFAULT_SPACE_SLUG, knowsHash, lastSpaceSlug, normalSpaceHash, rememberSpaceSlug, slugOfSpaceHash } from "./lib/routes";
-import { pileInsideFrame, widgetIsInsideFrame } from "./lib/frameMembership";
-import {
-  linkReplyCounts,
-  mockBuildRoomFeed,
-  mockRoundtableReplies,
-  toggledVoters,
-} from "./lib/buildRoomFeed";
-import { ReadingRoom, type RoomReply } from "./components/ReadingRoom";
-import { ShipRoom } from "./components/ShipRoom";
-import type { RoomOrigin } from "./components/CanvasRoom";
-import type { BuildRoomLink } from "./data/buildroom";
-import { pendingLinkRows, scheduleMockResolve } from "./lib/mockArrival";
+import { widgetIsInsideFrame } from "./lib/frameMembership";
 import { YourTurn, goToTurnWidget } from "./components/YourTurn";
 import { GameInvite, GameSheet, GameSheetTab, GamesDev } from "./components/games/GameInvite";
 import { gameSpots, GAME_CARD } from "./lib/games/place";
@@ -122,32 +100,8 @@ import { hasJigsaw, ROOM_JIGSAW } from "./data/jigsaw";
 import { gameAsk } from "./lib/deck/verbs";
 import { mockViewer, mockWaitingByRoom, playAsOverrides, yourTurn } from "./lib/yourTurn";
 
-const CursorLab = lazy(() =>
-  import("./pages/CursorLab").then((module) => ({ default: module.CursorLab })),
-);
-const WidgetLab = lazy(() =>
-  import("./pages/WidgetLab").then((module) => ({ default: module.WidgetLab })),
-);
-const ArrivalLab = lazy(() =>
-  import("./pages/ArrivalLab").then((module) => ({ default: module.ArrivalLab })),
-);
-const ColorLab = lazy(() =>
-  import("./pages/ColorLab").then((module) => ({ default: module.ColorLab })),
-);
-const CodexReel = lazy(() =>
-  import("./pages/CodexReel").then((module) => ({ default: module.CodexReel })),
-);
-const FirecrawlReel = lazy(() =>
-  import("./pages/FirecrawlReel").then((module) => ({ default: module.FirecrawlReel })),
-);
-const Outro = lazy(() =>
-  import("./pages/Outro").then((module) => ({ default: module.Outro })),
-);
 const Admin = lazy(() =>
   import("./pages/Admin").then((module) => ({ default: module.Admin })),
-);
-const WidgetWall = lazy(() =>
-  import("./pages/WidgetWall").then((module) => ({ default: module.WidgetWall })),
 );
 const Welcome = lazy(() => import("./pages/Welcome"));
 const AboutPage = lazy(() =>
@@ -168,7 +122,7 @@ function DeferredRoute({ children }: { children: ReactNode }) {
   );
 }
 
-type Route = "space" | "me" | "about" | "cursors" | "widgets" | "arrival" | "color" | "outro" | "codex" | "firecrawl" | "wall" | "live" | "join" | "test" | "admin";
+type Route = "space" | "me" | "about" | "live" | "join" | "test" | "admin";
 type WidgetPlacement = Partial<Pick<Widget, "x" | "y" | "z" | "w" | "h">>;
 type FrameLayout = Pick<Widget, "x" | "y" | "w" | "h">;
 type CanvasSize = { width: number; height: number };
@@ -248,28 +202,6 @@ function elementIsVisible(element: HTMLElement) {
   );
 }
 
-/** The on-screen rect of a canvas card, as inset from each viewport edge. */
-function roomOriginFor(widgetId: string): RoomOrigin {
-  const element = Array.from(
-    document.querySelectorAll<HTMLElement>(".widget-group[data-widget-id]"),
-  ).find((candidate) => candidate.dataset.widgetId === widgetId);
-  const rect = element?.getBoundingClientRect();
-  if (!rect) {
-    return {
-      top: window.innerHeight * 0.25,
-      right: window.innerWidth * 0.25,
-      bottom: window.innerHeight * 0.25,
-      left: window.innerWidth * 0.25,
-    };
-  }
-  return {
-    top: Math.max(0, rect.top),
-    right: Math.max(0, window.innerWidth - rect.right),
-    bottom: Math.max(0, window.innerHeight - rect.bottom),
-    left: Math.max(0, rect.left),
-  };
-}
-
 function routeFromHash(): Route {
   const hash = window.location.hash.replace(/^#\/?/, "");
   if (hash === "test") return "test";
@@ -277,14 +209,6 @@ function routeFromHash(): Route {
   if (hash === "me") return "me";
   if (hash === "join" || hash.startsWith("join/")) return "join";
   if (hash === "live" || hash.startsWith("live/")) return "live";
-  if (hash === "cursors" || hash.startsWith("cursors/")) return "cursors";
-  if (hash === "widgets" || hash.startsWith("widgets/")) return "widgets";
-  if (hash === "arrival") return "arrival";
-  if (hash === "color") return "color";
-  if (hash === "outro") return "outro";
-  if (hash === "codex") return "codex";
-  if (hash === "firecrawl") return "firecrawl";
-  if (hash === "wall") return "wall";
   // Linked from nowhere and gated on ADMIN_KEY server-side (convex/admin.ts).
   if (hash === "admin") return "admin";
   return "space";
@@ -294,28 +218,9 @@ function mockModeRequested() {
   return getDataMode() === "mock";
 }
 
-/** A readable title for a mock-dropped url: the last path segment, de-slugged. */
-function demoModeRequested() {
-  return new URLSearchParams(window.location.search).get("demo") === "1" ||
-    new URLSearchParams(window.location.hash.split("?")[1] ?? "").get("demo") === "1" ||
-    import.meta.env.VITE_DEMO === "1";
-}
-
-/** `#/play` — the play lab (docs/local/play-lab.md): a disposable copy of
-    the crew (slug "play") with a director pill that runs the demo video's
-    opening take. Unlisted. Only ever this slug, so the pill can never drop
-    onto a real room. */
-function playLabRequested() {
-  const hash = window.location.hash.replace(/^#\/?/, "").split("?")[0];
-  return hash === "play";
-}
-
 function spaceFromHash(): string {
   const hash = window.location.hash.replace(/^#\/?/, "");
-  if (hash === "home") return "crew";
-  if (hash === "mail") return "crew";
-  if (hash.startsWith("mail/")) return hash.slice("mail/".length) || "crew";
-  if (hash.split("?")[0] === "play") return "play";
+  if (hash === "home") return "coven";
   // #/about is its own page, but it keeps a back door to the room you came
   // from, and spaceId has to still be that room when you take it.
   if (hash === "about" || hash.startsWith("about/")) return lastSpaceSlug();
@@ -338,13 +243,12 @@ function spaceFromHash(): string {
 
 /**
  * Look prototype — crew + league canvases, widget picker, cursor lab.
- * Hash routes: #/space/buildroom · #/space/crew · #/about · #/cursors · #/widgets
+ * Hash routes: #/space/coven · #/about
  * Old #/home and bare #/ links redirect to the crew.
  */
 export default function App() {
   const [route, setRoute] = useState<Route>(routeFromHash);
   const [spaceId, setSpaceId] = useState(spaceFromHash);
-  const demoMode = demoModeRequested();
   /* `?peers=4` — the peers lab (src/live/labPeers.ts): the roster's online
      members get a cursor each and move like people do, for the demo video's
      "always live" beat. Mock only; nothing is written anywhere. */
@@ -387,17 +291,8 @@ export default function App() {
   const [recapAsking, setRecapAsking] = useState(false);
   const [highlightMessageId, setHighlightMessageId] = useState("");
   const [activeThreadId, setActiveThreadId] = useState("global");
-  /** Mock-mode room state: which room is open, and local vote/keep overrides. */
-  const [openRoom, setOpenRoom] = useState<
-    { kind: "pile" | "ship"; widgetId: string; origin: RoomOrigin; linkId?: string } | null
-  >(null);
   /* focusFrame fires long before visibleWidgets is derived — read it live. */
   const visibleWidgetsRef = useRef<Widget[]>([]);
-  const [mockLinkState, setMockLinkState] = useState<
-    Record<string, Partial<BuildRoomLink>>
-  >({});
-  /* Links dropped in mock mode — pending on arrival, "enriched" a beat later. */
-  const [mockDropped, setMockDropped] = useState<BuildRoomLink[]>([]);
   const [localThreadMessages, setLocalThreadMessages] = useState<
     Record<string, Record<string, ChatMessage[]>>
   >({});
@@ -472,8 +367,6 @@ export default function App() {
   const [widgetDataOverrides, setWidgetDataOverrides] = useState<
     Record<string, Record<string, Widget["data"]>>
   >({});
-  /** Which web post conversation starter the thread dock is answering. */
-  const [activeQuestionId, setActiveQuestionId] = useState("");
   const [spaceCustomizations, setSpaceCustomizations] = useState<
     Record<string, SpaceCustomization>
   >({});
@@ -487,9 +380,6 @@ export default function App() {
     defaultCanvasSize(spaceFromHash()),
   );
   const [focusedTarget, setFocusedTarget] = useState<FocusedTarget | null>(null);
-  useEffect(() => {
-    setActiveQuestionId("");
-  }, [focusedTarget?.id]);
   const [threadDockPlacement, setThreadDockPlacement] =
     useState<ThreadDockPlacement>("below");
   const [threadDockSize, setThreadDockSize] = useState<ThreadDockSize>(
@@ -933,18 +823,6 @@ export default function App() {
     (frame: Widget) => {
       if (window.matchMedia("(max-width: 800px)").matches) return;
 
-      /* The pile's frame has nothing to zoom into — opening it opens the room. */
-      const pile = pileInsideFrame(frame, visibleWidgetsRef.current);
-      if (pile) {
-        playSound("tap");
-        setOpenRoom({
-          kind: "pile",
-          widgetId: pile.id,
-          origin: roomOriginFor(pile.id),
-        });
-        return;
-      }
-
       if (focusedTarget?.kind === "frame" && focusedTarget.id === frame.id) {
         leaveFocus();
         return;
@@ -1056,7 +934,7 @@ export default function App() {
     const onHash = () => {
       const hash = window.location.hash.replace(/^#\/?/, "");
       if (hash === "home" || hash === "") {
-        const slug = hash === "home" ? "crew" : DEFAULT_SPACE_SLUG;
+        const slug = hash === "home" ? "coven" : DEFAULT_SPACE_SLUG;
         window.history.replaceState(window.history.state, "", normalSpaceHash(slug));
       }
       setRoute(routeFromHash());
@@ -1238,40 +1116,12 @@ export default function App() {
     setCanvasCameraAnimating(false);
 
     const viewport = canvasViewportRef.current;
-    const scale = viewport
-      ? buildRoomOverviewScale(spaceId, viewport, visibleWidgetsRef.current)
-      : 1;
+    const scale = 1;
     applyCanvasScale(scale);
     setCanvasScale(scale);
     viewport?.scrollTo({ left: 0, top: 0 });
     setCanvasAwayFromHome(false);
   }, [applyCanvasScale, route, spaceId]);
-
-  useEffect(() => {
-    if (route !== "space" || spaceId !== "buildroom" || focusedTarget) return;
-    let frame = 0;
-    const refitOverview = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        const viewport = canvasViewportRef.current;
-        if (!viewport) return;
-        const scale = buildRoomOverviewScale(
-          spaceId,
-          viewport,
-          visibleWidgetsRef.current,
-        );
-        applyCanvasScale(scale);
-        setCanvasScale(scale);
-        viewport.scrollTo({ left: 0, top: 0, behavior: "auto" });
-        setCanvasAwayFromHome(false);
-      });
-    };
-    window.addEventListener("resize", refitOverview);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", refitOverview);
-    };
-  }, [applyCanvasScale, focusedTarget, route, spaceId]);
 
   useEffect(() => () => {
     window.cancelAnimationFrame(canvasCameraAnimation.current);
@@ -1389,15 +1239,6 @@ export default function App() {
 
   const firstRunActive = spaceId === "buildclub" && buildClubFirstRun;
 
-  const backendLiveCounts = useMemo(
-    () =>
-      computeBackendCounts({
-        addedWidgets,
-        deletedWidgetIds,
-      }),
-    [addedWidgets, deletedWidgetIds],
-  );
-
   const addWidgetAt = useCallback(
     (
       type: WidgetType,
@@ -1489,18 +1330,7 @@ export default function App() {
     }
 
     const type = placing.type;
-    const addedWidget = addWidgetAt(
-      type,
-      point,
-      type === "linkCard" ? freshWidgetData(type, {}) : undefined,
-    );
-
-    if (addedWidget?.type === "linkCard") {
-      setManagedWidgetId(addedWidget.id);
-      setEditingWidgetId(addedWidget.id);
-      setChatOpen(false);
-      setRecapOpen(false);
-    }
+    const addedWidget = addWidgetAt(type, point);
 
     if (addedWidget?.type === "frame") {
       frameEditSnapshot.current = {
@@ -1887,11 +1717,11 @@ export default function App() {
 
   const mockRecapReply = (text: string) => {
     const q = text.toLowerCase();
-    if (/(cake|poll|vote|flavor|matcha)/.test(q)) return "matcha is still ahead, 3 to 1. ash hasn't voted.";
-    if (/(potluck|bring|claim|balloon)/.test(q)) return "jules claimed balloons, so playlist and candles are still open.";
-    if (/(rsvp|coming|who)/.test(q)) return "maya, jules, sam, and kenji are in. rio's the maybe.";
-    if (/(chat|6pm|time|when)/.test(q)) return "sam said 6pm at their place — still only in chat.";
-    return "the birthday cluster moved: cake poll, potluck, and sam's 6pm note in chat.";
+    if (/(cake|poll|vote|flavor|matcha)/.test(q)) return "matcha is still ahead, 3 to 1. kai hasn't voted.";
+    if (/(potluck|bring|claim|balloon)/.test(q)) return "theo claimed balloons, so playlist and candles are still open.";
+    if (/(rsvp|coming|who)/.test(q)) return "wren, theo, priya, and juno are in. dante's the maybe.";
+    if (/(chat|6pm|time|when)/.test(q)) return "priya said 6pm at their place — still only in chat.";
+    return "the birthday cluster moved: cake poll, potluck, and priya's 6pm note in chat.";
   };
 
   const onMockRecapAsk = (text: string) => {
@@ -1956,59 +1786,6 @@ export default function App() {
      Leaving them under the early returns changed the hook count between
      renders and React tore the whole tree down (blank page). */
   const currentLocalMessages = localThreadMessages[spaceId] ?? {};
-  /* Mock mode gets the same rooms, with votes and keeps held in local state —
-     the live path persists them into the pile widget instead. */
-  const baseFeed = mockBuildRoomFeed(spaceId);
-  const mockLinks = useMemo<BuildRoomLink[]>(
-    () =>
-      [...mockDropped, ...(baseFeed?.links ?? [])].map((link) => {
-        const state = mockLinkState[link.id];
-        return withBuildRoomCover(state ? { ...link, ...state } : link);
-      }),
-    [baseFeed?.links, mockDropped, mockLinkState],
-  );
-  const mockReplyCounts = useMemo(() => {
-    const counts: Record<string, number> = { ...(baseFeed ? {} : {}) };
-    for (const [threadId, list] of Object.entries(currentLocalMessages)) {
-      counts[threadId] = (counts[threadId] ?? 0) + list.length;
-    }
-    for (const [threadId, count] of Object.entries(
-      Object.fromEntries(
-        Object.entries(getThreadsForSpace(spaceId)).map(([id, thread]) => [
-          id,
-          thread.messages.length,
-        ]),
-      ),
-    )) {
-      counts[threadId] = (counts[threadId] ?? 0) + count;
-    }
-    return linkReplyCounts(counts);
-  }, [baseFeed, currentLocalMessages, spaceId]);
-  const mockMessagesByThread = useMemo(() => {
-    const grouped: Record<string, RoomReply[]> = {};
-    for (const [threadId, thread] of Object.entries(getThreadsForSpace(spaceId))) {
-      grouped[threadId] = thread.messages.map((message) => ({
-        id: message.id,
-        from: message.from,
-        color: message.fromColor,
-        text: message.text,
-        time: message.time,
-      }));
-    }
-    for (const [threadId, list] of Object.entries(currentLocalMessages)) {
-      grouped[threadId] = [
-        ...(grouped[threadId] ?? []),
-        ...list.map((message) => ({
-          id: message.id,
-          from: message.from,
-          color: message.fromColor,
-          text: message.text,
-          time: message.time,
-        })),
-      ];
-    }
-    return grouped;
-  }, [currentLocalMessages, spaceId]);
   /* Right of Way, mock: a scripted second person holding a card (lib/rowMock.ts, ?row=held|ghost|land) */
   const rowMock = useRowMock(getSpace(spaceId).widgets, getSpace(spaceId).members);
   const rowGhostData = useMemo(
@@ -2016,40 +1793,8 @@ export default function App() {
     [rowMock, spaceId],
   );
 
-  if (route === "cursors") {
-    return <DeferredRoute><CursorLab /></DeferredRoute>;
-  }
-
   if (route === "test") {
     return <DeferredRoute><Welcome /></DeferredRoute>;
-  }
-
-  if (route === "widgets") {
-    return <DeferredRoute><WidgetLab /></DeferredRoute>;
-  }
-
-  if (route === "arrival") {
-    return <DeferredRoute><ArrivalLab /></DeferredRoute>;
-  }
-
-  if (route === "color") {
-    return <DeferredRoute><ColorLab /></DeferredRoute>;
-  }
-
-  if (route === "outro") {
-    return <DeferredRoute><Outro /></DeferredRoute>;
-  }
-
-  if (route === "codex") {
-    return <DeferredRoute><CodexReel /></DeferredRoute>;
-  }
-
-  if (route === "firecrawl") {
-    return <DeferredRoute><FirecrawlReel /></DeferredRoute>;
-  }
-
-  if (route === "wall") {
-    return <DeferredRoute><WidgetWall /></DeferredRoute>;
   }
 
   if (route === "about") {
@@ -2088,7 +1833,7 @@ export default function App() {
   }
 
   if (route === "space" && !mockModeRequested()) {
-    return <LiveSpacePage slug={spaceId} playLab={playLabRequested()} onSelectSpace={(id) => { window.location.hash = normalSpaceHash(id); }} />;
+    return <LiveSpacePage slug={spaceId} onSelectSpace={(id) => { window.location.hash = normalSpaceHash(id); }} />;
   }
 
   const baseSpace = getSpace(spaceId);
@@ -2172,7 +1917,7 @@ export default function App() {
   const visibleWidgets = [
     ...baseSpace.widgets,
     ...(addedWidgets[spaceId] ?? []),
-    ...(promoted && spaceId === "crew" ? [DECISION_WIDGET] : []),
+    ...(promoted && spaceId === "coven" ? [DECISION_WIDGET] : []),
     ...gameWidgets,
   ]
     .filter((widget) => !(deletedWidgetIds[spaceId] ?? []).includes(widget.id))
@@ -2209,62 +1954,16 @@ export default function App() {
   const activeThreadLabel = activeThreadWidget
     ? widgetLabel(activeThreadWidget)
     : undefined;
-  const mockPile = visibleWidgets.find((widget) => widget.type === "linkPile");
-  const buildRoomFeed = baseFeed
-    ? {
-        ...baseFeed,
-        links: mockLinks,
-        replyCounts: mockReplyCounts,
-        onOpenPile: (linkId?: string) => {
-          if (!mockPile) return;
-          playSound("tap");
-          setOpenRoom({
-            kind: "pile",
-            widgetId: mockPile.id,
-            origin: roomOriginFor(mockPile.id),
-            linkId,
-          });
-        },
-      }
-    : undefined;
-  const roundtableReplies = mockRoundtableReplies(spaceId);
-  const shipRoomWidget =
-    openRoom?.kind === "ship"
-      ? visibleWidgets.find((widget) => widget.id === openRoom.widgetId) ?? null
-      : null;
   const threadMessageCount = (threadId: string) =>
     getThread(spaceId, threadId).messages.length +
     (currentLocalMessages[threadId]?.length ?? 0);
   const commentCounts = Object.fromEntries(
     visibleWidgets.map((widget) => [
       widget.id,
-      threadMessageCount(widget.id) +
-        linkCardQuestions(widget).reduce(
-          (sum, question) =>
-            sum + threadMessageCount(questionThreadId(widget.id, question.id)),
-          0,
-        ),
+      threadMessageCount(widget.id),
     ]),
   );
-  /* A zoomed web post talks through its conversation starters — each one is
-     its own thread under a namespaced id; other widgets keep the plain one. */
-  const focusedThreadWidget =
-    focusedTarget?.kind === "widget"
-      ? visibleWidgets.find((widget) => widget.id === focusedTarget.id) ?? null
-      : null;
-  const focusedQuestions = focusedThreadWidget
-    ? linkCardQuestions(focusedThreadWidget)
-    : [];
-  const activeQuestion =
-    focusedQuestions.find((question) => question.id === activeQuestionId) ??
-    focusedQuestions[0] ??
-    null;
-  const focusedThreadId =
-    focusedTarget?.kind === "widget"
-      ? activeQuestion
-        ? questionThreadId(focusedTarget.id, activeQuestion.id)
-        : focusedTarget.id
-      : null;
+  const focusedThreadId = focusedTarget?.kind === "widget" ? focusedTarget.id : null;
   const focusedThread = focusedThreadId
     ? getThread(spaceId, focusedThreadId)
     : null;
@@ -2274,15 +1973,6 @@ export default function App() {
         ...(currentLocalMessages[focusedThread.widgetId] ?? []),
       ]
     : [];
-  const focusedQuestionCounts = Object.fromEntries(
-    focusedTarget?.kind === "widget"
-      ? focusedQuestions.map((question) => [
-          question.id,
-          threadMessageCount(questionThreadId(focusedTarget.id, question.id)),
-        ])
-      : [],
-  );
-
   return (
     <GamesProvider value={games}>
     <JigsawProvider value={jigsaw}>
@@ -2372,16 +2062,6 @@ export default function App() {
               edit frame
             </button>
           )}
-        </nav>
-      )}
-      {!demoMode && (
-        <nav className="lab-links" aria-label="Prototype labs">
-          <a href="#/widgets" className="lab-link">
-            widget lab
-          </a>
-          <a href="#/cursors" className="lab-link">
-            cursor lab
-          </a>
         </nav>
       )}
       <div
@@ -2489,8 +2169,6 @@ export default function App() {
               onFrameFocus={focusFrame}
               onFrameLayoutChange={updateFrameLayout}
               onFrameLayoutCommit={finishFrameLayout}
-              buildRoomFeed={buildRoomFeed}
-              roundtableRepliesByWidget={roundtableReplies}
               onPollVote={voteOnPoll}
               onWheelSpin={spinWheel}
               onWidgetData={storeWidgetData}
@@ -2521,9 +2199,6 @@ export default function App() {
               dailyReactions={dailyReactions[spaceId] ?? {}}
               recapCites={recapHover ? [recapHover] : recapCites}
               deletedWidgetIds={deletedWidgetIds[spaceId] ?? []}
-              backendLiveCounts={
-                spaceId === "buildclub" ? backendLiveCounts : undefined
-              }
               firstRunActive={firstRunActive}
               onFirstRunPlace={handleFirstRunPlace}
               placingItem={placing}
@@ -2539,103 +2214,6 @@ export default function App() {
           </div>
         </div>
       </div>
-      {openRoom?.kind === "pile" && mockPile && buildRoomFeed && (
-        <ReadingRoom
-          key={mockPile.id}
-          pileId={mockPile.id}
-          links={mockLinks}
-          replyCounts={mockReplyCounts}
-          messagesByThread={mockMessagesByThread}
-          faces={baseSpace.members}
-          userId="you"
-          origin={openRoom.origin}
-          initialLinkId={openRoom.linkId}
-          onDrop={(urls) => {
-            /* No Firecrawl in mock mode — the shared fake beat, see
-               lib/mockArrival.ts. The lab at #/arrival plays the same one. */
-            const rows = pendingLinkRows(urls, "you", "you");
-            setMockDropped((current) => [...rows, ...current]);
-            scheduleMockResolve(rows, (id, patch) =>
-              setMockDropped((current) =>
-                current.map((link) => (link.id === id ? { ...link, ...patch } : link)),
-              ),
-            );
-          }}
-          onVote={(linkId) => {
-            const link = mockLinks.find((candidate) => candidate.id === linkId);
-            if (!link) return;
-            setMockLinkState((current) => ({
-              ...current,
-              [linkId]: { ...current[linkId], voters: toggledVoters(link, "you") },
-            }));
-          }}
-          onPin={(linkId) => {
-            const link = mockLinks.find((candidate) => candidate.id === linkId);
-            if (!link) return;
-            setMockLinkState((current) => ({
-              ...current,
-              [linkId]: { ...current[linkId], pinned: !link.pinned },
-            }));
-          }}
-          onKeep={(linkId) => {
-            const link = mockLinks.find((candidate) => candidate.id === linkId);
-            if (!link || link.keptAt !== undefined) return;
-            /* Same climax as live (pages/LiveSpace.tsx keepTakeaway): a pinned
-               note lands in the keepers frame, flown in from the card it was
-               read on. Measured before the room closes. */
-            const from =
-              document.querySelector(".rr-hero-snap")?.getBoundingClientRect() ?? null;
-            setMockLinkState((current) => ({
-              ...current,
-              [linkId]: { ...current[linkId], keptAt: Date.now() },
-            }));
-            /* After the room's 480ms exit cue plus its 300ms shrink. The note
-               is created and flown in the same tick (flushSync commits it
-               before flyWidgetIn looks), so it never sits at its destination
-               under the closing room. */
-            window.setTimeout(() => {
-              const keepers = visibleWidgets.find(
-                (widget) => widget.type === "frame" && widget.data.title === "keepers",
-              );
-              const slot = visibleWidgets.filter(
-                (widget) => widget.type === "note" && widget.data.pin,
-              ).length;
-              const place = keeperNoteSlot(keepers, slot);
-              let created: Widget | undefined;
-              flushSync(() => {
-                created = addWidgetAt(
-                  "note",
-                  { x: place.x + place.w / 2, y: place.y + place.h / 2 },
-                  {
-                    kicker: link.kind === "docs" ? "reference" : "rule of thumb",
-                    title: link.title,
-                    text: link.whyItMatters || link.description,
-                    author: "you",
-                    tone: "white",
-                    pin: true,
-                    keptLinkId: link.id,
-                  },
-                  { w: place.w, h: place.h },
-                );
-              });
-              setManagedWidgetId("");
-              if (created) void flyWidgetIn(created.id, from);
-            }, 860);
-          }}
-          onReply={sendThreadMessage}
-          onClose={() => setOpenRoom(null)}
-        />
-      )}
-      {openRoom?.kind === "ship" && shipRoomWidget && (
-        <ShipRoom
-          key={shipRoomWidget.id}
-          widget={shipRoomWidget}
-          replies={mockMessagesByThread[shipRoomWidget.id] ?? []}
-          origin={openRoom.origin}
-          onReply={(text) => sendThreadMessage(shipRoomWidget.id, text)}
-          onClose={() => setOpenRoom(null)}
-        />
-      )}
       {focusedTarget?.kind === "widget" && (
         <WidgetThreadDock
           viewportRef={canvasViewportRef}
@@ -2648,18 +2226,6 @@ export default function App() {
             sendThreadMessage(focusedThreadId ?? focusedTarget.id, text)
           }
           onSizeChange={updateThreadDockSize}
-          topper={
-            focusedQuestions.length > 0 ? (
-              <LinkQuestionStrip
-                questions={focusedQuestions}
-                activeId={activeQuestion?.id ?? ""}
-                counts={focusedQuestionCounts}
-                onPick={setActiveQuestionId}
-              />
-            ) : undefined
-          }
-          placeholder={activeQuestion ? "your take…" : undefined}
-          emptyText={activeQuestion ? "No takes yet — go first." : undefined}
           actions={
             focusedTarget.type === "rsvp" ? (
               <div className="thread-rsvp-chips">
@@ -2819,7 +2385,7 @@ export default function App() {
         }}
         onSoundToggle={toggleSound}
       />
-      {spaceId === "crew" && <WelcomePill />}
+      {spaceId === "coven" && <WelcomePill />}
       <WidgetPicker
         open={pickerOpen}
         onAddSticker={addSticker}

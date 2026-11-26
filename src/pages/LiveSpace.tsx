@@ -8,16 +8,7 @@ import {
 } from "react";
 import { useAction, useConvex, useConvexConnectionState, useMutation } from "convex/react";
 import { useQuery, usePaginatedQuery } from "convex-helpers/react/cache";
-import { useStream } from "@convex-dev/persistent-text-streaming/react";
-import type { StreamId } from "@convex-dev/persistent-text-streaming";
 import { api } from "../../convex/_generated/api";
-import { Suspense, lazy } from "react";
-const PlayLab = lazy(() =>
-  import("../components/PlayLab").then((module) => ({ default: module.PlayLab })),
-);
-/** The take room is a copy of the crew; theme, faces and canvas size are keyed
-    by fixture id, so it borrows the crew's fixture (docs/local/play-lab.md). */
-const PLAY_LAB_SOURCE = "crew";
 import type { Id } from "../../convex/_generated/dataModel";
 import { ActionDock, radioRoomOf } from "../components/ActionDock";
 import { EditSlips, VoiceBuildLayer } from "../components/VoiceBuildLayer";
@@ -51,10 +42,6 @@ import { GateCursor, type GatePoint } from "../components/GateCursor";
 import { OwnCursor, ownCursorWanted } from "../components/OwnCursor";
 import { MemberFace } from "../components/MemberFace";
 import { PhotoWallGallery } from "../components/PhotoWallGallery";
-import { ReadingRoom, type RoomReply } from "../components/ReadingRoom";
-import { CrawlStrip } from "../components/CrawlStrip";
-import { ShipRoom } from "../components/ShipRoom";
-import type { RoomOrigin } from "../components/CanvasRoom";
 import { GhostCanvas } from "../components/GhostCanvas";
 import { GlobalChatPanel } from "../components/GlobalChatPanel";
 import { Rail } from "../components/Rail";
@@ -64,7 +51,6 @@ import { SpaceLiveStrip } from "../components/SpaceLiveStrip";
 import { WidgetEditorPanel } from "../components/WidgetEditorPanel";
 import { WidgetPicker } from "../components/WidgetPicker";
 import { placingSize, type PlacingItem } from "../components/PlacementGhost";
-import { playPresetFor } from "../lib/playPresets";
 import type { CanvasPoint } from "../components/FirstRunSticky";
 import { canvasSlotFor } from "../lib/canvasPlacement";
 import { SpaceMaker } from "../components/SpaceMaker";
@@ -76,8 +62,6 @@ import {
 import { getSpace, SPACES, SPACES_BY_ID } from "../data/spaces";
 import { getStickerDefinition } from "../data/stickers";
 import type { Widget, WidgetType } from "../data/types";
-import { LinkQuestionStrip } from "../components/LinkQuestionStrip";
-import { linkCardQuestions, questionThreadId } from "../lib/linkQuestions";
 import { getSoundEnabled, playSound, setSoundEnabled } from "../lib/sounds";
 import {
   defaultSpaceCustomization,
@@ -86,27 +70,12 @@ import {
 } from "../data/spaceThemes";
 import {
   cleanRecapText,
-  RECAP_STREAM_CHARS,
-  RECAP_STREAM_MS,
   RECAP_THREAD_ID,
   type RecapLine,
   type RecapTurn,
 } from "../data/recap";
-import { flyWidgetIn } from "../lib/flipLanding";
-import { pileInsideFrame, widgetIsInsideFrame } from "../lib/frameMembership";
+import { widgetIsInsideFrame } from "../lib/frameMembership";
 import { relTime, spaceFromLive, toChatMessage } from "../live/adapt";
-import type { RoundtableReply } from "../widgets/buildroom";
-import {
-  buildRoomFeedFrom,
-  linkReplyCounts,
-  pileLinks,
-  readPileData,
-  toggledVoters,
-  type PileData,
-} from "../lib/buildRoomFeed";
-import type { BuildRoomLink } from "../data/buildroom";
-import { cannedLinkQuestions } from "../lib/linkQuestions";
-import { guessLinkKind } from "../lib/mockArrival";
 import type { PhotoComment } from "../components/PhotoWallGallery";
 import { getPresenceId, useIdentity } from "../live/identity";
 import { patchWidgetData, useLiveHandlers } from "../live/useLiveHandlers";
@@ -138,27 +107,8 @@ import type { CanvasGestureKind, CanvasLayout, LivePeer } from "../live/presence
 import { createLabPeerFeed, labPeersRequested } from "../live/labPeers";
 import { DEFAULT_SPACE_SLUG, knowsHash, normalSpaceHash } from "../lib/routes";
 import { useCanvasSpacePan } from "../lib/canvasSpacePan";
-import {
-  BUILD_ROOM_CANVAS,
-  buildRoomOverviewScale,
-  keeperNoteSlot,
-  withBuildRoomCover,
-} from "../lib/buildRoomPresentation";
 
 const EMPTY_RECAP_LINES: RecapLine[] = [];
-
-/* "ask the space" streams over HTTP (convex/streaming.ts). Convex serves HTTP
-   actions from the deployment's `.site` origin, and this app mounts its own
-   routes under `/api` (httpPrefix in convex/convex.config.ts) so the static
-   site can keep the root. The second argument keeps this from throwing if the
-   env var is missing — mock mode imports this module but never streams. */
-const ASK_STREAM_URL = new URL(
-  `${
-    String(import.meta.env.VITE_CONVEX_SITE_URL ?? "") ||
-    String(import.meta.env.VITE_CONVEX_URL ?? "").replace(".convex.cloud", ".convex.site")
-  }/api/ask-stream`,
-  window.location.origin,
-);
 
 /** How long the daily question's scribble-wipe reveal runs after you post. */
 const DAILY_REVEAL_MS = 1600;
@@ -250,29 +200,6 @@ type PhotoGalleryState = {
      gallery can FLIP them from the pile to their spread positions. */
   printOrigins?: Array<{ x: number; y: number; w: number; h: number } | null>;
 };
-
-/** The on-screen rect of a canvas card, as inset from each viewport edge —
- *  the room grows out of it and shrinks back into it. */
-function roomOriginFor(widgetId: string): RoomOrigin {
-  const element = Array.from(
-    document.querySelectorAll<HTMLElement>(".widget-group[data-widget-id]"),
-  ).find((candidate) => candidate.dataset.widgetId === widgetId);
-  const rect = element?.getBoundingClientRect();
-  if (!rect) {
-    return {
-      top: window.innerHeight * 0.25,
-      right: window.innerWidth * 0.25,
-      bottom: window.innerHeight * 0.25,
-      left: window.innerWidth * 0.25,
-    };
-  }
-  return {
-    top: Math.max(0, rect.top),
-    right: Math.max(0, window.innerWidth - rect.right),
-    bottom: Math.max(0, window.innerHeight - rect.bottom),
-    left: Math.max(0, rect.left),
-  };
-}
 
 const CAMERA_MS = 360;
 const CAMERA_EXIT_MS = 280;
@@ -371,19 +298,16 @@ function RoomPresenceHeartbeat({ roomId, userId }: { roomId: string; userId: str
 }
 
 /** What people call each room besides its name, for "take me to …". */
-const VOICE_ROOM_ALSO: Record<string, string[]> = { crew: ["crew", "group chat", "friends"], couple: ["long distance", "us two", "couple"], house: ["house", "roommates"], family: ["family"], league: ["league", "game day"] };
+const VOICE_ROOM_ALSO: Record<string, string[]> = { coven: ["coven", "group chat", "friends"] };
 
 export function LiveSpacePage({
   slug = DEFAULT_SPACE_SLUG,
   onSelectSpace,
   isInviteEntry = false,
-  playLab = false,
 }: {
   slug?: string;
   onSelectSpace?: (id: string) => void;
   isInviteEntry?: boolean;
-  /** #/play — the director pill that runs the demo's opening take (docs/local/play-lab.md) */
-  playLab?: boolean;
 }) {
   const connectionState = useConvexConnectionState();
   const { space, snapshot, widgets, status, mode } = useLiveSpace(slug);
@@ -467,12 +391,6 @@ export function LiveSpacePage({
   const [selectedWidgetId, setSelectedWidgetId] = useState("");
   const [managedWidgetId, setManagedWidgetId] = useState("");
   const [photoGallery, setPhotoGallery] = useState<PhotoGalleryState | null>(null);
-  /** The pile / a ship post opened full screen, with the rect it grew from. */
-  const [openRoom, setOpenRoom] = useState<
-    { kind: "pile" | "ship"; widgetId: string; origin: RoomOrigin } | null
-  >(null);
-  /** A hot-now row asked the reading room to open on one specific link. */
-  const [pendingLinkId, setPendingLinkId] = useState<string | null>(null);
   /* The one piece of local state left on these three interactions, and it is
      animation only: the daily question plays its scribble-wipe reveal off the
      card's `localAnswer` prop, so the text you just posted lives here for the
@@ -503,7 +421,6 @@ export function LiveSpacePage({
   const join = useMutation(api.spaces.joinDemoSpace);
   const generatePhotoUploadUrl = useMutation(api.photos.generateUploadUrl);
   const pinPhoto = useMutation(api.photos.addPhoto);
-  const shipImageUrl = useMutation(api.photos.storageUrl);
   const addPaintStroke = useMutation(api.paint.addStroke);
   const clearPaint = useMutation(api.paint.clear);
   const ensureCozyColorWidget = useMutation(api.paint.ensureCozyColorWidget);
@@ -565,7 +482,7 @@ export function LiveSpacePage({
   // nameplate fields, so renaming a space in the DB actually shows up instead
   // of being masked by a stale fixture.
   const mockSpace = useMemo(() => {
-    const fixture = SPACES_BY_ID[playLab ? PLAY_LAB_SOURCE : slug];
+    const fixture = SPACES_BY_ID[slug];
     if (!fixture) return space ? spaceFromLive(space) : getSpace(slug);
     if (!space) return fixture;
     return {
@@ -574,7 +491,7 @@ export function LiveSpacePage({
       tagline: space.tagline ?? fixture.tagline,
       icon: space.icon ?? fixture.icon,
     };
-  }, [playLab, slug, space]);
+  }, [slug, space]);
   const isInvalidInvite = isInviteEntry && !SPACES_BY_ID[slug] && status === "missing";
   // A slug the backend has no space for. Authoritative in live mode: a slug
   // can exist in the mock fixtures (#/space/trip does) and still be missing on
@@ -591,7 +508,6 @@ export function LiveSpacePage({
     setCustomization(defaultSpaceCustomization(mockSpace));
     setSpaceDraft(null);
     setPhotoGallery(null);
-    setOpenRoom(null);
   }, [mockSpace, slug]);
   const activeCustomization = spaceDraft ?? customization;
   const members = mockSpace.members;
@@ -629,30 +545,7 @@ export function LiveSpacePage({
   const allMessages =
     messagesPage.status === "LoadingFirstPage" ? undefined : messagesPage.results;
   const paintRows = useQuery(api.paint.listBySpace, space ? { spaceId: space._id } : "skip");
-  const sparkQuestions = useAction(api.questions.sparkQuestions);
-  /** Which web post conversation starter the thread dock is answering. */
-  const [activeQuestionId, setActiveQuestionId] = useState("");
   const handlers = useLiveHandlers(space?._id, identity, presence, widgets);
-  /* Roundtable cards preview the tail of their own thread — same subscription
-     the thread dock reads, grouped by widget. */
-  const roundtableRepliesByWidget = useMemo(() => {
-    const grouped: Record<string, RoundtableReply[]> = {};
-    if (!allMessages) return grouped;
-    for (const widget of widgets ?? []) {
-      if (widget.type !== "roundtable") continue;
-      grouped[widget.id] = allMessages
-        .filter((message) => message.widgetId === widget.id)
-        .map((message) => ({
-          id: message._id,
-          from: message.authorName,
-          fromColor: message.authorColor,
-          fromAvatarUrl: message.authorAvatarUrl,
-          text: message.text,
-          time: relTime(message.createdAt),
-        }));
-    }
-    return grouped;
-  }, [allMessages, widgets]);
   const paintStrokesByWidget = useMemo(() => {
     const grouped: Record<string, CozyColorStroke[]> = {};
     for (const row of paintRows ?? []) {
@@ -986,351 +879,6 @@ export function LiveSpacePage({
   overviewWidgetsRef.current = adaptedWidgets.length
     ? adaptedWidgets
     : mockSpace.widgets;
-  /* ── the build room ──────────────────────────────────────────────────────
-     Link content comes from the fixtures; votes, pins, keeps and runtime drops
-     live in the pile widget's own `data`, so the whole room is reactive and
-     multiplayer over the existing `widgets.updateWidgetData` mutation. */
-  const pileWidget = useMemo(
-    () => adaptedWidgets.find((widget) => widget.type === "linkPile") ?? null,
-    [adaptedWidgets],
-  );
-  const buildRoomLinks = useMemo(
-    () => pileLinks(pileWidget).map(withBuildRoomCover),
-    [pileWidget],
-  );
-  /** Every message in the space, bucketed by its thread id. */
-  const messagesByThread = useMemo(() => {
-    const grouped: Record<string, RoomReply[]> = {};
-    for (const message of allMessages ?? []) {
-      (grouped[message.widgetId] ??= []).push({
-        id: message._id,
-        from: message.authorName,
-        color: message.authorColor,
-        avatarUrl: message.authorAvatarUrl,
-        text: message.text,
-        time: relTime(message.createdAt),
-      });
-    }
-    return grouped;
-  }, [allMessages]);
-  const buildRoomReplyCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const [threadId, list] of Object.entries(messagesByThread)) {
-      counts[threadId] = list.length;
-    }
-    return linkReplyCounts(counts);
-  }, [messagesByThread]);
-  const openReadingRoom = useCallback(
-    (linkId?: string) => {
-      if (!pileWidget) return;
-      playSound("tap");
-      setManagedWidgetId("");
-      setEditingWidgetId("");
-      setSelectedWidgetId("");
-      setPickerOpen(false);
-      setRecapOpen(false);
-      setChatOpen(false);
-      setPendingLinkId(linkId ?? null);
-      setOpenRoom({
-        kind: "pile",
-        widgetId: pileWidget.id,
-        origin: roomOriginFor(pileWidget.id),
-      });
-    },
-    [pileWidget],
-  );
-  const buildRoomFeed = useMemo(
-    () =>
-      pileWidget
-        ? {
-            ...buildRoomFeedFrom(buildRoomLinks, buildRoomReplyCounts, members),
-            onOpenPile: openReadingRoom,
-          }
-        : undefined,
-    [buildRoomLinks, buildRoomReplyCounts, members, openReadingRoom, pileWidget],
-  );
-  /* Every pile write is a patch of the pile widget's own data. Reads come from
-     the live subscription, so two windows stay in step. */
-  const pileWidgetRef = useRef<Widget | null>(null);
-  pileWidgetRef.current = pileWidget;
-  const patchPile = useCallback(
-    (mutate: (data: PileData) => PileData) => {
-      const pile = pileWidgetRef.current;
-      if (!pile) return;
-      const next = mutate(readPileData(pile));
-      handlers.onUpdate(pile.id, { ...pile.data, ...next });
-    },
-    [handlers],
-  );
-
-  const voteOnLink = useCallback(
-    (linkId: string) => {
-      const link = buildRoomLinks.find((candidate) => candidate.id === linkId);
-      if (!link) return;
-      const voters = toggledVoters(link, identity.userId);
-      patchPile((data) => ({
-        ...data,
-        linkState: {
-          ...data.linkState,
-          [linkId]: { ...data.linkState?.[linkId], voters },
-        },
-      }));
-    },
-    [buildRoomLinks, identity.userId, patchPile],
-  );
-
-  const pinLink = useCallback(
-    (linkId: string) => {
-      const link = buildRoomLinks.find((candidate) => candidate.id === linkId);
-      if (!link) return;
-      patchPile((data) => ({
-        ...data,
-        linkState: {
-          ...data.linkState,
-          [linkId]: { ...data.linkState?.[linkId], pinned: !link.pinned },
-        },
-      }));
-    },
-    [buildRoomLinks, patchPile],
-  );
-
-  /* The climax: a takeaway leaves the reading room and lands on the canvas as
-     a pinned note inside the keepers frame. Idempotent — keeping twice is a
-     no-op, so a double click can't spawn two cards. */
-  const keepTakeaway = useCallback(
-    async (linkId: string) => {
-      const link = buildRoomLinks.find((candidate) => candidate.id === linkId);
-      const pile = pileWidgetRef.current;
-      if (!link || !pile || link.keptAt !== undefined) return;
-      const keepers = widgets?.find(
-        (widget) => widget.type === "frame" && widget.data.title === "keepers",
-      );
-      /* Every pinned note in the keepers frame, seeded or kept — new ones fan
-         off the stack instead of landing on top of one. */
-      const slot =
-        widgets?.filter((widget) => widget.type === "note" && widget.data.pin).length ?? 0;
-      /* Measured before the room closes — the note flies in from the card the
-         takeaway was read on. */
-      const from =
-        document.querySelector(".rr-hero-snap")?.getBoundingClientRect() ?? null;
-      const created = await handlers.onCreate({
-        type: "note",
-        ...keeperNoteSlot(keepers, slot),
-        z: 1000 + slot,
-        rotate: slot % 2 === 0 ? -1.2 : 1.4,
-        data: {
-          kicker: link.kind === "docs" ? "reference" : "rule of thumb",
-          title: link.title,
-          text: link.whyItMatters || link.description,
-          author: identity.name,
-          tone: "white",
-          pin: true,
-          keptLinkId: link.id,
-        },
-      });
-      patchPile((data) => ({
-        ...data,
-        linkState: {
-          ...data.linkState,
-          [linkId]: {
-            ...data.linkState?.[linkId],
-            keptAt: Date.now(),
-            keptWidgetId: created ? String(created) : undefined,
-          },
-        },
-      }));
-      /* After the room's 480ms exit cue plus its 300ms shrink. */
-      if (created) {
-        window.setTimeout(() => void flyWidgetIn(String(created), from), 860);
-      }
-    },
-    [buildRoomLinks, handlers, identity.name, patchPile, widgets],
-  );
-
-  /* Paste 1–10 urls: placeholder rows appear immediately, then Firecrawl fills
-     them in one at a time — the patches are read-modify-write on one document,
-     so they must not race each other. */
-  const dropLinks = useCallback(
-    async (urls: string[]) => {
-      const pile = pileWidgetRef.current;
-      if (!pile) return;
-      const existing = new Set(buildRoomLinks.map((link) => link.url));
-      const fresh = urls.filter((url) => !existing.has(url));
-      if (fresh.length === 0) return;
-      const batchKey = `drop-${Date.now()}`;
-      const pending: BuildRoomLink[] = fresh.map((url, index) => ({
-        id: `${batchKey}-${index}`,
-        url,
-        domain: url.replace(/^https?:\/\/(www\.)?/, "").split("/")[0],
-        title: "",
-        description: "",
-        imageUrl: "",
-        kind: "article",
-        whyItMatters: "",
-        questions: [],
-        status: "pending",
-        batchKey,
-        droppedBy: identity.userId,
-        droppedByName: identity.name,
-        droppedAt: Date.now(),
-        voters: [],
-      }));
-      patchPile((data) => ({ ...data, dropped: [...pending, ...(data.dropped ?? [])] }));
-
-      for (const link of pending) {
-        let patch: Partial<BuildRoomLink>;
-        try {
-          const scraped = await handlers.onResolveLink(link.url);
-          patch = {
-            title: scraped.title,
-            description: scraped.description,
-            imageUrl: scraped.imageUrl,
-            domain: scraped.siteName || link.domain,
-            kind: guessLinkKind(scraped.url || link.url),
-            whyItMatters: scraped.description,
-            questions: cannedLinkQuestions(scraped.title || link.url),
-            status: "ready",
-          };
-        } catch {
-          patch = { status: "failed", title: link.domain };
-        }
-        patchPile((data) => ({
-          ...data,
-          dropped: (data.dropped ?? []).map((entry) =>
-            entry.id === link.id ? { ...entry, ...patch } : entry,
-          ),
-        }));
-      }
-    },
-    [buildRoomLinks, handlers, identity.name, identity.userId, patchPile],
-  );
-
-  /* Firecrawl web search: one topic → a batch of ready cards straight into the
-     pile (search already returns title + summary, so no pending pass). */
-  const searchTopic = useCallback(
-    async (query: string) => {
-      const pile = pileWidgetRef.current;
-      if (!pile) return;
-      const hits = await handlers.onSearchTopic(query);
-      if (hits.length === 0) return;
-      const existing = new Set(buildRoomLinks.map((link) => link.url));
-      const batchKey = `search-${Date.now()}`;
-      const fresh: BuildRoomLink[] = hits
-        .filter((hit) => !existing.has(hit.url))
-        .map((hit, index) => ({
-          id: `${batchKey}-${index}`,
-          url: hit.url,
-          domain: hit.siteName || hit.url.replace(/^https?:\/\/(www\.)?/, "").split("/")[0],
-          title: hit.title,
-          description: hit.description,
-          imageUrl: hit.imageUrl,
-          kind: "article",
-          whyItMatters: hit.description,
-          questions: cannedLinkQuestions(hit.title || hit.url),
-          status: "ready",
-          batchKey,
-          droppedBy: identity.userId,
-          droppedByName: `${identity.name} 🔎`,
-          droppedAt: Date.now(),
-          voters: [],
-        }));
-      if (fresh.length === 0) return;
-      patchPile((data) => ({ ...data, dropped: [...fresh, ...(data.dropped ?? [])] }));
-    },
-    [buildRoomLinks, handlers, identity.name, identity.userId, patchPile],
-  );
-
-  /* Firecrawl durable crawl: kick it off, then subscribe to live pages in the
-     CrawlStrip (rendered below) instead of racing many patches onto the pile. */
-  const [activeCrawl, setActiveCrawl] = useState<string | null>(null);
-  const crawlSiteHandler = useCallback(
-    async (url: string) => {
-      try {
-        const { crawlId } = await handlers.onCrawlSite(url);
-        setActiveCrawl(crawlId);
-      } catch {
-        /* bad URL / crawl refused — nothing to show */
-      }
-    },
-    [handlers],
-  );
-
-  /* "+ pile" on a crawled page: one card, same shape as a search hit. */
-  const keepCrawlPage = useCallback(
-    (hit: { url: string; title: string; description: string }) => {
-      const pile = pileWidgetRef.current;
-      if (!pile) return;
-      if (buildRoomLinks.some((link) => link.url === hit.url)) return;
-      const id = `crawl-${Date.now()}`;
-      const domain = hit.url.replace(/^https?:\/\/(www\.)?/, "").split("/")[0];
-      const row: BuildRoomLink = {
-        id,
-        url: hit.url,
-        domain,
-        title: hit.title || domain,
-        description: hit.description,
-        imageUrl: "",
-        kind: "article",
-        whyItMatters: hit.description,
-        questions: cannedLinkQuestions(hit.title || hit.url),
-        status: "ready",
-        batchKey: id,
-        droppedBy: identity.userId,
-        droppedByName: `${identity.name} 🕸`,
-        droppedAt: Date.now(),
-        voters: [],
-      };
-      patchPile((data) => ({ ...data, dropped: [row, ...(data.dropped ?? [])] }));
-    },
-    [buildRoomLinks, identity.name, identity.userId, patchPile],
-  );
-
-  const retryLink = useCallback(
-    (linkId: string) => {
-      const link = buildRoomLinks.find((candidate) => candidate.id === linkId);
-      if (!link) return;
-      patchPile((data) => ({
-        ...data,
-        dropped: (data.dropped ?? []).filter((entry) => entry.id !== linkId),
-      }));
-      void dropLinks([link.url]);
-    },
-    [buildRoomLinks, dropLinks, patchPile],
-  );
-
-  const shipRoomWidget = useMemo(
-    () =>
-      openRoom?.kind === "ship"
-        ? adaptedWidgets.find((widget) => widget.id === openRoom.widgetId) ?? null
-        : null,
-    [adaptedWidgets, openRoom],
-  );
-
-  /** Same two-step upload the memory wall uses: bytes to storage, url to data. */
-  const attachShipImage = useCallback(
-    async (widgetId: string, file: File) => {
-      const widget = widgets?.find((candidate) => candidate.id === widgetId);
-      if (!widget) return;
-      const uploadUrl = await generatePhotoUploadUrl();
-      const response = await fetch(uploadUrl, {
-        method: "POST",
-        headers: { "Content-Type": file.type || "image/png" },
-        body: file,
-      });
-      if (!response.ok) throw new Error("ship image upload failed");
-      const { storageId } = (await response.json()) as { storageId: string };
-      const url = await shipImageUrl({ storageId: storageId as Id<"_storage"> });
-      if (url) handlers.onUpdate(widgetId, { ...widget.data, imageUrl: url });
-    },
-    [generatePhotoUploadUrl, handlers, shipImageUrl, widgets],
-  );
-
-  const closeRoom = useCallback(() => {
-    setOpenRoom(null);
-    setPendingLinkId(null);
-    setManagedWidgetId("");
-  }, []);
-
   const photoGalleryWidget = useMemo(
     () => adaptedWidgets.find(
       (widget) => widget.id === photoGallery?.widgetId && widget.type === "photoWall",
@@ -1416,81 +964,7 @@ export function LiveSpacePage({
   const promotable = globalMessages.find((message) => message.promotable);
   const generateRecap = useAction(api.recap.generate);
   const askRecap = useAction(api.recap.ask);
-  const createAskStream = useMutation(api.streaming.createAskStream);
   const latestRecap = useQuery(api.recap.latest, space ? { spaceId: space._id } : "skip");
-  // persistent-text-streaming: the answer to a follow-up question arrives
-  // token by token over /api/ask-stream. The ask row says which stream and
-  // which turn it fills; the turn is empty until the last token lands, so an
-  // empty one means this answer is still being written.
-  const askStream = useQuery(api.streaming.latestAskStream, space ? { spaceId: space._id } : "skip");
-  const [drivenStreamId, setDrivenStreamId] = useState<string | null>(null);
-  const askRow = useMemo(
-    () =>
-      askStream
-        ? (allMessages ?? []).find((message) => message._id === askStream.messageId)
-        : undefined,
-    [askStream, allMessages],
-  );
-  const pendingAskMessageId = askRow && !askRow.text ? askRow._id : null;
-  // Driving = this tab minted the stream, so it reads the HTTP body. Everyone
-  // else (a reload, a second viewer) gets the same text reactively out of
-  // getAskStreamBody instead of missing the answer entirely.
-  const askBody = useStream(
-    api.streaming.getAskStreamBody,
-    ASK_STREAM_URL,
-    Boolean(pendingAskMessageId) && askStream?.streamId === drivenStreamId,
-    pendingAskMessageId && askStream ? (askStream.streamId as StreamId) : undefined,
-  );
-  const askFailed =
-    Boolean(pendingAskMessageId) &&
-    !askBody.text &&
-    (askBody.status === "error" || askBody.status === "timeout");
-  // The answer, from whichever half of the component has it: the live stream
-  // while it runs, the finished turn once the last token has been saved.
-  const askText = askRow?.text || askBody.text;
-  const askTextRef = useRef("");
-  askTextRef.current = askText;
-  /* Tokens land in bursts — a whole sentence can arrive in one frame — so the
-     reveal chases the text at reading pace instead of printing a paragraph at
-     once. Same pace as the mock reveal (data/recap.ts). Only a turn we watched
-     start gets typed: one that was already finished when you opened the panel
-     is simply there. */
-  const [typing, setTyping] = useState<{ messageId: string; shown: number } | null>(null);
-  const [reduceMotion] = useState(
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-  );
-  useEffect(() => {
-    if (!pendingAskMessageId) return;
-    setTyping((current) =>
-      current?.messageId === pendingAskMessageId
-        ? current
-        : { messageId: pendingAskMessageId, shown: 0 },
-    );
-  }, [pendingAskMessageId]);
-  useEffect(() => {
-    // Reduced motion: no reveal at all — every chunk shows the moment it lands.
-    if (!typing || reduceMotion) return;
-    let timer = 0;
-    const tick = () => {
-      setTyping((current) => {
-        if (!current) return current;
-        const shown = Math.min(askTextRef.current.length, current.shown + RECAP_STREAM_CHARS);
-        return shown === current.shown ? current : { ...current, shown };
-      });
-      timer = window.setTimeout(tick, RECAP_STREAM_MS);
-    };
-    timer = window.setTimeout(tick, RECAP_STREAM_MS);
-    return () => window.clearTimeout(timer);
-  }, [reduceMotion, typing?.messageId]);
-  // Caught up with an answer that has stopped growing: hand the turn back to
-  // the message row it was saved into.
-  const typedOut =
-    Boolean(typing) &&
-    Boolean(askRow?.text) &&
-    (reduceMotion || (typing?.shown ?? 0) >= (askRow?.text.length ?? 0));
-  useEffect(() => {
-    if (typedOut) setTyping(null);
-  }, [typedOut]);
   const recapLines = useMemo<RecapLine[]>(
     () =>
       latestRecap
@@ -1504,30 +978,21 @@ export function LiveSpacePage({
     () =>
       (allMessages ?? [])
         .filter((message) => message.widgetId === RECAP_THREAD_ID)
-        // A stream that died leaves its turn empty forever — drop it, the
-        // non-streaming fallback below answers the question instead.
-        .filter((message) => !(askFailed && message._id === pendingAskMessageId))
         .map((message) => ({
           id: message._id,
           from: message.authorName,
           fromColor: message.authorColor,
           fromEmoji: message.authorEmoji,
           fromAvatarUrl: message.authorAvatarUrl,
-          text:
-            typing?.messageId === message._id
-              ? reduceMotion
-                ? askText
-                : askText.slice(0, typing.shown)
-              : message.text,
+          text: message.text,
           isRecap: message.userId === "recap",
-          streaming: typing?.messageId === message._id,
         })),
-    [allMessages, askFailed, askText, pendingAskMessageId, reduceMotion, typing],
+    [allMessages],
   );
   const [recapBusy, setRecapBusy] = useState(false);
   const [recapAsking, setRecapAsking] = useState(false);
   const recapGenerating = useRef(false);
-  const promotePosition = slug === "crew"
+  const promotePosition = slug === "coven"
     ? { x: 1072, y: 660 }
     : { x: 1080, y: 448 };
   const promotedMessageIds = useMemo(
@@ -1631,7 +1096,7 @@ export function LiveSpacePage({
      at all; see the note in SpaceLiveStrip. */
   const spaceWork = useSpaceWork(mode === "live" && space ? String(space._id) : undefined);
   /* Say it → it builds (src/live/useVoiceBuild.ts): while you talk, code
-     shows the card it guesses and phrases go to Nemotron early through
+     shows the card it guesses and phrases go to the model early through
      convex/voiceBuild.ts `deal` (cards only, streamed back through `live`);
      on the pause the card renders here first, then `commit` writes it and
      sync lands it on every screen. */
@@ -1887,8 +1352,6 @@ export function LiveSpacePage({
         return await answerAsk({ spaceId: space._id, question: said });
       },
       today: () => voiceToday(),
-      // "let's do Spina Farms pumpkin patch on Saturday": the plan card + who's in, then the web (convex/tavily.ts planPlace)
-      plan: handlers.planPlace,
       game: (said) => {
         const ask = gameAsk(said);
         const jig = jigsawRef.current;
@@ -2043,16 +1506,8 @@ export function LiveSpacePage({
      stay silent until the real one lands, so it gets the raw value. */
   const labCount = labPeers?.rows.length ?? 0;
   const headerHereCount = mode === "live" ? (hereCount ?? 0) + labCount : hereCount;
-  /* The build room composition is wider than the 1640×1080 the row was seeded
-     with; the canvas grows to hold it whatever the row says. */
-  const canvasWidth = Math.max(
-    space?.canvasW ?? snapshot?.canvasW ?? 1640,
-    slug === "buildroom" ? BUILD_ROOM_CANVAS.width : 0,
-  );
-  const canvasHeight = Math.max(
-    space?.canvasH ?? snapshot?.canvasH ?? 1080,
-    slug === "buildroom" ? BUILD_ROOM_CANVAS.height : 0,
-  );
+  const canvasWidth = space?.canvasW ?? snapshot?.canvasW ?? 1640;
+  const canvasHeight = space?.canvasH ?? snapshot?.canvasH ?? 1080;
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -2083,37 +1538,10 @@ export function LiveSpacePage({
   const activeThreadId =
     focusedTarget?.kind === "widget" ? focusedTarget.id : selectedWidgetId;
   const activeThreadWidget = adaptedWidgets.find((widget) => widget.id === activeThreadId) ?? null;
-  /* A zoomed web post talks through its conversation starters — each one is
-     its own thread under a namespaced id; other widgets keep the plain one. */
-  const activeThreadQuestions = activeThreadWidget
-    ? linkCardQuestions(activeThreadWidget)
-    : [];
-  const activeQuestion =
-    activeThreadQuestions.find((question) => question.id === activeQuestionId) ??
-    activeThreadQuestions[0] ??
-    null;
-  const activeThreadKey =
-    activeThreadWidget && activeQuestion
-      ? questionThreadId(activeThreadWidget.id, activeQuestion.id)
-      : activeThreadId;
+  const activeThreadKey = activeThreadId;
   const activeThreadMessages = (allMessages ?? [])
     .filter((message) => message.widgetId === activeThreadKey)
     .map(toChatMessage);
-  const activeQuestionCounts = Object.fromEntries(
-    activeThreadWidget
-      ? activeThreadQuestions.map((question) => [
-          question.id,
-          (allMessages ?? []).filter(
-            (message) =>
-              message.widgetId ===
-              questionThreadId(activeThreadWidget.id, question.id),
-          ).length,
-        ])
-      : [],
-  );
-  useEffect(() => {
-    setActiveQuestionId("");
-  }, [activeThreadId]);
   const focusedFrame = (focusedTarget?.kind === "frame"
     ? adaptedWidgets.find((widget) => widget.id === focusedTarget.id && widget.type === "frame") ?? null
     : null) as Widget | null;
@@ -2379,12 +1807,6 @@ export function LiveSpacePage({
 
   const focusFrame = useCallback((targetFrame: Widget) => {
     if (window.matchMedia("(max-width: 800px)").matches) return;
-    /* The pile's frame has nothing to zoom into — the links live in the
-       reading room, so opening the frame opens the room. */
-    if (pileInsideFrame(targetFrame, adaptedWidgets)) {
-      openReadingRoom();
-      return;
-    }
     if (focusedTarget?.kind === "frame" && focusedTarget.id === targetFrame.id) {
       leaveFocus();
       return;
@@ -2410,7 +1832,7 @@ export function LiveSpacePage({
       type: "frame",
       label: String(targetFrame.data.title ?? "frame"),
     });
-  }, [adaptedWidgets, focusedTarget, leaveFocus, openReadingRoom]);
+  }, [focusedTarget, leaveFocus]);
 
   const focusWidgetThread = useCallback((widget: Widget) => {
     if (!widgetSupportsThread(widget)) return;
@@ -2459,19 +1881,6 @@ export function LiveSpacePage({
       setRecapOpen(false);
       setChatOpen(false);
       setPhotoGallery({ widgetId: widget.id, origin, printOrigins });
-      return;
-    }
-
-    if (widget.type === "shipPost") {
-      if (focusedTarget) leaveFocus(false);
-      playSound("tap");
-      setManagedWidgetId("");
-      setEditingWidgetId("");
-      setSelectedWidgetId("");
-      setPickerOpen(false);
-      setRecapOpen(false);
-      setChatOpen(false);
-      setOpenRoom({ kind: "ship", widgetId: widget.id, origin: roomOriginFor(widget.id) });
       return;
     }
 
@@ -2537,38 +1946,11 @@ export function LiveSpacePage({
     chatReturnView.current = null;
 
     const viewport = viewportRef.current;
-    const scale = viewport
-      ? buildRoomOverviewScale(slug, viewport, overviewWidgetsRef.current)
-      : 1;
+    const scale = 1;
     applyCanvasScale(scale);
     setCanvasScale(scale);
     viewport?.scrollTo({ left: 0, top: 0, behavior: "auto" });
   }, [applyCanvasScale, slug]);
-
-  useEffect(() => {
-    if (slug !== "buildroom" || focusedTarget) return;
-    let frame = 0;
-    const refitOverview = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        const viewport = viewportRef.current;
-        if (!viewport) return;
-        const scale = buildRoomOverviewScale(
-          slug,
-          viewport,
-          overviewWidgetsRef.current,
-        );
-        applyCanvasScale(scale);
-        setCanvasScale(scale);
-        viewport.scrollTo({ left: 0, top: 0, behavior: "auto" });
-      });
-    };
-    window.addEventListener("resize", refitOverview);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", refitOverview);
-    };
-  }, [applyCanvasScale, focusedTarget, slug]);
 
   useEffect(() => {
     if (!focusedTarget) return;
@@ -2667,9 +2049,7 @@ export function LiveSpacePage({
     setHighlightMessageId(messageId);
     window.setTimeout(() => setHighlightMessageId(""), 2600);
   };
-  /** The non-streaming path (convex/recap.ts `ask`): one action, one finished
-      answer, and it cites the widget it read. Still the fallback for when the
-      stream can't be minted (rate limit) or dies mid-answer. */
+  /** convex/recap.ts `ask`: one action, one finished answer, and it cites the widget it read. */
   const askWithoutStreaming = (spaceId: Id<"spaces">, question: string) => {
     setRecapAsking(true);
     void askRecap({ spaceId, question })
@@ -2687,28 +2067,8 @@ export function LiveSpacePage({
     handlers.onSend(RECAP_THREAD_ID, text);
     if (!space) return;
     const spaceId = space._id;
-    setRecapAsking(true);
-    // Mint the stream, then let useStream POST the question's id to
-    // /api/ask-stream and type the answer into the turn this just created.
-    void createAskStream({ spaceId, question: text })
-      .then((streamId) => {
-        setDrivenStreamId(streamId);
-        setRecapAsking(false);
-      })
-      .catch(() => {
-        setRecapAsking(false);
-        askWithoutStreaming(spaceId, text);
-      });
+    askWithoutStreaming(spaceId, text);
   };
-
-  // Only the tab that drove the stream retries — a second viewer watching the
-  // same dead turn would otherwise ask the same question all over again.
-  const retryAsk = askFailed && askStream?.streamId === drivenStreamId ? askStream : null;
-  useEffect(() => {
-    if (!retryAsk || !space) return;
-    askWithoutStreaming(space._id, retryAsk.question);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [retryAsk?.streamId]);
 
   const selectSpace = (id: string) => {
     if (focusedTarget) leaveFocus(false);
@@ -2865,11 +2225,7 @@ export function LiveSpacePage({
     if (!placing || !space) return;
     if (!keepPlacing) setPlacing(null);
 
-    /* On #/play a picker drop arrives already filled in like the crew's
-       (src/lib/playPresets.ts), size and tilt included, so a blank room can be
-       rebuilt by hand and look like the room everyone has seen. */
-    const preset = playLab && placing.kind === "widget" ? playPresetFor(placing.type) : null;
-    const size = preset ? { w: preset.w, h: preset.h } : placingSize(placing);
+    const size = placingSize(placing);
     const slot = canvasSlotFor(point, size, { w: canvasWidth, h: canvasHeight });
 
     if (placing.kind === "sticker") {
@@ -2898,12 +2254,10 @@ export function LiveSpacePage({
       w: size.w,
       h: size.h,
       z: 1000,
-      ...(preset?.rotate !== undefined ? { rotate: preset.rotate } : {}),
-      data: preset ? preset.data : freshWidgetData(type, type === "linkCard" ? {} : blueprint.data),
+      data: freshWidgetData(type, blueprint.data),
     });
     if (!createdId) return;
     setManagedWidgetId(String(createdId));
-    if (type === "linkCard") setEditingWidgetId(String(createdId));
   };
 
   const hasBoard = status === "ready" || status === "cached" || status === "empty";
@@ -3026,18 +2380,6 @@ export function LiveSpacePage({
           work={spaceWork}
         />
       )}
-      {/* Play lab — the blank take room for the demo video's opening
-          (docs/local/play-lab.md): the pill makes/wipes the room and runs the
-          ghost cursors; the pre-filled drops are wired in placeItem above. */}
-      {mode === "live" && playLab && (
-        <Suspense fallback={null}>
-          <PlayLab
-            spaceId={space ? String(space._id) : null}
-            widgets={widgets}
-            canvas={{ w: canvasWidth, h: canvasHeight }}
-          />
-        </Suspense>
-      )}
       {focusedTarget && (
         <nav className="canvas-focus-hud" aria-label="Focused canvas item">
           <button
@@ -3132,8 +2474,6 @@ export function LiveSpacePage({
                 onWidgetData={handlers.onUpdate}
                 onPlaylistTune={handlers.onPlaylistTune}
                 onLetterOpen={handlers.onLetterOpen}
-                buildRoomFeed={buildRoomFeed}
-                roundtableRepliesByWidget={roundtableRepliesByWidget}
                 paintStrokesByWidget={paintStrokesByWidget}
                 paintIdentity={identity}
                 onPaintStroke={paintStroke}
@@ -3196,47 +2536,6 @@ export function LiveSpacePage({
           onClose={closePhotoGallery}
         />
       )}
-      {openRoom?.kind === "pile" && pileWidget && (
-        <ReadingRoom
-          key={pileWidget.id}
-          pileId={pileWidget.id}
-          links={buildRoomLinks}
-          replyCounts={buildRoomReplyCounts}
-          messagesByThread={messagesByThread}
-          faces={members}
-          userId={identity.userId}
-          origin={openRoom.origin}
-          initialLinkId={pendingLinkId ?? undefined}
-          onDrop={dropLinks}
-          onVote={voteOnLink}
-          onPin={pinLink}
-          onKeep={keepTakeaway}
-          onReply={handlers.onSend}
-          onRetry={retryLink}
-          onSearch={searchTopic}
-          onCrawl={crawlSiteHandler}
-          onZone={presence.reportZone}
-          onClose={closeRoom}
-        />
-      )}
-      {activeCrawl && (
-        <CrawlStrip
-          crawlId={activeCrawl}
-          onKeep={keepCrawlPage}
-          onClose={() => setActiveCrawl(null)}
-        />
-      )}
-      {openRoom?.kind === "ship" && shipRoomWidget && (
-        <ShipRoom
-          key={shipRoomWidget.id}
-          widget={shipRoomWidget}
-          replies={messagesByThread[shipRoomWidget.id] ?? []}
-          origin={openRoom.origin}
-          onReply={(text) => handlers.onSend(shipRoomWidget.id, text)}
-          onAddImage={(file) => attachShipImage(shipRoomWidget.id, file)}
-          onClose={closeRoom}
-        />
-      )}
       {activeThreadWidget && (
         <WidgetThreadDock
           viewportRef={viewportRef}
@@ -3251,18 +2550,6 @@ export function LiveSpacePage({
               ? updateThreadDockSize
               : undefined
           }
-          topper={
-            activeThreadQuestions.length > 0 ? (
-              <LinkQuestionStrip
-                questions={activeThreadQuestions}
-                activeId={activeQuestion?.id ?? ""}
-                counts={activeQuestionCounts}
-                onPick={setActiveQuestionId}
-              />
-            ) : undefined
-          }
-          placeholder={activeQuestion ? "your take…" : undefined}
-          emptyText={activeQuestion ? "No takes yet — go first." : undefined}
           actions={
             activeThreadWidget.type === "rsvp" ? (
               <div className="thread-rsvp-chips">
@@ -3388,20 +2675,8 @@ export function LiveSpacePage({
           const hand = editingWidget?.type === "countdown" && data.targetDate !== editingWidget.data.targetDate ? { dateBy: { id: identity.userId, name: identity.name } } : {};
           handlers.onUpdate(widgetId, convexSafeKeys({ ...data, ...hand }));
           if (layout) handlers.onResize(widgetId, layout.w, layout.h);
-          // A saved link gets OpenAI conversation starters; canned ones from
-          // the editor hold the spot until the action lands.
-          const saved = widgets.find((item) => item.id === widgetId);
-          if (saved?.type === "linkCard" && typeof data.url === "string" && data.url && space) {
-            void sparkQuestions({
-              widgetId: widgetId as Id<"widgets">,
-              spaceId: space._id,
-              title: String(data.title ?? ""),
-              description: String(data.description ?? ""),
-            }).catch(() => {});
-          }
           setEditingWidgetId("");
         }}
-        onResolveLink={handlers.onResolveLink}
         onDelete={(widgetId) => {
           const widget = widgets.find((item) => item.id === widgetId);
           if (widget) handlers.onDelete(widget);

@@ -30,14 +30,6 @@ import { widgetSupportsThread } from "../lib/widgetThreads";
 import { CheckInWidget, StandingsWidget, WaitingOn } from "../widgets/challenge";
 import { CallIt, EmptySlot } from "../widgets/flowMarks";
 import {
-  HotLinksWidget,
-  LinkPileWidget,
-  RoundtableWidget,
-  ShipPostWidget,
-  type BuildRoomFeed,
-  type RoundtableReply,
-} from "../widgets/buildroom";
-import {
   ChatWidget,
   CountdownWidget,
   FrameWidget,
@@ -54,8 +46,6 @@ import {
   ExpenseSplitWidget,
   ItineraryWidget,
   JokeRegistryWidget,
-  LinkCardWidget,
-  LinkShelfWidget,
   LetterWidget,
   MessageWallWidget,
   PhotoWallWidget,
@@ -64,7 +54,6 @@ import {
   RsvpWidget,
   SportsWidget,
   WeatherWidget,
-  BackendLiveWidget,
   DualClockWidget,
   WheelWidget,
   type PlaylistTune,
@@ -82,7 +71,6 @@ function widgetGrows(widget: Widget) {
   return (
     widget.type === "dailyQ" ||
     widget.type === "availability" ||
-    widget.type === "linkShelf" ||
     widget.type === "playlist"
   );
 }
@@ -270,8 +258,6 @@ function WidgetCardComponent({
   onWheelSpin,
   onPlaylistTune,
   onLetterOpen,
-  buildRoomFeed,
-  roundtableReplies,
   paintStrokes,
   paintIdentity,
   paintPeersRef,
@@ -331,8 +317,6 @@ function WidgetCardComponent({
   onWheelSpin?: (widgetId: string, spin: { spinNonce: number; resultIndex: number }) => void;
   onPlaylistTune?: (widgetId: string, tune: PlaylistTune) => void;
   onLetterOpen?: (widgetId: string, open: boolean) => void;
-  buildRoomFeed?: BuildRoomFeed;
-  roundtableReplies?: RoundtableReply[];
   paintStrokes?: CozyColorStroke[];
   paintIdentity?: CozyColorIdentity;
   onPaintStroke?: (
@@ -732,12 +716,6 @@ function WidgetCardComponent({
     case "photoWall":
       content = <PhotoWallWidget widget={widget} style={inner} />;
       break;
-    case "linkShelf":
-      content = <LinkShelfWidget widget={widget} style={inner} />;
-      break;
-    case "linkCard":
-      content = <LinkCardWidget widget={widget} style={inner} />;
-      break;
     case "playlist":
       content = (
         <PlaylistWidget
@@ -776,9 +754,6 @@ function WidgetCardComponent({
       break;
     case "sports":
       content = <SportsWidget widget={widget} style={inner} />;
-      break;
-    case "backendLive":
-      content = <BackendLiveWidget widget={widget} style={inner} />;
       break;
     case "wheel":
       content = (
@@ -819,32 +794,6 @@ function WidgetCardComponent({
           onClear={onPaintClear ? (regionPrefix?: string) => onPaintClear(widget.id, regionPrefix) : undefined}
           peersRef={paintPeersRef}
           onCursor={onPaintCursor}
-        />
-      );
-      break;
-    case "linkPile":
-      content = (
-        <LinkPileWidget widget={widget} style={inner} feed={buildRoomFeed} />
-      );
-      break;
-    case "hotLinks":
-      content = (
-        <HotLinksWidget widget={widget} style={inner} feed={buildRoomFeed} />
-      );
-      break;
-    case "shipPost":
-      content = (
-        <ShipPostWidget widget={widget} style={inner} />
-      );
-      break;
-    case "roundtable":
-      content = (
-        <RoundtableWidget
-          widget={widget}
-          style={inner}
-          replies={roundtableReplies}
-          replyCount={commentCount}
-          onOpen={() => onSelect?.(widget)}
         />
       );
       break;
@@ -906,12 +855,8 @@ function WidgetCardComponent({
   const label = widgetLabel(widget);
   const controlLabel = WIDGET_CATALOG.find((item) => item.type === widget.type)?.label ?? label;
   const supportsThread = widgetSupportsThread(widget);
-  /* A filled web post zooms on a plain background click, like the photo wall;
-     only its paper clipping / read pill opens the article. */
-  const zoomsOnClick =
-    widget.type === "photoWall" ||
-    widget.type === "shipPost" ||
-    (widget.type === "linkCard" && String(widget.data.url ?? "").trim() !== "");
+  /* The photo wall zooms on a plain background click. */
+  const zoomsOnClick = widget.type === "photoWall";
 
   const beginWidgetMove = () => {
     if (onGestureStart) onGestureStart(widget, "move");

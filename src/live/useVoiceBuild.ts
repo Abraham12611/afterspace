@@ -71,17 +71,17 @@ import { pinPollRules } from "../lib/pollRules";
  *
  * Two more things run alongside (B2/D1b):
  * - **Route by need.** Each call is routed by the room brief's facts
- *   (`routeAsk`): words that point at no room fact get the fast Lightning
- *   fill; words that do get the token prompt on Ultra, and every answer
+ *   (`routeAsk`): words that point at no room fact get the fast fast model
+ *   fill; words that do get the token prompt on mid model, and every answer
  *   (tentative too) is resolved here against the facts (`resolve.ts`), so
  *   names and dates come from rows, never from the model.
- * - **Decide while you talk.** Every new word (not hanging) also asks Ultra
+ * - **Decide while you talk.** Every new word (not hanging) also asks mid model
  *   for one letter: which card. A sure pick (≥ 0.8) beats the code's guess
  *   for the skeleton on the fast route, goes into the next fill as "deal one
  *   <card> card", and when the final answer dealt a different card, the fill
  *   is asked again with the pick.
  * - **Already here (B3).** When code sees a widget on the board whose kind
- *   and title match the words (`existingFor`), the decide also asks Ultra
+ *   and title match the words (`existingFor`), the decide also asks mid model
  *   "is a card already on the board that does what the request asks?". A
  *   yes (≥ 0.8) for the final words, with code's match still standing, is
  *   the answer: nothing is committed, the camera glides to that widget, it
@@ -123,7 +123,7 @@ export type DecideAnswer = {
   usage: { prompt: number; completion: number } | null;
   error: string | null;
 };
-/** The decide pass is trusted from this probability (nebius/eval/decide: 36 of 38 right at ≥ 0.8). */
+/** The decide pass is trusted from this probability. */
 const DECIDE_BAR = 0.8;
 const DECIDE_MAX = 6;
 const DECIDE_IN_FLIGHT = 2;
@@ -564,7 +564,7 @@ function itemsOfRaw(sp: Spec, text: string, whole: boolean): { items: Item[]; no
 
 /**
  * The card a fill for these words is told to deal: the decide's sure pick, on
- * the fast route only. The brain route is Ultra with the room's facts and
+ * the fast route only. The brain route is mid model with the room's facts and
  * picks better than the facts-free decide (live, the hint turned "where
  * should we eat Saturday" into a question and "who's on dishes" into a
  * checklist), so it picks its own card.
@@ -682,7 +682,7 @@ export type VerbHooks = {
   people: () => string[];
   rooms: () => { slug: string; name: string; also?: string[] }[];
   here: () => string;
-  /** The frame a card sits in ("Maya's bday"), for "for friday" style words. */
+  /** The frame a card sits in ("Wren's bday"), for "for friday" style words. */
   frameOf?: (w: BoardW) => string;
   recap: (said: string) => void;
   goRoom: (slug: string) => void;
@@ -699,7 +699,7 @@ export type VerbHooks = {
   /** Resolves when a write that had to wait lands, is dropped, expires or is cancelled. */
   settled?: (writeId: string) => Promise<WaitOutcome>;
   today?: () => string;
-  /** "let's do <a named place> on <day>": the plan card + who's in land at once, then the web reads the place (live, lanes only; convex/tavily.ts planPlace). */
+  /** "let's do <a named place> on <day>": the plan card + who's in land at once, then the web reads the place. */
   plan?: (said: string, ask: PlanAsk) => Promise<{ ok: true; planId: string } | { ok: false; why: string }>;
 };
 
@@ -1633,7 +1633,7 @@ export function useVoiceBuild({
       const t0 = performance.now();
       const out = await vh.retrieve(said).catch((e) => ({ answer: null, why: String(e).slice(0, 120), ms: 0, usage: null, snippets: [] }) as RetrieveOut);
       if (stale()) return;
-      s.trace.calls.push({ text: said, ms: Math.round(t0 - s.t0), spec: false, used: true, card: "answer", usage: out.usage ? { model: "Ultra", ...out.usage } : null });
+      s.trace.calls.push({ text: said, ms: Math.round(t0 - s.t0), spec: false, used: true, card: "answer", usage: out.usage ? { model: "mid", ...out.usage } : null });
       // a poll the model read: code counts it instead
       const counted = out.answer?.widgetId ? widgets.find((w) => w.id === out.answer!.widgetId) : undefined;
       const byCode = counted ? cardAnswer(counted) : null;
@@ -1645,7 +1645,7 @@ export function useVoiceBuild({
 
     switch (pick.verb) {
       case "plan": {
-        // A named place on a day: two cards land at once, the web fills them (convex/tavily.ts planPlace)
+        // A named place on a day: two cards land at once, the web fills them
         const ask = planAsk(said, vh.people());
         const asMake = (why: string) => {
           s.verb = { verb: "make", sure: true, why };
@@ -1757,7 +1757,7 @@ export function useVoiceBuild({
                 // someone holds it: the stage says so plainly and lets go to the board, where the ghost waits
                 const who = out.on.name.toLowerCase();
                 setEdit(null);
-                // waiting on the web (convex/tavily.ts): the server's line, "looking up ramen near San Jose · the house's city"
+                // waiting on the web: the server's line, "looking up ramen near San Jose · the house's city"
                 pointWith("edit", target.id, out.on.kind === "lookup" ? out.text : `waiting on ${who} · ${who} is ${({ drag: "moving it", type: "typing in it", vote: "choosing" } as Record<string, string>)[out.on.kind] ?? "holding it"}`);
                 const clearSlip = () => setFound((f) => (f && f.traceKey === s.key ? null : f));
                 if (out.writeId && vh.settled)
@@ -2048,7 +2048,7 @@ export function useVoiceBuild({
 
       await sp.ready;
       if (stale()) return;
-      // Ultra wins over Lightning: the decide was sure of another card than the fast fill dealt, so it's asked again with it.
+      // mid model wins over fast model: the decide was sure of another card than the fast fill dealt, so it's asked again with it.
       const want = hintFor(s, sp.facts, said);
       const firstCard = itemsOf(sp, sp.streamed, sp.whole).items.find((i) => i.ok);
       if (want && !byCode && firstCard?.ok && firstCard.card.card !== want && sp.hint !== want && !s.commitP && !isFlow(firstCard.card.card)) {

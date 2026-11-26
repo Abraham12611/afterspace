@@ -20,7 +20,7 @@ const deck = await import(`data:text/javascript;base64,${Buffer.from(out.outputF
 const catalog = JSON.stringify(deck.catalogJson());
 const prompt = deck.deckPrompt();
 // Rough tokens at 3.9 chars each: the spike measured its 1,670-char v1 prompt at ~458
-// prompt_tokens with the user turn and chat template, i.e. ~3.9 chars per token on Nemotron.
+// prompt_tokens with the user turn and chat template, i.e. ~3.9 chars per token on the model.
 const tok = (s) => Math.round(s.length / 3.9);
 
 console.log(process.argv.includes("--prompt") ? prompt : JSON.stringify(deck.catalogJson(), null, 1));

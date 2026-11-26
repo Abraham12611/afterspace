@@ -33,7 +33,7 @@ import { noteSpendIn, type Gate } from "./guard";
  * Say it → it builds (path-to-win §3 "The engine"), split in two so the room
  * can start while you're still talking:
  *
- * - `deal` asks Nemotron Lightning for cards and only returns them. It can run
+ * - `deal` asks the fast model for cards and only returns them. It can run
  *   speculatively on a phrase that may still grow, so it never writes a
  *   widget. While the model writes, the answer so far is mirrored into the
  *   ask's `deals` row and `live` streams it to the asker, who fills the
@@ -49,9 +49,9 @@ import { noteSpendIn, type Gate } from "./guard";
  *
  * Two fills, picked per call by the asker's code (`routeAsk`, from the room
  * brief's facts): words that point at no room fact get today's fast fill on
- * Lightning; words that do get the token prompt (`deckPromptV2`, only the
- * facts they point at) on Ultra, and the asker's code resolves the tokens.
- * `decide` is the one-letter Ultra pick of the card, fired while you talk.
+ * the fast model; words that do get the token prompt (`deckPromptV2`, only the
+ * facts they point at) on the mid model, and the asker's code resolves the tokens.
+ * `decide` is the one-letter the mid model pick of the card, fired while you talk.
  *
  * The model answers with cards only; coordinates, HTML and code never come
  * from it. One `deals` row per call (JSON in `run`): the words, whether it was
@@ -88,7 +88,7 @@ export const deal = action({
     nonce: v.string(),
     /** Fired on a phrase that may still grow (the asker hadn't paused yet). */
     spec: v.boolean(),
-    /** "brain": the token prompt with `menu` (the room facts these words point at), on Ultra. */
+    /** "brain": the token prompt with `menu` (the room facts these words point at), on the mid model. */
     route: v.optional(v.union(v.literal("fast"), v.literal("brain"))),
     menu: v.optional(v.string()),
     /** The card the decide pass picked, when it had: the fill deals that one. */
@@ -496,7 +496,7 @@ const decideOut = v.object({
 });
 
 /**
- * The decide pass (nebius/eval/decide): Ultra answers one letter, which card
+ * The decide pass: the mid model answers one letter, which card
  * these words want, with its probability. Fired while the asker talks; their
  * code shows that card's skeleton when the words named none (or a different
  * one) and the pick is sure (≥ 0.8), and passes it to the fill.
@@ -519,7 +519,7 @@ export const decide = action({
     board: v.array(v.string()),
     /** Also ask whether the board already has it (code found a matching widget). */
     onBoard: v.optional(v.boolean()),
-    /** That widget, `poll "cake flavor?"`: the yes/no asks about it by name (the plain question drowned it in a long board, nebius/eval/b3-existing.md). */
+    /** That widget, `poll "cake flavor?"`: the yes/no asks about it by name. */
     match: v.optional(v.string()),
     /** Ask the card letter (default). False when code's guess is already sure: only the yes/no goes out. */
     card: v.optional(v.boolean()),
@@ -602,7 +602,7 @@ const flatText = (data: unknown): string => {
 /**
  * Ask the space, as a slip: the board's cards and the chat (the same snapshot
  * ask-the-space grounds on), ranked by the question's words in code, the top
- * six numbered, then one short Ultra call that may only answer from them and
+ * six numbered, then one short the mid model call that may only answer from them and
  * must say which one. Code checks the answer: every number and every name in
  * it must be in that snippet, or it's "doesn't know". Writes nothing.
  */
@@ -625,7 +625,7 @@ export const answer = action({
   handler: async (ctx, args): Promise<AnswerOut> => {
     const t0 = Date.now();
     const q = args.question.trim().slice(0, 200);
-    // Only the room the caller is seated in (the gate throws for anyone else), one Ultra call.
+    // Only the room the caller is seated in (the gate throws for anyone else), one the mid model call.
     const gate: Gate = await ctx.runMutation(internal.guard.voice, { spaceId: args.spaceId, calls: 1 });
     if (!gate.ok) return { answer: null, why: `${gate.why}: ${refusal(gate.why)}`, ms: Date.now() - t0, usage: null, snippets: [] };
     const snap: { widgets: { id: string; type: string; summary: string }[]; chat: { from: string; text: string }[] } = await ctx.runQuery(internal.recap.snapshot, { spaceId: args.spaceId });
@@ -724,7 +724,7 @@ export function editedLabels(type: string, before: unknown, after: unknown): str
   return JSON.stringify(a[1]) === JSON.stringify(b[1]) ? null : a[0];
 }
 
-/** Orb tapped: wake the action runtime and the Token Factory connection. */
+/** Orb tapped: wake the action runtime and the OpenRouter connection. */
 export const warm = action({
   args: {},
   returns: v.object({ status: v.number(), ms: v.number() }),

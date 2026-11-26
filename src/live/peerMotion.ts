@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef } from "react";
 
 /* Smooth remote motion.
  *
- * Measured against prod (necessary-cobra-892): a presence write reaches the
+ * Measured against a production deployment: a presence write reaches the
  * other tab in ~135ms p50 / ~147ms p90, and that number is *flat* — it does
  * not care whether we write 11 or 25 times a second. So the network is not
  * the thing that made dragging look bad. What made it look bad is that we

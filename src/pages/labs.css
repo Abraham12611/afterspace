@@ -203,7 +203,7 @@
   border-radius: 4px;
   background:
     linear-gradient(135deg, rgba(120, 83, 255, 0.35), rgba(233, 54, 157, 0.35)),
-    url("/assets/the-crew-snapshot-thumb.webp") center / cover;
+    url("/assets/placeholder-photo.svg") center / cover;
   box-shadow: 0 6px 0 rgba(17, 17, 20, 0.12);
   rotate: 2deg;
 }
@@ -838,7 +838,7 @@
 /* Cards sit straight on the wall (the JS tilt supplies the depth, the tags
    keep the scrapbook angle). Ten widgets multiply a paper texture over
    their colour, and a rotated blend-mode edge on a GPU layer can lose its
-   anti-aliasing — the stair-step Thomas saw on the pile card. */
+   anti-aliasing — the stair-step Wren saw on the pile card. */
 .ww-tile .widget-group,
 .ww-focus-zoom .widget-group {
   rotate: 0deg;
@@ -851,7 +851,7 @@
 
 /* The pile's black card multiplies a paper texture over near-black. On a
    GPU-rasterized layer that blend path can lose edge anti-aliasing, and
-   the card is rotated, so its edge stair-stepped on Thomas's screen. On
+   the card is rotated, so its edge stair-stepped on Wren's screen. On
    the wall it's a flat black card; the texture was invisible at this size. */
 .ww-tile .br-pile-card,
 .ww-focus-zoom .br-pile-card {

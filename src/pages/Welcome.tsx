@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Canvas } from "../components/Canvas";
 import { LiveCursor } from "../cursors";
-import { CREW } from "../data/spaces";
+import { COVEN } from "../data/spaces";
 import { useSpaceEntrance } from "../lib/entrance";
 import { playSound } from "../lib/sounds";
 import { createDemoWidget } from "../lib/widgetDefaults";
 
 const COUNTDOWN_START = 12 * 86_400 + 4 * 3_600 + 32 * 60 + 19;
 const CURSOR_STYLE_IDS = ["friend-pin", "name-chip", "soft-orb"];
-const CURSOR_MEMBERS = CREW.members.filter((member) => member.online).slice(0, 3);
+const CURSOR_MEMBERS = COVEN.members.filter((member) => member.online).slice(0, 3);
 
 type CursorPosition = { x: number; y: number };
 
@@ -192,7 +192,7 @@ function WelcomeCanvasSliver() {
     <div className="welcome-canvas-sliver" aria-hidden="true">
       <div className="welcome-canvas-scale">
         <Canvas
-          spaceId="crew"
+          spaceId="coven"
           widgets={demoWidgets}
           selectedWidgetId=""
           onWidgetSelect={() => undefined}
@@ -262,7 +262,7 @@ export function Welcome() {
           className="welcome-cta"
           onClick={() => {
             playSound("place");
-            window.location.hash = "#/space/crew";
+            window.location.hash = "#/space/coven";
           }}
         >
           Get started <span aria-hidden="true">→</span>

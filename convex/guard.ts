@@ -130,19 +130,6 @@ export const warm = internalMutation({
   },
 });
 
-/** Firecrawl from a browser: a seat in the room it's for, and the person's limit. */
-export const firecrawl = internalMutation({
-  args: { spaceId: v.optional(v.id("spaces")), kind: v.union(v.literal("scrape"), v.literal("search"), v.literal("crawl")) },
-  returns: v.null(),
-  handler: async (ctx, { spaceId, kind }) => {
-    const me = spaceId ? await seatOrMaker(ctx, spaceId) : null;
-    if (!me) throw new Error("not in this room");
-    const name = kind === "scrape" ? "firecrawlScrape" : kind === "search" ? "firecrawlSearch" : "firecrawlCrawl";
-    await rateLimiter.limit(ctx, name, { key: me.userId, throws: true });
-    return null;
-  },
-});
-
 /**
  * The room's other model calls a browser starts (recap "catch me up" and its
  * ask, the ask stream, a link's spark questions): a seat in the room, and
