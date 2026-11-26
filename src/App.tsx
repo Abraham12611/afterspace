@@ -53,14 +53,6 @@ import { EditSlips, VoiceBuildLayer } from "./components/VoiceBuildLayer";
 import { HeldBack, RowGhosts, RowHalos, withGhosts } from "./components/RightOfWay";
 import { RowVotes } from "./components/ChoiceVote";
 import { useRowMock } from "./lib/rowMock";
-import {
-  MAIL_LAB_CAKE_ID,
-  MAIL_LAB_HIDDEN,
-  mailLabCakeCard,
-  mailLabCakeSplit,
-} from "./lib/mailLabCake";
-import { MailArrival, type LabHooks } from "./components/MailArrival";
-import { MOCK_MAIL_DECIDE_MS } from "./lib/mailArrival";
 import { getStickerDefinition } from "./data/stickers";
 import {
   defaultSpaceCustomization,
@@ -142,9 +134,6 @@ const ArrivalLab = lazy(() =>
 const ColorLab = lazy(() =>
   import("./pages/ColorLab").then((module) => ({ default: module.ColorLab })),
 );
-const MailReel = lazy(() =>
-  import("./pages/MailReel").then((module) => ({ default: module.MailReel })),
-);
 const CodexReel = lazy(() =>
   import("./pages/CodexReel").then((module) => ({ default: module.CodexReel })),
 );
@@ -179,7 +168,7 @@ function DeferredRoute({ children }: { children: ReactNode }) {
   );
 }
 
-type Route = "space" | "me" | "about" | "cursors" | "widgets" | "arrival" | "color" | "bothways" | "outro" | "codex" | "firecrawl" | "wall" | "live" | "join" | "test" | "admin";
+type Route = "space" | "me" | "about" | "cursors" | "widgets" | "arrival" | "color" | "outro" | "codex" | "firecrawl" | "wall" | "live" | "join" | "test" | "admin";
 type WidgetPlacement = Partial<Pick<Widget, "x" | "y" | "z" | "w" | "h">>;
 type FrameLayout = Pick<Widget, "x" | "y" | "w" | "h">;
 type CanvasSize = { width: number; height: number };
@@ -292,7 +281,6 @@ function routeFromHash(): Route {
   if (hash === "widgets" || hash.startsWith("widgets/")) return "widgets";
   if (hash === "arrival") return "arrival";
   if (hash === "color") return "color";
-  if (hash === "bothways") return "bothways";
   if (hash === "outro") return "outro";
   if (hash === "codex") return "codex";
   if (hash === "firecrawl") return "firecrawl";
@@ -311,14 +299,6 @@ function demoModeRequested() {
   return new URLSearchParams(window.location.search).get("demo") === "1" ||
     new URLSearchParams(window.location.hash.split("?")[1] ?? "").get("demo") === "1" ||
     import.meta.env.VITE_DEMO === "1";
-}
-
-/** `#/mail` (the crew) or `#/mail/<slug>` — the mail arrival lab
-    (docs/mail-arrival.md): not a page of its own but the real space with
-    fixtures fired at it, mock or live. */
-function mailLabRequested() {
-  const hash = window.location.hash.replace(/^#\/?/, "").split("?")[0];
-  return hash === "mail" || hash.startsWith("mail/");
 }
 
 /** `#/play` — the play lab (docs/local/play-lab.md): a disposable copy of
@@ -2056,10 +2036,6 @@ export default function App() {
     return <DeferredRoute><ColorLab /></DeferredRoute>;
   }
 
-  if (route === "bothways") {
-    return <DeferredRoute><MailReel /></DeferredRoute>;
-  }
-
   if (route === "outro") {
     return <DeferredRoute><Outro /></DeferredRoute>;
   }
@@ -2112,7 +2088,7 @@ export default function App() {
   }
 
   if (route === "space" && !mockModeRequested()) {
-    return <LiveSpacePage slug={spaceId} mailLab={mailLabRequested()} playLab={playLabRequested()} onSelectSpace={(id) => { window.location.hash = normalSpaceHash(id); }} />;
+    return <LiveSpacePage slug={spaceId} playLab={playLabRequested()} onSelectSpace={(id) => { window.location.hash = normalSpaceHash(id); }} />;
   }
 
   const baseSpace = getSpace(spaceId);
@@ -2224,51 +2200,6 @@ export default function App() {
     },
   });
 
-  /* #/mail, mock mode: no backend to do the filing, so the lab does it. The
-     receipt stands its own empty "cake" card up before the envelope flies —
-     FLIP measures the target at take-off, so it cannot appear on impact —
-     and the split lands when it does. Both halves mirror applyExpense. */
-  const mailLabHooks = useMemo<LabHooks>(
-    () => ({
-      onPrepare: (kind, scale) => {
-        if (kind !== "receipt") return undefined;
-        setWidgetDataOverrides((current) => {
-          const here = { ...(current[spaceId] ?? {}) };
-          delete here[MAIL_LAB_CAKE_ID];
-          return { ...current, [spaceId]: here };
-        });
-        setDeletedWidgetIds((current) => {
-          const here = current[spaceId] ?? [];
-          const missing = MAIL_LAB_HIDDEN.filter((id) => !here.includes(id));
-          return missing.length === 0
-            ? current
-            : { ...current, [spaceId]: [...here, ...missing] };
-        });
-        /* The card lands with the verdict, not with the envelope — the real
-           router only creates a tracker once it has decided the mail is a
-           receipt. It just has to exist before the flight measures it. */
-        window.setTimeout(() => {
-          setAddedWidgets((current) => {
-            const here = current[spaceId] ?? [];
-            if (here.some((widget) => widget.id === MAIL_LAB_CAKE_ID)) return current;
-            return { ...current, [spaceId]: [...here, mailLabCakeCard()] };
-          });
-        }, (MOCK_MAIL_DECIDE_MS + 250) * scale);
-        return MAIL_LAB_CAKE_ID;
-      },
-      onFile: (kind) => {
-        if (kind !== "receipt") return;
-        setWidgetDataOverrides((current) => ({
-          ...current,
-          [spaceId]: {
-            ...(current[spaceId] ?? {}),
-            [MAIL_LAB_CAKE_ID]: mailLabCakeSplit(spaceId),
-          },
-        }));
-      },
-    }),
-    [spaceId],
-  );
   const editingWidget = editingWidgetId
     ? visibleWidgets.find((widget) => widget.id === editingWidgetId) ?? null
     : null;
@@ -2408,12 +2339,6 @@ export default function App() {
         onEditSpace={openSpaceEditor}
         visitorCount={spaceId === "buildclub" ? buildClubVisitors : undefined}
       />
-      {/* Mock mode has no inbox to watch; the #/mail lab fires fixtures at
-          the same envelope the live page mounts, and plays the router's hand
-          on the board (stand the card up, fill it on impact). */}
-      {mailLabRequested() && (
-        <MailArrival widgets={visibleWidgets} lab hooks={mailLabHooks} />
-      )}
       {focusedTarget && (
         <nav className="canvas-focus-hud" aria-label="Focused canvas item">
           <button

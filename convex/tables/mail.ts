@@ -3,19 +3,6 @@ import { v } from "convex/values";
 
 /** What comes in from outside: mail, links, the work log, recaps (schema.ts lists them). */
 
-export const emailEvents = defineTable({
-  spaceId: v.id("spaces"), from: v.string(), to: v.string(),
-  subject: v.string(), summary: v.string(), body: v.optional(v.string()),
-  direction: v.union(v.literal("in"), v.literal("out")), widgetId: v.optional(v.id("widgets")), messageId: v.optional(v.string()), threadId: v.optional(v.string()),
-  // Pre-parsed by Firecrawl: an empty-bodied receipt still files itself
-  // off the PDF.
-  attachments: v.optional(v.array(v.object({
-    filename: v.string(), contentType: v.string(), size: v.number(), text: v.string(),
-  }))),
-  because: v.optional(v.string()), label: v.optional(v.string()),
-  readingAt: v.optional(v.number()), repliedAt: v.optional(v.number()), createdAt: v.number(),
-}).index("by_space", ["spaceId"]);
-
 export const work = defineTable({
   spaceId: v.id("spaces"), runId: v.string(), step: v.string(), line: v.string(),
   kind: v.union(v.literal("mail"), v.literal("link"), v.literal("search"), v.literal("crawl")),

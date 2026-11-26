@@ -6,7 +6,7 @@ import {
   WIDGET_MOTION,
   usePeerMotion,
 } from "../live/peerMotion";
-import { DECISION_WIDGET, getSpace, SPACE_CURSORS, SPACES_BY_ID } from "../data/spaces";
+import { DECISION_WIDGET, getSpace, SPACE_CURSORS } from "../data/spaces";
 import type { BackendCount } from "../lib/backendCounts";
 import type { SpaceMember, SpaceMeta, Widget } from "../data/types";
 import { useSpaceEntrance, wavefrontDelays } from "../lib/entrance";
@@ -642,7 +642,6 @@ export function SpaceHeader({
   onSelfClick,
   livePeers = [],
   arrivalPeerId,
-  inboxAddress,
   knowsDoor,
 }: {
   spaceId: string;
@@ -651,7 +650,6 @@ export function SpaceHeader({
   addOpen?: boolean;
   onAddClick?: () => void;
   spaceMeta?: Pick<SpaceMeta, "name" | "tagline" | "kind">;
-  inboxAddress?: string;
   roomEditing?: boolean;
   onEditSpace?: () => void;
   visitorCount?: number;
@@ -667,7 +665,6 @@ export function SpaceHeader({
 }) {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
-  const [mailCopied, setMailCopied] = useState(false);
   const [invitePosition, setInvitePosition] = useState({ top: 120, right: 28 });
   const inviteButtonRef = useRef<HTMLButtonElement>(null);
   /* phone-board.css starts the column under the header, whatever height this room's name and handles came to */
@@ -695,8 +692,6 @@ export function SpaceHeader({
     : [];
   const name = spaceName ?? spaceMeta?.name ?? space.name;
   const tagline = spaceMeta?.tagline ?? space.tagline;
-  // a made room has no fixture: getSpace() falls back to the crew, whose inbox isn't this room's (N1)
-  const mailAddress = inboxAddress ?? (SPACES_BY_ID[spaceId] ? space.inboxAddress : undefined);
   const kind = spaceMeta?.kind ?? space.kind;
   const visibleLivePeers = livePeers.slice(0, 3);
   const visibleOnline = online.slice(0, Math.max(0, 4 - visibleLivePeers.length));
@@ -867,31 +862,9 @@ export function SpaceHeader({
           <p className="space-what">
             a live shared board — post, vote or move anything, every open tab updates with you.
           </p>
-          {/* The name's handles: the inbox address first (mail in → widgets
-              out is a demo beat), then the pencil. Two quiet chips in the
+          {/* The name's handles: the edit pencil and the knows door. Two quiet chips in the
               room's ink, one family. */}
           <div className="space-title-handles">
-            {mailAddress && (
-              <button
-                type="button"
-                className={`space-mail-chip ${mailCopied ? "is-copied" : ""}`}
-                title="email this space — mail becomes widgets"
-                onClick={() => {
-                  navigator.clipboard
-                    ?.writeText(mailAddress)
-                    .then(() => {
-                      setMailCopied(true);
-                      window.setTimeout(() => setMailCopied(false), 1600);
-                    })
-                    .catch(() => {});
-                }}
-              >
-                <span className="space-mail-mark" aria-hidden="true">✉</span>
-                <span className="space-mail-address">
-                  {mailCopied ? "copied!" : mailAddress}
-                </span>
-              </button>
-            )}
             <button
               type="button"
               className={`space-edit-button ${roomEditing ? "is-active" : ""}`}

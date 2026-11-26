@@ -9,17 +9,14 @@ const crons = cronJobs();
 // PER deployment, dev and prod, running whether or not anyone had the app open.
 crons.interval("clean stale presence", { minutes: 5 }, internal.presence.cleanup);
 
-// Friday 16:00 UTC — each space emails its week to everyone who wrote to it.
-crons.cron("weekly digest", "0 16 * * 5", internal.digest.weekly, {});
-
 // Daily 15:00 UTC — bounded via the recap workpool (maxParallelism 3).
 crons.cron("catch me up", "0 15 * * *", internal.recap.generateAll, {});
 
 // 07:00 UTC = midnight Pacific — every room back to its baseline. Rooms are
 // public and unlocked on purpose, so a day of visitors leaves scribble, spam
 // and dragged-off widgets behind; morning starts on the board we meant to
-// show. Rooms without a saved baseline are skipped, never wiped. Members, the
-// AgentMail inbox and ownership are never touched (docs/local/admin-reset.md).
+// show. Rooms without a saved baseline are skipped, never wiped. Members and
+// ownership are never touched (docs/local/admin-reset.md).
 crons.cron("nightly room reset", "0 7 * * *", internal.admin.nightlyReset, {});
 
 // Every 10 minutes — rooms with activity since their brief, and each room once

@@ -1,109 +1,41 @@
-import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useJoin } from "../live/useJoin";
-import { CodeSlots } from "./CodeSlots";
 
 /**
- * The join form: email in, six digits back. Lives inside the claim card.
- * (Making a space has its own inline copy of these steps — SpaceMaker.tsx —
- * because there the code should open the room, not stamp a card.)
+ * The join form: Google is the only way to keep a guest seat across devices.
+ * Lives inside the claim card. The page leaves for Google and comes back
+ * signed in, so there is no "done" step here.
  *
  * Deliberately not a wall. Every copy line here is about keeping what you
- * already have, never about unlocking the app (§1).
+ * already have, never about unlocking the app (A1).
  */
 export function JoinForm({
   reason,
   title = "keep this",
-  onJoined,
   onCancel,
 }: {
   /** One line saying why this is worth doing, in the voice of the moment. */
   reason: string;
-  /** The kicker over the email step: "keep this" for a guest, "sign in" for a return. */
+  /** The kicker over the form: "keep this" for a guest, "sign in" for a return. */
   title?: string;
+  /** Kept for callers that still pass it; the page reloads on return. */
   onJoined?: () => void;
   onCancel?: () => void;
 }) {
-  const { stage, email, busy, error, sendCode, verify, restart, google } = useJoin();
+  const { busy, error, google } = useJoin();
   const options = useQuery(api.auth.signInOptions, {});
-  const [draft, setDraft] = useState("");
-
-  // Each step gets an empty field. Without this the address you just typed
-  // is still sitting in `draft` when the code slots mount, and six boxes
-  // open pre-filled with "turbot".
-  useEffect(() => {
-    setDraft("");
-  }, [stage]);
-
-  if (stage === "done") {
-    return (
-      <div className="join-form is-done">
-        <span className="join-stamp">you&apos;re in the book</span>
-        <strong>{email}</strong>
-        <span>this browser, your phone, next week — same you.</span>
-        <button
-          type="button"
-          className="claim-done"
-          onClick={() => {
-            // A reload, deliberately. signIn swaps the stored token, but the
-            // live ConvexReactClient keeps using the old one — verified: 40s
-            // after joining, currentUser still answered as the guest and
-            // createSpace still refused. Reloading re-reads the token from
-            // localStorage and everything downstream is simply correct.
-            onJoined?.();
-            window.location.reload();
-          }}
-        >
-          keep going <span aria-hidden="true">→</span>
-        </button>
-      </div>
-    );
-  }
-
-  const onCode = stage === "code";
 
   return (
-    <form
-      className="join-form"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (busy) return;
-        void (onCode ? verify(draft) : sendCode(draft));
-      }}
-    >
-      <span className="claim-card-kicker">
-        {onCode ? "check your email" : title}
-      </span>
+    <div className="join-form">
+      <span className="claim-card-kicker">{title}</span>
       <p className="join-form-reason">
-        {onCode ? `six numbers, on their way to ${email}.` : reason}
+        {options && !options.google ? "signing in isn't set up on this deployment." : reason}
       </p>
-
-      {onCode ? (
-        <CodeSlots
-          value={draft}
-          onChange={setDraft}
-          onComplete={(code) => void verify(code)}
-          disabled={busy}
-        />
-      ) : (
-        <input
-          className="claim-name-input"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          type="email"
-          inputMode="email"
-          autoComplete="email"
-          maxLength={64}
-          placeholder="you@email.com"
-          aria-label="Your email"
-          autoFocus
-        />
-      )}
 
       {error && <span className="join-form-error">{error}</span>}
 
-      {!onCode && options?.google && (
+      {options?.google && (
         <button
           type="button"
           className="join-google"
@@ -120,30 +52,9 @@ export function JoinForm({
         </button>
       )}
 
-      <button type="submit" className="claim-done" disabled={busy}>
-        {busy
-          ? onCode
-            ? "letting you in…"
-            : "sending…"
-          : onCode
-            ? "that's me →"
-            : "send me a code"}
+      <button type="button" className="join-form-back" onClick={() => onCancel?.()}>
+        not now
       </button>
-
-      <button
-        type="button"
-        className="join-form-back"
-        onClick={() => {
-          if (onCode) {
-            setDraft("");
-            restart();
-          } else {
-            onCancel?.();
-          }
-        }}
-      >
-        {onCode ? "use a different email" : "not now"}
-      </button>
-    </form>
+    </div>
   );
 }

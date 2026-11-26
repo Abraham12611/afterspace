@@ -1,5 +1,5 @@
 import { query, mutation, internalMutation, type MutationCtx } from "./_generated/server";
-import { requireRegisteredUserId, requireUserId } from "./auth";
+import { requireUserId } from "./auth";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { TableAggregate } from "@convex-dev/aggregate";
@@ -53,7 +53,7 @@ async function deleteSpaceBySlug(ctx: MutationCtx, slug: string) {
     await memberCounts.delete(ctx, member);
   }
 
-  for (const table of ["messages", "presence", "paintMarks", "emailEvents", "recaps"] as const) {
+  for (const table of ["messages", "presence", "paintMarks", "recaps"] as const) {
     for (const row of await ctx.db
       .query(table)
       .withIndex("by_space", (q) => q.eq("spaceId", space._id))
@@ -157,26 +157,21 @@ function randomSuffix() {
 }
 
 /**
- * The switch for "make your own" (nebius/eval/n1-new-space.md §5), by lane:
- * on the deployments named here a guest can make a room and the demo banner's
- * waitlist becomes "make your own space". Today that is the dev lane only; on
- * prod (not listed) making a room still needs an email code and the banner
- * offers the waitlist. To open prod, add "necessary-cobra-892" here.
+ * "Make your own" is open to guests everywhere (product rule: no signup).
+ * With email codes gone the only registered identity is Google, so gating
+ * space creation on it would leave most people unable to make a space.
+ * The query stays so the client can ask; a guest's anonymous account owns
+ * the room, and joining later keeps the same user id.
  */
-declare const process: { env: Record<string, string | undefined> };
-const OPEN_ROOM_DEPLOYMENTS = ["dusty-condor-648", "necessary-cobra-892"]; // Oct 6: rooms open on prod too (Thomas: "ship"; the pilot runs on ourspaces.io)
-const openRooms = () => OPEN_ROOM_DEPLOYMENTS.some((name) => (process.env.CONVEX_CLOUD_URL ?? "").includes(name));
-
 export const roomsOpen = query({
   args: {},
   returns: v.boolean(),
-  handler: async () => openRooms(),
+  handler: async () => true,
 });
 
 /**
- * Make a space. Registered people only unless the deployment is in
- * `OPEN_ROOM_DEPLOYMENTS` (then a guest's anonymous account owns it; joining later
- * keeps the same user id). The owner comes from the session, never from an
+ * Make a space. A guest's anonymous account owns it; joining later
+ * keeps the same user id. The owner comes from the session, never from an
  * argument, so there is no path from a forged userId to owning someone
  * else's space.
  */
@@ -190,7 +185,7 @@ export const createSpace = mutation({
   },
   returns: v.object({ spaceId: v.id("spaces"), slug: v.string() }),
   handler: async (ctx, args) => {
-    const ownerId = openRooms() ? await requireUserId(ctx) : await requireRegisteredUserId(ctx);
+    const ownerId = await requireUserId(ctx);
     const now = Date.now();
     const slug = `${slugify(args.name)}-${randomSuffix()}`;
     const spaceId = await ctx.db.insert("spaces", {
@@ -360,8 +355,7 @@ export const retireCutSpaces = internalMutation({
 
 /** One-shot clone of a live space → a new slug (the background remixes).
  * Copies widgets, members, votes, messages, and paint so the copy is
- * indistinguishable from the original; skips the AgentMail inbox so webhooks
- * keep routing to the original. Idempotent per target slug. */
+ * indistinguishable from the original. Idempotent per target slug. */
 export const duplicateBySlug = internalMutation({
   args: { fromSlug: v.string(), toSlug: v.string(), name: v.string() },
   returns: v.id("spaces"),

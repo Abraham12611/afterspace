@@ -1296,7 +1296,6 @@ export const SPACES: SpaceMeta[] = [
     tagline: "your people, in one place",
     preview: "daily q · 3 answered",
     showcase: "birthday HQ · plans, polls, memories",
-    inboxAddress: "ourspaces@agentmail.to",
   },
   {
     id: "couple",
@@ -1309,7 +1308,6 @@ export const SPACES: SpaceMeta[] = [
     tagline: "an ocean apart",
     preview: "47 days to SFO",
     showcase: "two time zones · clocks, countdowns, color together",
-    inboxAddress: "ustwo@agentmail.to",
   },
   {
     id: "buildroom",
@@ -1322,7 +1320,6 @@ export const SPACES: SpaceMeta[] = [
     tagline: "drop it, argue it, keep it",
     preview: "47 links · 3 hot",
     showcase: "link pile · ships, roundtables, hot takes",
-    inboxAddress: "buildroom@agentmail.to",
   },
   {
     id: "family",

@@ -21,7 +21,6 @@ export const spaces = defineTable({
   icon: v.string(), color: v.string(), createdAt: v.number(), lastActivityAt: v.number(),
   eventAt: v.optional(v.number()), archivedAt: v.optional(v.number()), slug: v.optional(v.string()),
   canvasW: v.optional(v.number()), canvasH: v.optional(v.number()), tagline: v.optional(v.string()),
-  inboxId: v.optional(v.string()), inboxAddress: v.optional(v.string()),
   askThreadId: v.optional(v.string()), ragIndexedAt: v.optional(v.number()),
   // Unset on seeded spaces, load-bearing: "no owner" means nobody can
   // rename or delete it from the client. Only createSpace writes it from
@@ -32,7 +31,7 @@ export const spaces = defineTable({
   door: v.optional(v.boolean()),
 })
   .index("by_name", ["name"]).index("by_slug", ["slug"])
-  .index("by_inbox", ["inboxId"]).index("by_owner", ["ownerId"]);
+  .index("by_owner", ["ownerId"]);
 
 export const members = defineTable({
   spaceId: v.id("spaces"), userId: v.string(), name: v.string(), color: v.string(),

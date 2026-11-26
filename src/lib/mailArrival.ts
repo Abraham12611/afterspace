@@ -1,6 +1,6 @@
 /* The mail arrival — what an inbound email looks like on the canvas between
    the webhook and the filing (docs/mail-arrival.md). One clock for live (the
-   emailEvents row, watched over Convex) and the #/mail lab (the same shape,
+   mail event, watched over Convex) and the #/mail lab (the same shape,
    fields landing on timers), so the beat can't drift between them. The
    component that draws it is components/MailArrival.tsx. */
 

@@ -15,7 +15,6 @@ import agent from "@convex-dev/agent/convex.config";
 import rag from "@convex-dev/rag/convex.config";
 import persistentTextStreaming from "@convex-dev/persistent-text-streaming/convex.config";
 import presence from "@convex-dev/presence/convex.config";
-import agentMail from "./components/agentMail/convex.config";
 import authWellKnown from "./components/authWellKnown/convex.config";
 
 // Our own HTTP endpoints (convex/http.ts) are served under /api so the
@@ -28,10 +27,6 @@ const app = defineApp({
     // Any non-empty value switches off embeddings, the one model call that
     // goes through the Convex AI Gateway (convex/rag.ts).
     AI_GATEWAY_DISABLED: v.optional(v.string()),
-    AGENTMAIL_API_KEY: v.string(),
-    // Tavily, the lookup (convex/tavily.ts). Unset = no lookup: the poll lands as it always did.
-    TAVILY_API_KEY: v.optional(v.string()),
-    AGENTMAIL_WEBHOOK_SECRET: v.optional(v.string()),
     SITE_URL: v.optional(v.string()),
     // Google sign-in (docs/accounts.md). Unset = the button never shows.
     AUTH_GOOGLE_ID: v.optional(v.string()),
@@ -46,12 +41,6 @@ const app = defineApp({
 });
 
 app.use(staticHosting, { httpPrefix: "/" });
-
-// AgentMail: the space's inbox. Our own first-party component (the published
-// @agentmail/convex 0.1.0 hangs on nested workpools — see
-// docs/firecrawl-agentmail-setup.md). Owns inbound store + dedup and wraps the
-// REST API; the app passes the key in and mounts the webhook (convex/http.ts).
-app.use(agentMail);
 
 // Firecrawl: links become structured cards. Webhook at /api/firecrawl/webhook.
 app.use(firecrawl, {

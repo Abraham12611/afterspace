@@ -1,8 +1,6 @@
 import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
-import { internal } from "./_generated/api";
 import { chatTarget, type AiJob } from "./ai";
-import { decideFiling } from "./inboxRouting";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModelV4 } from "@ai-sdk/provider";
 
@@ -242,25 +240,6 @@ export const routes = internalAction({
         thinking: target?.kind === "nebius" ? target.thinking : false,
       };
     }),
-});
-
-/** Runs the mail brain on a synthetic email against a real space's board and
- * returns its decision and how long the model took. Writes nothing. */
-export const fileDryRun = internalAction({
-  args: { slug: v.string(), from: v.string(), subject: v.string(), body: v.string() },
-  returns: v.object({ ms: v.number(), decision: v.union(v.string(), v.null()) }),
-  handler: async (ctx, { slug, from, subject, body }) => {
-    const space = await ctx.runQuery(internal.agentmail.getSpaceBySlug, { slug });
-    if (!space) throw new Error(`no space ${slug}`);
-    const widgets = await ctx.runQuery(internal.widgets.board, { spaceId: space._id });
-    const t0 = Date.now();
-    const decision = await decideFiling({
-      event: { from, subject, body, summary: body.slice(0, 200), attachments: [], createdAt: Date.now() },
-      space,
-      widgets,
-    });
-    return { ms: Date.now() - t0, decision: decision ? JSON.stringify(decision) : null };
-  },
 });
 
 export type LetterResult = {

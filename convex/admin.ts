@@ -17,9 +17,8 @@ import { pollTallies } from "./votes";
  * What a reset restores: the space row's look (name, icon, color, tagline,
  * canvas size), every widget, its votes, its paint, and every message.
  * What it deliberately does NOT touch: `members` (real people who joined —
- * that history is the point), the AgentMail inbox, the slug, and ownership.
- * What it clears outright: recaps, ask streams, the work log, cursors, and
- * any mail that landed after the baseline was saved.
+ * that history is the point), the slug, and ownership.
+ * What it clears outright: recaps, ask streams, the work log and cursors.
  *
  * Every function here is gated on ADMIN_KEY, a Convex env var. There is no
  * other door: the route renders a key field and nothing else until the key
@@ -199,7 +198,7 @@ async function restoreBaseline(ctx: MutationCtx, space: Doc<"spaces">) {
   const row = await baselineRow(ctx, space.slug!);
   if (!row) throw new Error(`${space.slug} has no baseline saved yet`);
   const baseline = JSON.parse(row.json) as Baseline;
-  const removed = { widgets: 0, messages: 0, votes: 0, paint: 0, mail: 0, other: 0 };
+  const removed = { widgets: 0, messages: 0, votes: 0, paint: 0, other: 0 };
 
   // 1 · the board as it stands: widgets take their votes and paint with them
   for (const widget of await ctx.db
@@ -251,15 +250,6 @@ async function restoreBaseline(ctx: MutationCtx, space: Doc<"spaces">) {
     await ctx.db.delete(cursor._id);
     removed.other += 1;
   }
-  // Mail that landed after the baseline: its widget is gone, so the arrival
-  // envelope would narrate a filing that points at nothing. Older events stay.
-  for (const event of await ctx.db
-    .query("emailEvents")
-    .withIndex("by_space", (q) => q.eq("spaceId", space._id).gte("_creationTime", baseline.savedAt))
-    .collect()) {
-    await ctx.db.delete(event._id);
-    removed.mail += 1;
-  }
   // Queued Firecrawl refreshes for widgets that just stopped existing.
   for (const queued of await ctx.db.query("linkRefreshQueue").collect()) {
     if (!(await ctx.db.get(queued.widgetId))) {
@@ -268,8 +258,8 @@ async function restoreBaseline(ctx: MutationCtx, space: Doc<"spaces">) {
     }
   }
 
-  // 3 · the space row's look. Slug, inbox, owner and askThread are routing —
-  // restoring those would break mail and hand the room to whoever saved it.
+  // 3 · the space row's look. Slug, owner and askThread are routing —
+  // restoring those would hand the room to whoever saved it.
   await ctx.db.patch(space._id, {
     name: baseline.space.name,
     type: baseline.space.type,
@@ -436,7 +426,7 @@ export const resetToBaseline = mutation({
   returns: v.object({
     slug: v.string(),
     savedAt: v.number(),
-    removed: v.object({ widgets: v.number(), messages: v.number(), votes: v.number(), paint: v.number(), mail: v.number(), other: v.number() }),
+    removed: v.object({ widgets: v.number(), messages: v.number(), votes: v.number(), paint: v.number(), other: v.number() }),
     restored: v.object({ widgets: v.number(), messages: v.number(), votes: v.number(), paint: v.number() }),
   }),
   handler: async (ctx, { key, slug }) => {

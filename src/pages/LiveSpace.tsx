@@ -60,7 +60,7 @@ import { GlobalChatPanel } from "../components/GlobalChatPanel";
 import { Rail } from "../components/Rail";
 import { SpaceEditorPanel } from "../components/SpaceEditorPanel";
 import { SpaceLiveStrip } from "../components/SpaceLiveStrip";
-import { MailArrival } from "../components/MailArrival";
+
 import { WidgetEditorPanel } from "../components/WidgetEditorPanel";
 import { WidgetPicker } from "../components/WidgetPicker";
 import { placingSize, type PlacingItem } from "../components/PlacementGhost";
@@ -377,14 +377,11 @@ export function LiveSpacePage({
   slug = DEFAULT_SPACE_SLUG,
   onSelectSpace,
   isInviteEntry = false,
-  mailLab = false,
   playLab = false,
 }: {
   slug?: string;
   onSelectSpace?: (id: string) => void;
   isInviteEntry?: boolean;
-  /** #/mail — the mail arrival lab over this (the crew) space */
-  mailLab?: boolean;
   /** #/play — the director pill that runs the demo's opening take (docs/local/play-lab.md) */
   playLab?: boolean;
 }) {
@@ -3004,7 +3001,6 @@ export function LiveSpacePage({
         onSelfClick={openClaim}
         livePeers={liveCursors}
         arrivalPeerId={arrivalPeer?.userId}
-        inboxAddress={space?.inboxAddress}
         knowsDoor={mode === "live" && space ? <RoomKnowsDoor slug={slug} count={roomKnows ? standing(roomKnows) : undefined} /> : undefined}
         addOpen={pickerOpen}
         onAddClick={() => {
@@ -3028,16 +3024,6 @@ export function LiveSpacePage({
           lastChangeAt={lastChangeAt}
           gestures={liveGestures}
           work={spaceWork}
-        />
-      )}
-      {/* Mail arrival — the envelope that narrates the filing
-          (docs/mail-arrival.md). Watches this space's inbound emailEvents;
-          in the #/mail lab it runs fixtures instead. */}
-      {mode === "live" && (space?.inboxAddress || mailLab) && (
-        <MailArrival
-          spaceId={space ? String(space._id) : undefined}
-          widgets={widgets}
-          lab={mailLab}
         />
       )}
       {/* Play lab — the blank take room for the demo video's opening

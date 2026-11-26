@@ -2,15 +2,10 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { SPACE_TEMPLATES, WIDGET_CATALOG } from "../data/templates";
 import type { SpaceTemplate, WidgetType } from "../data/types";
 import { useCreateSpace } from "../live/useCreateSpace";
-import { useAccount, useJoin } from "../live/useJoin";
-import { CodeSlots } from "./CodeSlots";
-import { useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 
 /**
  * Pick a starting point, name it on the preview, then create.
- * Color, symbol and widgets are optional under Customize. Guests keep the
- * existing inline email/code step; joined people create with one click.
+ * Color, symbol and widgets are optional under Customize. Guests create with one click.
  */
 
 /**
@@ -272,25 +267,7 @@ export function SpaceMaker({
   const [custom, setCustom] = useState<Draft>(() => draftFrom(SPACE_TEMPLATES[0]));
   const [name, setName] = useState("");
   const [customizing, setCustomizing] = useState(false);
-  // "build" is the starting point, preview and optional customization; "keep" is
-  // the same board with only the email + code under it, and a way back.
-  const [step, setStep] = useState<"build" | "keep">("build");
-  const [draft, setDraft] = useState("");
-  // Set once the code lands. The account query flips to `joined` a beat
-  // later, and only then is the mutation sent with a registered identity.
-  const [makeWhenJoined, setMakeWhenJoined] = useState(false);
-
-  const account = useAccount();
-  // Where rooms are open (the dev lane, convex/spaces.ts `roomsOpen`) a guest
-  // makes the room at once; the email code is for keeping it, later.
-  const roomsOpen = useQuery(api.spaces.roomsOpen, {}) === true;
-  const canMake = account.joined || roomsOpen;
-  const join = useJoin();
   const maker = useCreateSpace();
-  // the code boxes start empty, not with the email's first six letters
-  useEffect(() => {
-    if (join.stage === "code") setDraft("");
-  }, [join.stage]);
   const madeRef = useRef(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -314,14 +291,6 @@ export function SpaceMaker({
     if (slug) onMade(slug);
     else madeRef.current = false;
   };
-
-  useEffect(() => {
-    if (makeWhenJoined && account.joined) {
-      setMakeWhenJoined(false);
-      void make();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [makeWhenJoined, account.joined]);
 
   if (!open) return null;
 
@@ -366,14 +335,12 @@ export function SpaceMaker({
       return { ...prev, types: [...prev.types, type] };
     });
 
-  const shownName = name.trim() || template.name;
-  const onCode = join.stage === "code";
-  const settingUp = maker.busy || makeWhenJoined;
+  const settingUp = maker.busy;
 
   return (
     <dialog ref={dialogRef} className="widget-picker-backdrop space-maker-backdrop" onClick={onClose} onCancel={onClose}>
       <div
-        className={`widget-picker space-maker is-${step}`}
+        className="widget-picker space-maker is-build"
         style={{ "--maker-color": template.color } as CSSProperties}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
@@ -382,12 +349,8 @@ export function SpaceMaker({
       >
         <header>
           <div>
-            <h2>{step === "build" ? "a space for your people" : "save your space"}</h2>
-            <p>
-              {step === "build"
-                ? "pick a starting point. change anything later."
-                : "use your email to keep it across devices."}
-            </p>
+            <h2>a space for your people</h2>
+            <p>pick a starting point. change anything later.</p>
           </div>
           <button
             type="button"
@@ -444,8 +407,7 @@ export function SpaceMaker({
               onKeyDown={(event) => {
                 if (event.key !== "Enter") return;
                 event.preventDefault();
-                if (canMake) void make();
-                else setStep("keep");
+                void make();
               }}
             />
             <span className="space-maker-board-pencil" aria-hidden="true">
@@ -482,10 +444,8 @@ export function SpaceMaker({
           {settingUp && <span className="join-stamp space-maker-stamp">yours</span>}
         </div>
 
-        {/* Keyed on the step so the new prong slides in. */}
-        <div className="space-maker-body" key={step}>
-          {step === "build" ? (
-            <>
+        <div className="space-maker-body">
+          <>
               <details className="space-maker-custom" open={customizing} onToggle={(event) => setCustomizing(event.currentTarget.open)}>
                 <summary>
                   <span>customize <span className="space-maker-custom-chevron">⌄</span></span>
@@ -564,92 +524,12 @@ export function SpaceMaker({
                   className="claim-done"
                   disabled={settingUp}
                   data-testid="space-maker-create"
-                  onClick={() => (canMake ? void make() : setStep("keep"))}
+                  onClick={() => void make()}
                 >
                   {settingUp ? "creating…" : "create space"} <span aria-hidden="true">→</span>
                 </button>
               </div>
-            </>
-          ) : (
-            <form
-              className="join-form space-maker-keep"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (join.busy || settingUp) return;
-                void (onCode ? join.verify(draft) : join.sendCode(draft));
-              }}
-            >
-              <span className="claim-card-kicker">
-                {settingUp ? "you're in" : onCode ? "check your email" : "where should the code go?"}
-              </span>
-              <p className="join-form-reason">
-                {settingUp
-                  ? `setting ${shownName} up…`
-                  : onCode
-                    ? `six numbers, on their way to ${join.email}. the last one opens the room.`
-                    : `${shownName} is yours the moment the code lands.`}
-              </p>
-
-              {onCode ? (
-                <CodeSlots
-                  value={draft}
-                  onChange={setDraft}
-                  onComplete={(code) => {
-                    void join.verify(code).then((ok) => {
-                      if (ok) setMakeWhenJoined(true);
-                    });
-                  }}
-                  disabled={join.busy || settingUp}
-                />
-              ) : (
-                <div className="space-maker-keep-row">
-                  <input
-                    className="claim-name-input"
-                    value={draft}
-                    onChange={(event) => setDraft(event.target.value)}
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    maxLength={64}
-                    placeholder="you@email.com"
-                    aria-label="Your email"
-                    autoFocus
-                  />
-                  <button type="submit" className="claim-done" disabled={join.busy}>
-                    {join.busy ? "sending…" : "send me a code"}
-                  </button>
-                </div>
-              )}
-
-              {(join.error || maker.error) && (
-                <span className="join-form-error">{join.error ?? maker.error}</span>
-              )}
-
-              {!settingUp && (
-                <div className="space-maker-foot">
-                  <button
-                    type="button"
-                    className="join-form-back"
-                    onClick={() => setStep("build")}
-                  >
-                    <span aria-hidden="true">←</span> back to the board
-                  </button>
-                  {onCode && (
-                    <button
-                      type="button"
-                      className="join-form-back"
-                      onClick={() => {
-                        setDraft("");
-                        join.restart();
-                      }}
-                    >
-                      use a different email
-                    </button>
-                  )}
-                </div>
-              )}
-            </form>
-          )}
+          </>
         </div>
       </div>
     </dialog>

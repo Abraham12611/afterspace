@@ -24,7 +24,6 @@ export default defineSchema({
   baselines: rooms.baselines, // what #/admin resets a room to
 
   // what comes in
-  emailEvents: mail.emailEvents, // mail in and out of the room's inbox
   work: mail.work, // the steps a mail or link took, as they happen
   recaps: mail.recaps, // "what moved", daily and asked
   askStreams: mail.askStreams, // a streamed answer's question
