@@ -87,3 +87,12 @@ public/demo-video-assets/*.srt
 # Agent instructions stay local (Oct 6): they name local-only folders and skills
 /AGENTS.md
 /CLAUDE.md
+
+# --- Afterspace ---
+# Read-only upstream copy and throwaway design explorations. Never commit.
+reference/
+design-directions/
+.env.*.local
+Thumbs.db
+# NOTE: .kiro/ must stay committed. It is a Kiroween submission requirement.
+!/.kiro/**
