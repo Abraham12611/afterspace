@@ -1,11 +1,11 @@
 /**
  * Voice edits: the fourth answer to an ask, besides a card, nothing, or
- * "already here" (nebius right-of-way R0). "add ramen to the dinner poll",
+ * "already here" (right-of-way R0). "add ramen to the dinner poll",
  * "take pizza off", "move it to 7:30", "make the challenge 10 days".
  *
  * Three parts, all pure (the asker's screen and convex/edits.ts run the same code):
  *  - the target: the selected card, else the card the words name, else the one
- *    card that holds the thing named ("take ash off" → the split ash is on).
+ *    card that holds the thing named ("take kai off" → the split kai is on).
  *    Two fit → offers, never a guess.
  *  - the op: one of the closed set the card declares next to its schema
  *    (catalog.ts `edits`), `{op: "addOption", value: "ramen"}`.
@@ -22,10 +22,7 @@ import { blankSlot, fillSlot, type Unfinished } from "./needs";
 import { closesDate, closesFromWords, closesLabel, needsFromWords, pollOutcome } from "../pollRules";
 
 type W = { id: string; type: string; data: Record<string, unknown> };
-/** `web`: a real place the lookup found (convex/tavily.ts), carried onto the option it adds; a client can't send one (convex/edits.ts opV). */
-export type EditOp = { op: string; value: string | number; item?: string; web?: WebMark };
-/** Where a poll option came from when the web found it: the page, its host, and a number only when the page had one. */
-export type WebMark = { url: string; host: string; rating?: number; reviews?: number; img?: string; emoji?: string };
+export type EditOp = { op: string; value: string | number; item?: string };
 export type FieldChange = { field: string; old: unknown; new: unknown };
 /** A person whose choice an edit would override: `id` where the card knows it, `why` = their choice in words. */
 export type Chooser = { id?: string; name: string; why: string };
@@ -162,7 +159,7 @@ export function applyEdit(w: { type: string; data: Record<string, unknown> }, op
       if (opts.some((o) => low(o.label) === low(str))) return fail(`${str} is already on it`);
       if (opts.length >= 8) return fail("the poll is full");
       const id = [...LETTERS].find((l) => !opts.some((o) => o.id === l)) ?? `o${opts.length}`;
-      return done({ ...d, options: [...opts, { id, label: str, votes: 0, total: 0, voters: [], ...(op.web ? { web: op.web } : {}) }] }, `added ${str}`, str, { op: "removeOption", value: str });
+      return done({ ...d, options: [...opts, { id, label: str, votes: 0, total: 0, voters: [] }] }, `added ${str}`, str, { op: "removeOption", value: str });
     }
     case "removeOption": {
       const opts = (d.options as { id: string; label: string; voters?: string[] }[] | undefined) ?? [];
@@ -440,7 +437,7 @@ export function parseSaid(said: string): Said | null {
   if ((m = /^(?:move|push|shift) (.+?) to (.+)$/.exec(t)) && whenOf(m[2]) && !/^(it|this|that)$/.test(m[1])) return { fam: "when", value: m[2], item: m[1] };
   return null;
 }
-/** Words that are an edit (the router's test). `selected`: a card is selected, so "add rio" means it. */
+/** Words that are an edit (the router's test). `selected`: a card is selected, so "add dante" means it. */
 export function isEditSaid(said: string, selected: boolean): boolean {
   // "add ramen to the…" while the card's name is still coming: an edit until a word says otherwise
   if (/^(add|put|throw|stick) (?!(a|an|another|one|some new|new|me|us)\b)\S+( \S+)? (to|on|onto|in|into)( the| our| my)?$/.test(clean(said))) return true;
@@ -461,7 +458,7 @@ const KIND: Array<[RegExp, string]> = [
 ];
 const NOUNS = /\b(poll|list|checklist|sign-?up|rsvp|countdown|split|itinerary|challenge|check-?in|card|sheet)\b/g;
 const titleOf = (w: W) => String(w.data.title ?? w.data.question ?? w.data.event ?? "").replace(/\p{Extended_Pictographic}/gu, "").trim();
-/** What a card holds, for "take ash off" with no card named. */
+/** What a card holds, for "take kai off" with no card named. */
 const holds = (w: W): string[] =>
   w.type === "poll" ? ((w.data.options as { label: string }[]) ?? []).map((o) => o.label)
     : w.type === "potluck" ? ((w.data.items as { name: string }[]) ?? []).map((i) => i.name)
@@ -514,7 +511,7 @@ export function editFor(said: string, widgets: W[], selectedId: string | null, c
     else if (pool.length > 1 && !topic.length) offers = pool;
     else return { kind: "none", text: kind ? `no ${phrase} here` : `couldn't find the ${phrase}` };
   } else if (p.fam === "remove" || p.item) {
-    // nothing named or selected: the card that holds what the words name ("take ash off")
+    // nothing named or selected: the card that holds what the words name ("take kai off")
     const want = p.item ?? p.value;
     const hit = cards.filter((w) => fits(w) && holds(w).some((h) => same(want, h)));
     // nothing holds it: the words may name the card itself ("move game night to sunday")

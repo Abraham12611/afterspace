@@ -5,8 +5,6 @@ import type { AskTrace, StageName, VoiceEdit, VoiceFound, VoiceLanded, VoiceRece
 import { feedVoiceStage, replyTone } from "../lib/voiceStage";
 import { playSound } from "../lib/sounds";
 import type { ResolveNote, RoomFacts } from "../lib/deck";
-import { LookupReceipt } from "./LookupReceipt";
-import { LookupTick, useSeenAt } from "./LookupTick";
 
 /** The dev readout (one thin strip) and its drawer show on the dev lane, or
     anywhere with `?timing=1`. `?timing=table` adds the stage's wide beats
@@ -16,7 +14,7 @@ function devMode() {
   const q = new URLSearchParams(window.location.search).get("timing");
   if (q === "1" || q === "table") return true;
   if (q === "0") return false;
-  return /dusty-condor/.test(import.meta.env.VITE_CONVEX_URL ?? "");
+  return import.meta.env.VITE_DEV_LANE === "1";
 }
 
 /** The ring in the maker's colour: on the card being built, following its
@@ -57,11 +55,6 @@ function ShellRing({ shell, tint }: { shell: VoiceShell; tint: CSSProperties }) 
 
 /** The ask was already on the board: a ring in the asker's colour pulses
     once around that widget (following it while the camera glides). */
-/** The lookup slip's clock, from the moment this ask's slip showed it. */
-function SlipTick({ traceKey }: { traceKey: number }) {
-  return <LookupTick since={useSeenAt(String(traceKey))} />;
-}
-
 /** The asker's undo on an edit's slip: a few seconds, one tap, back through the same door. */
 function UndoButton({ undo }: { undo: () => Promise<string> }) {
   const [state, setState] = useState<"ready" | "busy" | string>("ready");
@@ -160,8 +153,8 @@ const STAGE_LABEL: Record<StageName, string> = {
   "cluster-on-screen": "recipe: the whole group synced on screen",
 };
 
-/** $ per 1M tokens in / out (Token Factory GET /v1/models). */
-const PRICE: Record<string, [number, number]> = { Lightning: [0.06, 0.24], Ultra: [1, 3], Super: [0.3, 0.9] };
+/** $ per 1M tokens in / out (OpenRouter GET /v1/models). */
+const PRICE: Record<string, [number, number]> = { fast: [0.15, 0.6], mid: [0.4, 1.6] };
 const dollars = (model: string, u: { prompt: number; completion: number } | null | undefined) => {
   const p = PRICE[model];
   return p && u ? (u.prompt * p[0] + u.completion * p[1]) / 1e6 : 0;
@@ -226,7 +219,7 @@ const MOCK = typeof window !== "undefined" && new URLSearchParams(window.locatio
 
 function routeLabel(t: AskTrace): string | null {
   if (!t.route) return null;
-  return t.route.route === "brain" ? "room facts · Ultra" : "plain · Lightning";
+  return t.route.route === "brain" ? "room facts · mid model" : "plain · fast model";
 }
 
 const ms = (n: number | null | undefined) => (n === null || n === undefined ? "—" : `${n > 0 ? "+" : ""}${Math.round(n).toLocaleString()} ms`);
@@ -340,7 +333,7 @@ function ContextDrawer({
             {t.verb.answer && (
               <>
                 <p>
-                  answer ({t.verb.answer.by === "facts" ? "room facts, code, no model" : t.verb.answer.by === "retrieval" ? `retrieved + Ultra${t.verb.answer.ms != null ? `, ${t.verb.answer.ms} ms` : ""}` : t.verb.answer.by}): “{t.verb.answer.text}” · {t.verb.answer.source}
+                  answer ({t.verb.answer.by === "facts" ? "room facts, code, no model" : t.verb.answer.by === "retrieval" ? `retrieved + mid model${t.verb.answer.ms != null ? `, ${t.verb.answer.ms} ms` : ""}` : t.verb.answer.by}): “{t.verb.answer.text}” · {t.verb.answer.source}
                 </p>
                 <ol className="dev-context-list" data-testid="dev-context-answer-facts">
                   {t.verb.answer.facts.map((x, i) => (
@@ -356,12 +349,9 @@ function ContextDrawer({
         )}
       </section>
 
-      {/* an add is done by code (no model), so the lookup shows on any live ask, not only a model one */}
-      {!MOCK && <LookupReceipt at={t.at} ids={[...t.cards.flatMap((c) => (c.widgetId ? [c.widgetId] : [])), ...(t.found?.widgetId ? [t.found.widgetId] : []), ...(t.found?.check.ok ? [t.found.check.item.id] : [])]} />}
-
       {nonMake ? (
         <section>
-          <p>not a card ask: no guess, no deal, no route, no context sent{t.calls.length ? ` · ${t.calls.length} retrieval call${t.calls.length === 1 ? "" : "s"} (Ultra)` : ""}{t.decides.length ? ` · ${t.decides.length} decide` : ""}</p>
+          <p>not a card ask: no guess, no deal, no route, no context sent{t.calls.length ? ` · ${t.calls.length} retrieval call${t.calls.length === 1 ? "" : "s"} (mid model)` : ""}{t.decides.length ? ` · ${t.decides.length} decide` : ""}</p>
         </section>
       ) : (
       <>
@@ -376,7 +366,7 @@ function ContextDrawer({
       </section>
 
       <section>
-        <h3>decide (Ultra, one letter)</h3>
+        <h3>decide (fast model, one letter)</h3>
         <ol className="dev-context-list">
           {t.decides.map((d, i) => (
             <li key={i} className={d.error ? "dev-context-bad" : ""}>
@@ -414,7 +404,7 @@ function ContextDrawer({
               {t.found.widgetId && <> · widget <code>{t.found.widgetId}</code></>}
             </p>
             <p>
-              the model's yes/no (Ultra, same prefix as the decide):{" "}
+              the model's yes/no (fast model, same prefix as the decide):{" "}
               {t.found.verdict
                 ? t.found.verdict.standIn
                   ? "not asked: mock mode, code's match stands in"
@@ -448,7 +438,7 @@ function ContextDrawer({
       <section>
         <h3>route</h3>
         <p data-testid="dev-context-route">
-          {t.route ? <b>{t.route.route === "brain" ? "room facts → Ultra (token prompt)" : "plain → Lightning (fast fill)"}</b> : mock ? "mock: no route" : "—"}
+          {t.route ? <b>{t.route.route === "brain" ? "room facts · mid model (token prompt)" : "plain · fast model (fast fill)"}</b> : mock ? "mock: no route" : "—"}
           {t.route && ` · ${t.route.why}`}
         </p>
         {t.route?.route === "brain" && (
@@ -481,7 +471,7 @@ function ContextDrawer({
           {(() => {
             const fills = t.calls.filter((c) => c.usage);
             const fillUsd = fills.reduce((a, c) => a + dollars(c.usage!.model, c.usage), 0);
-            const decUsd = t.decides.reduce((a, d) => a + dollars("Ultra", d.usage), 0);
+            const decUsd = t.decides.reduce((a, d) => a + dollars("fast", d.usage), 0);
             const byModel = fills.reduce<Record<string, number>>((m, c) => ((m[c.usage!.model] = (m[c.usage!.model] ?? 0) + 1), m), {});
             return `${t.calls.length} fill call${t.calls.length === 1 ? "" : "s"} (${Object.entries(byModel).map(([k, v]) => `${k} ${v}`).join(", ") || "usage pending"}) + ${t.decides.length} decide · ≈ ${(fillUsd + decUsd).toFixed(4)} (fills ${fillUsd.toFixed(4)}, decide ${decUsd.toFixed(4)})`;
           })()}
@@ -621,8 +611,6 @@ export function VoiceBuildLayer({
           >
             <span className="voice-landed voice-found" data-testid="voice-found" data-widget-ref={found.widgetId} data-card={found.card}>
               {found.done ?? <>already here{found.by ? ` · ${found.by} made it` : ""}</>}
-              {/* waiting on the web (convex/tavily.ts): the slip's line gets its ticking numeral */}
-              {found.done?.startsWith("looking up") && <SlipTick traceKey={found.traceKey} />}
             </span>
             {found.undo && <UndoButton key={found.traceKey} undo={found.undo} />}
             {found.next === "spin" && (
@@ -680,7 +668,7 @@ export function VoiceBuildLayer({
                 {latest.verb.verb} · {latest.verb.by}
               </span>
               <span data-testid="voice-receipt" data-verb={latest.verb.verb}>
-                {latest.verb.answer?.by === "retrieval" ? "retrieved + Ultra" : latest.verb.answer?.by === "stand-in" ? "stand-in · no model" : "code, no model"} · last word → slip{" "}
+                {latest.verb.answer?.by === "retrieval" ? "retrieved + mid model" : latest.verb.answer?.by === "stand-in" ? "stand-in · no model" : "code, no model"} · last word → slip{" "}
                 {latest.stages.answer === null ? "…" : ms(latest.stages.answer).replace("+", "")}
               </span>
               <span>
