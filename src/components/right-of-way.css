@@ -12,15 +12,31 @@
   --grace: 600ms;
   position: absolute;
   inset: -9px;
-  border: 4px solid var(--holder);
-  border-radius: 16px;
-  /* flat: an ink keyline and a hard offset, no blur */
+  border: 2px solid var(--color-candle);
+  border-radius: 20px;
+  /* candle glow (P2.4): warm light pulsing on the edge while someone holds the card */
   box-shadow:
-    0 0 0 2px var(--color-ink),
-    5px 5px 0 2px var(--color-ink);
+    0 0 0 1px rgb(255 211 107 / 0.35),
+    0 0 18px 4px rgb(255 211 107 / 0.42),
+    inset 0 0 14px rgb(255 211 107 / 0.22);
   pointer-events: none;
   z-index: 5;
-  animation: row-halo-in var(--dur-arrive) var(--ease-pop) backwards;
+  animation:
+    row-halo-in var(--dur-arrive) var(--ease-pop) backwards,
+    row-candle 1.6s ease-in-out infinite alternate;
+}
+@keyframes row-candle {
+  to {
+    box-shadow:
+      0 0 0 1px rgb(255 211 107 / 0.5),
+      0 0 28px 8px rgb(255 211 107 / 0.55),
+      inset 0 0 18px rgb(255 211 107 / 0.3);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .row-halo {
+    animation: none;
+  }
 }
 /* let go: the frame draws in to the card over the grace, so the wait reads as a handover */
 .row-halo.is-letting-go {
@@ -37,14 +53,26 @@
   position: absolute;
   left: 10px;
   bottom: calc(100% + 2px);
-  padding: 4px 11px 3px;
-  border: 2px solid var(--color-ink);
-  border-bottom: 0;
-  border-radius: 9px 9px 0 0;
-  background: var(--holder);
-  color: var(--color-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px 3px 8px;
+  border: 1px solid rgb(255 211 107 / 0.6);
+  border-radius: 999px;
+  background: var(--color-paper-deep);
+  color: var(--color-card);
   font: 500 13px/1.2 var(--font-sans);
   white-space: nowrap;
+  box-shadow: 0 0 12px rgb(255 211 107 / 0.35);
+}
+/* the holder's colour as a little flame */
+.row-halo-tag::before {
+  width: 8px;
+  height: 11px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: var(--holder);
+  box-shadow: 0 0 6px var(--color-candle);
+  content: "";
 }
 .row-halo-tag b {
   font-weight: 800;
@@ -176,9 +204,7 @@
   to {
     inset: 0;
     opacity: 0;
-    box-shadow:
-      0 0 0 0 var(--color-ink),
-      0 0 0 0 var(--color-ink);
+    box-shadow: 0 0 0 0 transparent;
   }
 }
 @keyframes row-ticket-in {

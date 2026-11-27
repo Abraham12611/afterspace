@@ -1,6 +1,8 @@
 import { AwardDots } from "./games/GameInvite";
 import { useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { PeerCursor } from "./PeerCursor";
+import { ProfileHeader, type ProfileFace } from "./ProfileHeader";
+import { getBuildClubVisitorCount } from "../lib/onboarding";
 import {
   CURSOR_MOTION,
   WIDGET_MOTION,
@@ -697,6 +699,15 @@ export function SpaceHeader({
           ...livePeers.map((peer) => peer.name),
           ...online.map((member) => member.name),
         ].join(", ")}`;
+  /* Top 8 placeholder (P2.4): the space's roster, then whoever is here. Real Top 8 is P3. */
+  const top8: ProfileFace[] = [];
+  for (const member of membersProp ?? space.members) {
+    if (top8.length < 8 && !top8.some((face) => face.name === member.name)) top8.push({ key: `m-${member.name}`, name: member.name, color: member.color });
+  }
+  for (const peer of livePeers) {
+    if (top8.length < 8 && !top8.some((face) => face.name === peer.name)) top8.push({ key: peer.userId, name: peer.name, emoji: peer.emoji, color: peer.color, avatarUrl: peer.avatarUrl });
+  }
+  const visitors = getBuildClubVisitorCount();
   const inviteUrl = inviteUrlForSpace(spaceId);
   const inviteFaces = [
     ...(self ? [{ key: "self", name: self.name, emoji: self.emoji, color: self.color, avatarUrl: self.avatarUrl }] : []),
@@ -829,26 +840,16 @@ export function SpaceHeader({
           (link previews, search snippets, crawlers) drop <header> as
           boilerplate, which silently hid "N here now" from every reader that
           isn't a browser. Styling is class-based, so the tag is free to change. */}
-      <div ref={headerRef} className={`space-header ${entering ? "is-entering" : ""}`}>
-        <div className="space-title-block">
-          <div className="space-meta">
-            <span className="space-kind">{kind}</span>
-            {tagline && <span className="space-meta-separator" aria-hidden="true">·</span>}
-            {tagline && <span className="space-tagline">{tagline}</span>}
-          </div>
-          <div className="space-title-row">
-            <h1><span className="space-title-text">{name}</span></h1>
-          </div>
-          {/* One plain line under the name: what this is and that it moves for
-              everyone at once. A first-time visitor lands inside someone else's
-              room with no orientation otherwise, and a text-only reader (link
-              preview, crawler, images off) gets nothing but widget names. */}
-          <p className="space-what">
-            a live shared board — post, vote or move anything, every open tab updates with you.
-          </p>
-          {/* The name's handles: the edit pencil and the knows door. Two quiet chips in the
-              room's ink, one family. */}
-          <div className="space-title-handles">
+      <ProfileHeader
+        headerRef={headerRef}
+        entering={entering}
+        name={name}
+        kind={kind}
+        tagline={tagline}
+        top8={top8}
+        visitors={visitors}
+        handles={
+          <>
             <button
               type="button"
               className={`space-edit-button ${roomEditing ? "is-active" : ""}`}
@@ -860,10 +861,10 @@ export function SpaceHeader({
               <span className="space-edit-label">edit</span>
             </button>
             {knowsDoor}
-          </div>
-        </div>
-
-        <div className="space-header-side">
+          </>
+        }
+        side={
+          <>
           <div className="space-presence" aria-label={presenceDescription}>
             {(self || visibleLivePeers.length > 0 || visibleOnline.length > 0) && (
               <div className={`header-faces ${displayCount > 0 ? "is-live" : ""}`}>
@@ -917,7 +918,7 @@ export function SpaceHeader({
                 <>
                   {/* keyed so a change of count rolls the number in */}
                   <b key={displayCount} className="presence-count">{displayCount}</b>
-                  <span className="presence-words">here now</span>
+                  <span className="presence-words">haunting now</span>
                 </>
               ) : (
                 <span className="presence-words">{presenceLabel}</span>
@@ -952,8 +953,9 @@ export function SpaceHeader({
               <span className="invite-button-label">invite</span>
             </button>
           </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {inviteOpen && (
         <div className="invite-popover-layer">

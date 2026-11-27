@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { MemberFace } from "../components/MemberFace";
 import type { CursorProps } from "./types";
 
@@ -37,7 +37,24 @@ function Face({
   return <MemberFace name={name} color={color} emoji={emoji} avatarUrl={avatarUrl} size={size} />;
 }
 
-/** 1 — Current production look: filled arrow + pill with face. */
+/** Planchette body (P2.4): a little heart-shaped pointer with an eye, tip at (1,1)
+    so the hotspot stays where the old arrow's was. The eye ring wears the person's colour. */
+function Planchette({ color }: { color: string }) {
+  return (
+    <svg width="22" height="24" viewBox="0 0 22 24" fill="none" aria-hidden className="cs-planchette">
+      <path
+        d="M1 1C8.5 2 18.6 7.4 20.6 14.6C22 20.2 16.4 23.8 12.2 21.4C8.4 23.8 2.4 20.6 3.2 14.2C3.7 9.6 1.9 5.2 1 1Z"
+        fill="#f3ead9"
+        stroke="#1d141f"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      <circle cx="12.2" cy="14.4" r="3.4" fill="#1d141f" stroke={color} strokeWidth="2" />
+    </svg>
+  );
+}
+
+/** 1 — The default look: a planchette + a name tag with face. */
 export function ClassicArrow({
   name,
   color,
@@ -48,16 +65,8 @@ export function ClassicArrow({
 }: CursorProps) {
   return (
     <Shell className="cs-classic">
-      <svg width="18" height="22" viewBox="0 0 18 22" fill="none" aria-hidden>
-        <path
-          d="M1 1L16 10.5L9.2 12.2L6.5 20L1 1Z"
-          fill={color}
-          stroke="#0a0a0b"
-          strokeWidth="1.2"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="cs-pill" style={{ backgroundColor: color }}>
+      <Planchette color={color} />
+      <span className="cs-pill" style={{ "--cursor-color": color } as CSSProperties}>
         {showFace && <Face name={name} color={color} emoji={emoji} avatarUrl={avatarUrl} />}
         <span>{label ?? name}</span>
       </span>
@@ -83,7 +92,7 @@ export function SystemGrabCursor({
         aria-hidden="true"
         draggable={false}
       />
-      <span className="cs-pill" style={{ backgroundColor: color }}>
+      <span className="cs-pill" style={{ "--cursor-color": color } as CSSProperties}>
         {showFace && <Face name={name} color={color} emoji={emoji} avatarUrl={avatarUrl} />}
         <span>{label ?? name}</span>
       </span>

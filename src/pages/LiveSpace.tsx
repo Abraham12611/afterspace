@@ -1650,12 +1650,13 @@ export function LiveSpacePage({
     let visibleRight = viewport.clientWidth - 24;
     const visibleBottom = viewport.clientHeight - 24;
 
-    const rail = document.querySelector<HTMLElement>(".space-rail");
-    if (rail && elementIsVisible(rail)) {
-      const railRect = rail.getBoundingClientRect();
-      visibleLeft = Math.max(
-        visibleLeft,
-        railRect.right - viewportRect.left + 16,
+    // the profile header and the space tabs sit across the top (P2.4)
+    const tabs = document.querySelector<HTMLElement>(".space-tabs");
+    if (tabs && elementIsVisible(tabs)) {
+      const tabsRect = tabs.getBoundingClientRect();
+      visibleTop = Math.max(
+        visibleTop,
+        tabsRect.bottom - viewportRect.top + 16,
       );
     }
 

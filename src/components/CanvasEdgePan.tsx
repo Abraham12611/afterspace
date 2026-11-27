@@ -16,7 +16,7 @@ const INACTIVE_EDGES: EdgeState = {
 };
 
 const BLOCKER_SELECTOR = [
-  ".space-rail",
+  ".space-tabs",
   ".space-header",
   ".action-dock",
   ".canvas-navigator",

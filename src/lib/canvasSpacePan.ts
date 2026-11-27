@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 
 const EDITABLE_SELECTOR = "input, textarea, select, [contenteditable='true']";
 const CHROME_SELECTOR = [
-  ".space-rail",
+  ".space-tabs",
   ".space-header",
   ".action-dock",
   ".canvas-navigator",

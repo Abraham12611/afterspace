@@ -96,12 +96,13 @@ function YoursGroupLive({
               type="button"
               className={`space-link ${active ? "is-active" : ""}`}
               data-testid={`space-link-${slug}`}
-              style={{ backgroundColor: space.color }}
+              style={{ "--space-color": space.color } as CSSProperties}
               aria-label={space.name}
               aria-current={active ? "page" : undefined}
               onClick={() => slug && onSelectSpace?.(slug)}
             >
-              <span>{`${space.icon}\uFE0E`}</span>
+              <span className="space-tab-icon" aria-hidden="true">{`${space.icon}\uFE0E`}</span>
+              <span className="space-tab-name">{space.name}</span>
               <OnlineDot spaceId={space._id} />
             </button>
             <span className="space-tooltip">
@@ -155,17 +156,9 @@ export function Rail({
 
   return (
     <>
-    <aside className="space-rail">
-      {/* The mark opens the story; room tiles handle all space navigation. */}
-      <a
-        className="rail-brand"
-        href="#/about"
-        title="about afterspace"
-        aria-label="About afterspace"
-        onClick={rememberCurrentSpace}
-      >
-        <img src="/brand/logo-mark-512.png" alt="afterspace" />
-      </a>
+    {/* P2.4: the spaces are a tab strip under the profile header (a swipe row on phones).
+        The wordmark moved into the header (ProfileHeader.tsx). */}
+    <nav className="space-tabs" aria-label="your spaces">
 
       <div className="space-list">
         {DOCK.map((space, i) => {
@@ -195,11 +188,11 @@ export function Rail({
                     spaceCover ? "has-photo" : ""
                   }`}
                   style={{
-                    backgroundColor: displaySpace.color,
+                    "--space-color": displaySpace.color,
                     backgroundImage: spaceCover
                       ? `url('${spaceCover}')`
                       : undefined,
-                  }}
+                  } as CSSProperties}
                   data-testid={`space-link-${space.id}`}
                   aria-label={displaySpace.name}
                   aria-current={active ? "page" : undefined}
@@ -207,7 +200,8 @@ export function Rail({
                   disabled={!hasSpace}
                 >
                   {/* U+FE0E keeps ♥ a text glyph (white ink) instead of the emoji */}
-                  {!spaceCover && <span>{`${displaySpace.icon}\uFE0E`}</span>}
+                  {!spaceCover && <span className="space-tab-icon" aria-hidden="true">{`${displaySpace.icon}\uFE0E`}</span>}
+                  <span className="space-tab-name">{displaySpace.name}</span>
                   {hasSpace && <OnlineDot spaceId={space.id} />}
                   {!active && Boolean(waiting?.[space.id]) && (
                     <b className="rail-turn" data-testid="rail-turn">{waiting?.[space.id]}</b>
@@ -245,9 +239,9 @@ export function Rail({
             data-testid="rail-new-space"
             onClick={onCreateClick}
           >
-            <span>+</span>
+            <span aria-hidden="true">+</span>
+            <span className="space-tab-name">new space</span>
           </button>
-          <span className="space-tooltip">new space</span>
         </div>
       </div>
 
@@ -273,7 +267,7 @@ export function Rail({
           <span className="space-tooltip">you · settings</span>
         </div>
       )}
-    </aside>
+    </nav>
     <a className="app-about-link" href="#/about" onClick={rememberCurrentSpace}>about <span>↗</span></a>
     </>
   );
