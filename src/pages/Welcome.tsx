@@ -216,11 +216,11 @@ export function Welcome() {
 
   return (
     <main className={`welcome-page paper-bg space-theme-blush${entering ? " is-entering" : ""}`}>
-      <div className="welcome-wordmark" aria-label="ourspaces">
+      <div className="welcome-wordmark" aria-label="afterspace">
         <span className="welcome-wordmark-mark" aria-hidden="true">
           ⦿
         </span>
-        <span>ourspaces</span>
+        <span>afterspace</span>
       </div>
 
       <div className="welcome-cursor-layer" aria-hidden="true">

@@ -688,8 +688,8 @@ export function SpaceHeader({
     displayCount === 0
       ? "quiet right now"
       : displayCount === 1
-        ? "1 here now"
-        : `${displayCount} here now`;
+        ? "1 haunting now"
+        : `${displayCount} haunting now`;
   const presenceDescription =
     livePeers.length + online.length === 0
       ? presenceLabel

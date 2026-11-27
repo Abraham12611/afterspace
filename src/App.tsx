@@ -87,7 +87,7 @@ import { mockRoomKnows } from "./data/roomKnows";
 import { getDataMode } from "./live/dataMode";
 import { getIdentity } from "./live/identity";
 import { useCanvasSpacePan } from "./lib/canvasSpacePan";
-import { DEFAULT_SPACE_SLUG, knowsHash, lastSpaceSlug, normalSpaceHash, rememberSpaceSlug, slugOfSpaceHash } from "./lib/routes";
+import { DEFAULT_SPACE_SLUG, knowsHash, lastSpaceSlug, normalSpaceHash, redirectLegacyKnows, rememberSpaceSlug, slugOfSpaceHash } from "./lib/routes";
 import { widgetIsInsideFrame } from "./lib/frameMembership";
 import { YourTurn, goToTurnWidget } from "./components/YourTurn";
 import { GameInvite, GameSheet, GameSheetTab, GamesDev } from "./components/games/GameInvite";
@@ -937,6 +937,8 @@ export default function App() {
         const slug = hash === "home" ? "coven" : DEFAULT_SPACE_SLUG;
         window.history.replaceState(window.history.state, "", normalSpaceHash(slug));
       }
+      // `#/space/<slug>/knows` is the grimoire's old address.
+      redirectLegacyKnows();
       setRoute(routeFromHash());
       setSpaceId(spaceFromHash());
     };

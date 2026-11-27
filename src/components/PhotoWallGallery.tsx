@@ -121,7 +121,7 @@ export const PhotoWallGallery = memo(function PhotoWallGallery({
   } | null>(null);
   const [pinning, setPinning] = useState(false);
   const photos = readPhotos(widget);
-  const title = String(widget.data.title ?? "recent memories");
+  const title = String(widget.data.title ?? "memories");
   const tone = String(widget.data.tone ?? "blush");
   const activePhoto = activeIndex === null ? null : photos[activeIndex];
   const lightboxOpen = activeIndex !== null;

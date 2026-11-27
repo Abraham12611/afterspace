@@ -60,7 +60,7 @@ const OFF_DOCK = new Set<string>();
 const DOCK = SPACES.filter((space) => !OFF_DOCK.has(space.id));
 
 const SPACE_COVERS: Record<string, string> = {
-  coven: "/assets/placeholder-photo.svg",
+  
 };
 
 /** Spaces you made, or were invited into. Live only — see OnlineCount. */
@@ -160,11 +160,11 @@ export function Rail({
       <a
         className="rail-brand"
         href="#/about"
-        title="about ourspaces"
-        aria-label="About OurSpaces"
+        title="about afterspace"
+        aria-label="About afterspace"
         onClick={rememberCurrentSpace}
       >
-        <img src="/assets/ourspace-mark.png" alt="ourspaces" />
+        <img src="/brand/logo-mark-512.png" alt="afterspace" />
       </a>
 
       <div className="space-list">

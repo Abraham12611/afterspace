@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { flushSync } from "react-dom";
-import { knowsHash, normalSpaceHash, spacePageFromHash } from "../lib/routes";
+import { isGrimoireHash, knowsHash, normalSpaceHash, redirectLegacyKnows, spacePageFromHash } from "../lib/routes";
 import { panToWidget } from "../lib/recapBoard";
 import { playSound } from "../lib/sounds";
 import { TOLD_CHARS, standing, type KnowLine, type KnowSection, type RoomKnows } from "../lib/roomKnows";
@@ -9,7 +9,7 @@ import "./room-knows.css";
 
 /**
  * "What this space knows": the room's own page, behind the board
- * (`#/space/<slug>/knows`). Everything the space has noticed about the group,
+ * (`#/space/<slug>/grimoire`). Everything the space has noticed about the group,
  * in plain words, each line with where it came from; tap one and you're back
  * on the board with the camera on that card. Anyone can cross a line out or
  * tell it something, and the page shows who did. No model writes any of it:
@@ -27,7 +27,10 @@ export type KnowsChange =
 export function useSpacePage() {
   const [page, setPage] = useState(spacePageFromHash);
   useEffect(() => {
-    const onHash = () => setPage(spacePageFromHash());
+    const onHash = () => {
+      redirectLegacyKnows();
+      setPage(spacePageFromHash());
+    };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
@@ -78,7 +81,7 @@ function turnRoom(room: HTMLElement | null, hash: string) {
   }
   flipping = true;
   // In: the page drops into place. Back: it lifts away (room-knows.css).
-  document.documentElement.classList.add("is-knows-flip", hash.endsWith("/knows") ? "is-knows-flip-in" : "is-knows-flip-back");
+  document.documentElement.classList.add("is-knows-flip", isGrimoireHash(hash) ? "is-knows-flip-in" : "is-knows-flip-back");
   room.style.setProperty("view-transition-name", "knows-room");
   const done = () => {
     flipping = false;
@@ -253,12 +256,12 @@ export function RoomKnowsPage({
     <div ref={root} className={`room-knows knows-side-${KNOWS_SIDE} ${leaving ? "is-leaving" : "is-open"}`} data-testid="room-knows" data-fixture={fixture || undefined}>
       <div className="knows-scroll">
         <button type="button" className="knows-back" data-testid="room-knows-close" onClick={back}>
-          <span aria-hidden="true">←</span> back to the board
+          <span aria-hidden="true">←</span> back to the page
         </button>
         <header className="knows-head">
           <div className="knows-title">
             <p className="knows-kicker">{roomName} · the other side of the board</p>
-            <h1>what this space knows</h1>
+            <h1>the grimoire</h1>
             <p className="knows-sub">
               {count > 0 && (
                 <b key={count} className="knows-total">
@@ -335,7 +338,7 @@ export function RoomKnowsDoor({ slug, count }: { slug: string; count?: number })
       className="space-knows-chip"
       data-testid="room-knows-open"
       href={knowsHash(slug)}
-      title="what this space knows about the group, and why"
+      title="the grimoire: what this space knows about the group, and why"
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey) return;
         e.preventDefault();

@@ -58,7 +58,7 @@ export function Admin() {
   const setDoor = useMutation(api.admin.setDoor);
 
   useEffect(() => {
-    document.title = "back room · ourspaces";
+    document.title = "back room · afterspace";
   }, []);
 
   useEffect(() => {

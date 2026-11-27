@@ -117,9 +117,9 @@ export function SpaceLiveStrip({
      activity timestamp is not evidence that the connection went away, so
      stale clocks yield to the actual socket state. */
   const connectionLine =
-    connected === true ? "connected for everyone" : connected === false ? "reconnecting" : null;
+    connected === false ? "reconnecting" : null;
 
-  if (!spaceName && !board && !busy && !changed && !connectionLine) return null;
+  if (!spaceName && !board && !busy && !changed && !connectionLine && connected !== true) return null;
 
   return (
     <p className={`space-live-strip ${connected === false ? "is-reconnecting" : ""}`}>
@@ -129,7 +129,7 @@ export function SpaceLiveStrip({
           nuisance in a screen reader, and the second hand is not news. */}
       <span className="space-live-strip-news" aria-live="polite">
         <span className="space-live-strip-dot" aria-hidden="true" />
-        <span className="space-live-strip-live">live sync</span>
+        <span className="space-live-strip-live">{connected === false ? "live" : "everyone's here, live"}</span>
         {spaceName && (
           /* Collapsed at rest; CSS opens it when the title scrolls away. */
           <span className="space-live-strip-name">

@@ -243,7 +243,7 @@ export function weekLine(w: HeldBackWeek): string {
 function visitCard(widgetId?: string) {
   if (!widgetId) return;
   playSound("tap");
-  window.location.hash = window.location.hash.replace(/\/knows.*$/, "");
+  window.location.hash = window.location.hash.replace(/\/(knows|grimoire).*$/, "");
   window.setTimeout(() => visitSources([widgetId], "var(--color-lime)"), 140);
 }
 

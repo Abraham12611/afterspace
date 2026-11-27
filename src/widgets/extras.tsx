@@ -890,7 +890,7 @@ export function PhotoWallWidget({ widget, style }: { widget: Widget; style: Styl
     src?: string;
     thumbnailSrc?: string;
   }[];
-  const title = String(widget.data.title ?? "recent memories");
+  const title = String(widget.data.title ?? "memories");
   const tone = String(widget.data.tone ?? "blush");
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const cover = photos[0];

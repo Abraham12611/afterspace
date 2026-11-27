@@ -186,7 +186,7 @@ export function ClaimCard({
     <form
       ref={cardRef}
       className={`claim-card is-${variant}${leaving ? " is-leaving" : ""}`}
-      aria-label={isGate ? "Enter the room" : "Your identity"}
+      aria-label={isGate ? "Step inside" : "Your identity"}
       onSubmit={submit}
     >
       {isGate && room ? (
@@ -314,7 +314,7 @@ export function ClaimCard({
 
       <button type="submit" className="claim-done" data-testid={`claim-${isGate ? "enter" : "done"}`}>
         {isGate ? (
-          "enter the room →"
+          "step inside →"
         ) : (
           <>
             done <span aria-hidden="true">↗</span>

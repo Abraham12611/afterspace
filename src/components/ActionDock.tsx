@@ -243,7 +243,7 @@ function DockVoice({ hooks }: { hooks?: VoiceHooks }) {
       {stage.layer}
       {mood === "idle" && (
         <button type="button" className="dock-voice-ask" onClick={toggle}>
-          say what to add
+          ask the crystal ball
         </button>
       )}
       <div className="dock-voice-say" aria-live="polite">

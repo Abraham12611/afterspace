@@ -7,7 +7,7 @@ export const MAKE_SPACE_EVENT = "ourspaces:make-space";
 /**
  * The strip belongs to the tour: the rooms in the fixtures (`SPACES_BY_ID`)
  * and every page that isn't a room. A room nobody toured (a made room, our
- * house on the dev lane) is plain: no "Demo version", no "these rooms are the tour".
+ * house on the dev lane) is plain: no "this is the demo page", no "these rooms are the tour".
  */
 function onTour(): boolean {
   const room = /^#\/space\/([^/?]+)/.exec(window.location.hash)?.[1];
@@ -94,20 +94,20 @@ export function DemoBanner({ onJoinWaitlist, onMakeSpace, pending = false }: { o
     <>
       <aside className="demo-banner" data-testid="demo-banner">
         <button className="demo-banner-label" onClick={openNotice} data-testid="demo-notice-open">
-          <span className="demo-mini-spark">✳</span> Demo version
+          <span className="demo-mini-spark" aria-hidden="true">✦</span> this is the demo page
         </button>
         {pending ? null : onMakeSpace ? (
           <>
-            <p>These rooms are the tour. <span>Yours starts empty.</span></p>
+            <p aria-hidden="true">·</p>
             <button className="demo-banner-cta" onClick={makeSpace} data-testid="demo-make-space">
-              Make your own space <span>↗</span>
+              make your own <span aria-hidden="true">→</span>
             </button>
           </>
         ) : (
           <>
-            <p>You're exploring a demo. <span>Your own space is coming.</span></p>
+            <p aria-hidden="true">·</p>
             <button className="demo-banner-cta" onClick={openWaitlist} data-testid="demo-waitlist-open">
-              Join the waitlist <span>↗</span>
+              join the waitlist <span aria-hidden="true">→</span>
             </button>
           </>
         )}
@@ -117,16 +117,16 @@ export function DemoBanner({ onJoinWaitlist, onMakeSpace, pending = false }: { o
         onClick={(event) => { if (event.target === event.currentTarget) dialog.current?.close(); }}>
         <div className="demo-waitlist-layout">
           <div className="demo-poster" aria-hidden="true">
-            <div className="demo-poster-brand"><img src="/assets/ourspace-mark.png" alt="" /><span>ourspaces</span></div>
+            <div className="demo-poster-brand"><img src="/brand/wordmark-96.png" alt="afterspace" /></div>
             <div className="demo-poster-collage">
               <div className="demo-poster-paper" />
               <figure className="demo-poster-photo">
-                <img src="/assets/placeholder-photo.svg" alt="" />
-                <figcaption>friday at wren's <span>♡</span></figcaption>
+                <img src="/mascots/wisp-thriving.png" alt="" />
+                <figcaption>wisp, the page pet <span>♡</span></figcaption>
               </figure>
-              <img className="demo-poster-sticker" src="/assets/stickers/glad-ur-here.png" alt="" />
+              <img className="demo-poster-sticker" src="/mascots/pip.png" alt="" />
             </div>
-            <div className="demo-poster-caption"><strong>Your people.<br />All here.</strong><span>A little corner of the internet, together.</span></div>
+            <div className="demo-poster-caption"><strong>your friends' page,<br />back from the dead.</strong><span>a live page for your group.</span></div>
           </div>
 
           <div className="demo-waitlist-content">
@@ -141,7 +141,7 @@ export function DemoBanner({ onJoinWaitlist, onMakeSpace, pending = false }: { o
               <div className="demo-waitlist-body" data-testid="demo-welcome-notice">
                 <h2>You're in<br /><em>the demo.</em></h2>
                 <p>Built for a hackathon. Open for a look around.</p>
-                <p className="demo-notice-detail">This is a test version of OurSpaces, so it isn't ready for everyday use yet.</p>
+                <p className="demo-notice-detail">this is a test version of afterspace, so it isn't ready for everyday use yet.</p>
                 <button className="demo-waitlist-submit" onClick={() => dialog.current?.close()} data-testid="demo-notice-explore">Explore the demo <span>↗</span></button>
                 <div className="demo-notice-waitlist">
                   <span>Want a space for your own group?</span>
@@ -156,7 +156,7 @@ export function DemoBanner({ onJoinWaitlist, onMakeSpace, pending = false }: { o
               <div className="demo-waitlist-body demo-waitlist-confirmation" key="confirmation">
                 <h2>{onJoinWaitlist ? "You're on" : "That's"}<br /><em>{onJoinWaitlist ? "the list." : "the idea."}</em></h2>
                 <p>{onJoinWaitlist ? "Thanks for being here early." : "A little preview of what's next."}</p>
-                <p className="demo-notice-detail">{onJoinWaitlist ? "Your email is saved. We'll let you know when OurSpaces is ready for your group." : "The waitlist is still a mock-up. Your email hasn't been saved."}</p>
+                <p className="demo-notice-detail">{onJoinWaitlist ? "Your email is saved. We'll let you know when afterspace is ready for your group." : "The waitlist is still a mock-up. Your email hasn't been saved."}</p>
                 <button className="demo-waitlist-submit" onClick={() => dialog.current?.close()} data-testid="demo-waitlist-done">Back to exploring <span>↗</span></button>
               </div>
             ) : (
