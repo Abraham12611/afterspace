@@ -96,3 +96,4 @@ design-directions/
 Thumbs.db
 # NOTE: .kiro/ must stay committed. It is a Kiroween submission requirement.
 !/.kiro/**
+design/contact-sheet*.png
