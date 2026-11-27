@@ -173,3 +173,44 @@ Recorded when P1 landed. Where reality differed from the plan:
 - `public/assets/` still holds upstream art (stickers, space covers, link-card art, textures); P2 replaces it.
 - `convex/paint.ts` has a self-heal for the old "couple" room; delete when cozy-color is reworked or cut.
 - `src/index.css` still carries CSS for removed cards (reading room, build room, link read). Prune during the P2 restyle.
+
+## P2 as built (P2.1-P2.4, P2.6; deviations from the P2 list)
+
+**Created**
+| Path | Why |
+|---|---|
+| `src/styles/board.css` | Board surface: grain (inline SVG noise, `--as-grain`), our torn-paper shape (`--as-torn-paper`), fog + vignette on `main.paper-bg`, focus rings. |
+| `src/styles/cards.css` | Card frames, silhouettes, pins, tape. Override sheet instead of editing ~60 per-type rules in `index.css`. |
+| `src/styles/layout.css` | Profile header band, tab strip, crystal-ball bar, demo ribbon, cursor name tags. |
+| `src/styles/pages.css` | Guestbook gate, welcome page, grimoire book, shared `.as-btn` buttons. |
+| `public/ui/placeholder-photo.svg` | Our photo placeholder (replaces `public/assets/placeholder-photo.svg`). |
+
+All four sheets load from `src/main.tsx` after `index.css`. Tokens and fonts stay in the `index.css` `@theme` block.
+
+**Modified beyond the list**
+| Path | Change |
+|---|---|
+| `src/components/Canvas.tsx` | `SpaceHeader` now renders `ProfileHeader`. The old "a live shared board..." line was dropped (the mood line replaces it). |
+| `src/components/LinkThreads.tsx`, `link-threads.css` | The red string is drawn here (`flowMarks.tsx` draws no lines). Lines became sagging `<path>`s. |
+| `src/components/ClaimCard.tsx` | The first-visit gate is `ClaimCard` (`variant="gate"`), not `JoinForm`. It got the "sign in to the page" title. `JoinForm.tsx` and `LookRow.tsx` are restyled by CSS only. |
+| `src/cursors/styles.tsx` | Default cursor (`ClassicArrow`) is a planchette. Name tags use `--cursor-color` instead of a coloured fill. |
+| `src/components/CanvasEdgePan.tsx`, `src/lib/canvasSpacePan.ts`, `src/App.tsx`, `src/pages/LiveSpace.tsx` | `.space-rail` became `.space-tabs`. The focus camera now treats the tabs as a top inset instead of a left one. |
+| `src/data/spaceThemes.ts` | Default theme is `nightwall` ("night plum", `#1b1220`). |
+| `src/components/SpaceLiveStrip.tsx`, `ActionDock.tsx`, `DemoBanner.tsx`, `PhotoWallGallery.tsx`, `src/widgets/extras.tsx`, `src/pages/Admin.tsx` | Copy table. |
+
+**Not done or done differently**
+- `ActionDock.tsx`, `VoiceOrb.tsx`, `voice-stage.css` and `orbHint.css` are unchanged. The dock seat shows `public/ui/crystal-ball.png` (CSS). The WebGL orb is hidden in the seat and still lights the open ask stage.
+- Join looks are a 4×2 sticker sheet, not 6×2. There are only 8 personas (`PERSONA_NAMES`). Twelve needs 4 more persona names in `src/live/identity.ts` mapped to `look-01..12`.
+- The welcome page is at `#/welcome` (and still `#/test`). A bare `#/` keeps opening the coven, because changing the default route would change the demo flow. "Make your own" goes to the coven and fires `MAKE_SPACE_EVENT`.
+- Top 8 is a placeholder from the space roster. The visitor counter reads the local demo count (`src/lib/onboarding.ts`). The song button is an inert slot. All three are P3.
+- The poll is not drawn as candles yet (it uses pumpkin bars and a candle pin). The countdown's tear-off strip is hidden on the tombstone.
+- The buddy list is not built, so the "N haunting now" pill and the live strip stay. The strip moved to `left: 20px`.
+- Sounds were not swapped (P2.6 sound part is still open).
+- `About.tsx` and `Me.tsx` were not rewritten.
+
+**`public/assets/` cleanup**
+- Deleted: all upstream stickers (including the blue `hello-cat`), `space-covers/`, `link-card-*`, `coloring-concepts/`, `textures/*`, `ui/quote-pushpin.png`, `ourspace-mark.png`, `placeholder-photo.svg` and `cozy-color-same-moon-colored.png`.
+- The sticker catalog (`src/data/stickers.ts`) now uses our mascots and UI art under new ids. A stored sticker row with an old id renders nothing.
+- The upstream hosted texture (`asset.mmm.page/...png`) is replaced by `--as-grain` everywhere.
+- Still upstream: `cozy-color-same-moon.png`, `cozy-color-poster.svg`, `cozy-poster-starry.svg`, `cozy-poster-wave.svg`. They belong to the paint-by-number card (`widgetDefaults.ts`, `convex/paint.ts`, `cozyColorBoards.ts`, `boards/*.ts`). Redraw them or cut that card.
+- The old `.welcome-*` rules in `index.css` are now unused. Prune them with the other dead CSS.
