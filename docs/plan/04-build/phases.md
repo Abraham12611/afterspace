@@ -42,12 +42,12 @@ Deadline: **Fri Dec 4, 2026, 2:00 PM PT (11:00 PM GMT+1)**. Aim to submit Dec 4 
 **Exit:** builds and runs with only `OPENROUTER_API_KEY`; no reference to removed services (`grep` clean).
 
 ## P2. Rebrand (docs: `02-design/*`)
-- [ ] P2.1 Name + copy pass (brand.md table, `index.html` title, meta, favicon)
-- [ ] P2.2 Tokens + fonts (design-system.md)
-- [ ] P2.3 Card frames + per-type silhouettes + red string
-- [ ] P2.4 Layout moves (layout-changes.md): header band, tab strip, crystal ball bar, demo ribbon
+- [x] P2.1 Name + copy pass (brand.md table, `index.html` title, meta, favicon)
+- [x] P2.2 Tokens + fonts (design-system.md)
+- [x] P2.3 Card frames + per-type silhouettes + red string
+- [x] P2.4 Layout moves (layout-changes.md): header band, tab strip, crystal ball bar, demo ribbon
 - [x] P2.5 Mascots + 12 avatars + stickers (generate, review, add to `public/`). Art in `public/{brand,icons,mascots,ui,avatars}`; wiring into components happens in P2.3/P2.4/P3
-- [ ] P2.6 Join modal, welcome page, grimoire page restyle; sounds swapped
+- [ ] P2.6 Join modal, welcome page, grimoire page restyle; sounds swapped. Join, welcome and grimoire done; sounds still to swap (see file-manifest "P2 as built")
 **Exit:** side-by-side with upstream screenshots, no screen looks the same.
 
 ## P3. New features (docs: `01-product/features-new.md`)
