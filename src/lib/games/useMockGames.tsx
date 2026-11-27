@@ -413,7 +413,7 @@ export function useMockGames(o: {
       }
       if (g.phase === "reveal") scheduleReactions(g, at - 1200);
     }
-    if (window.location.hash.endsWith("/knows")) return;
+    if (/\/(knows|grimoire)$/.test(window.location.hash)) return;
     if (window.matchMedia(PHONE).matches && want !== "late") setSheetOpen(true);
     else if (want !== "late" && roomId === room) window.setTimeout(() => panToWidget(GAME_WIDGET_ID), 350);
     // eslint-disable-next-line react-hooks/exhaustive-deps

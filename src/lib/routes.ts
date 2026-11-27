@@ -5,9 +5,25 @@ export function normalSpaceHash(slug: string) {
   return `#/space/${encodeURIComponent(slug)}`;
 }
 
-/** A room's own "what this space knows" page: `#/space/<slug>/knows`. */
+/** A room's own grimoire page ("what this space knows"): `#/space/<slug>/grimoire`. */
 export function knowsHash(slug: string) {
-  return `${normalSpaceHash(slug)}/knows`;
+  return `${normalSpaceHash(slug)}/grimoire`;
+}
+
+const GRIMOIRE_RE = /^#\/?space\/[^/?]+\/(grimoire|knows)\b/;
+const LEGACY_KNOWS_RE = /^(#\/?space\/[^/?]+)\/knows\b/;
+
+/** True when a hash is on the grimoire page (or its old `/knows` address). */
+export function isGrimoireHash(hash: string = window.location.hash) {
+  return GRIMOIRE_RE.test(hash);
+}
+
+/** Old `#/space/<slug>/knows` links keep working: rewrite them to `/grimoire` in place. */
+export function redirectLegacyKnows() {
+  const hash = window.location.hash;
+  if (!LEGACY_KNOWS_RE.test(hash)) return;
+  const next = hash.replace(LEGACY_KNOWS_RE, "$1/grimoire");
+  window.history.replaceState(window.history.state, "", next);
 }
 
 /** The room a `#/space/<slug>[/page]` hash names, without the page. */
@@ -15,9 +31,9 @@ export function slugOfSpaceHash(rest: string) {
   return rest.split(/[/?]/)[0];
 }
 
-/** Which page of the room the hash is on: the board, or what the space knows. */
+/** Which page of the room the hash is on: the board, or the grimoire. */
 export function spacePageFromHash(): "board" | "knows" {
-  return /^#\/?space\/[^/?]+\/knows\b/.test(window.location.hash) ? "knows" : "board";
+  return isGrimoireHash() ? "knows" : "board";
 }
 
 export function inviteUrlForSpace(slug: string) {

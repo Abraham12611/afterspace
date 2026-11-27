@@ -23,3 +23,11 @@ User flows U1-U10 (`01-product/user-flows.md`) on Chrome desktop + a real phone,
 
 ## Before every commit (enforced by a hook, see kiro-usage.md)
 `npm run typecheck` and `npm test` pass.
+
+## Status (2026-10-14)
+Vitest + fast-check are installed (`npm test`, config in `vitest.config.ts`). Written so far, all passing (132 tests):
+- `src/lib/rightOfWay.test.ts`: the 31-row CASES table plus 5 properties (held-by-other never `go`, unrelated lease never changes the verdict, purity, other people's choices always `ask`, verdict kinds).
+- `src/lib/deck/place.test.ts`: 6 tests (no overlap with GAP / HELD_GAP berths, finite integer spots, origin + padding, determinism, empty-board-in-view).
+- `src/lib/deck/schema.test.ts`: 85 tests (never throws, output satisfies an independent validator, idempotent, generator coverage guard; run against all 19 catalog schemas plus a synthetic one; field rules incl. real calendar dates).
+- `src/lib/deck/prompt.test.ts`: 5 tests (`parseDeal` never throws, chunked stream equals whole, prefix only appends, prose skipped, `none`).
+Evidence log with the bug the properties caught: `docs/kiro-log.md`.

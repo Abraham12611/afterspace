@@ -157,7 +157,16 @@ function checkField(key: string, f: Field, raw: unknown, notes: string[]): Check
     }
     case "date": {
       const s = typeof raw === "string" ? raw.trim().slice(0, 10) : "";
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || Number.isNaN(new Date(`${s}T00:00:00`).getTime()))
+      // A real calendar day: Date rolls "2026-02-30" over to March 2, so check the parts survive.
+      const [y, m, d] = s.split("-").map(Number);
+      const day = new Date(Date.UTC(y, m - 1, d));
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(s) ||
+        day.getUTCFullYear() !== y ||
+        day.getUTCMonth() !== m - 1 ||
+        day.getUTCDate() !== d ||
+        Number.isNaN(new Date(`${s}T00:00:00`).getTime())
+      )
         return bad("expected YYYY-MM-DD");
       return ok(s);
     }
