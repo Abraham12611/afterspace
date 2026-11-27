@@ -13,6 +13,7 @@ import { useQuery } from "convex/react";
 import { watchStandalone } from "./lib/standalone.ts";
 import "./index.css";
 import "./styles/board.css";
+import "./styles/cards.css";
 
 const url = import.meta.env.VITE_CONVEX_URL as string | undefined;
 const mode = getDataMode();

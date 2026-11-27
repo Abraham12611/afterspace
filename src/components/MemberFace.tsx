@@ -53,7 +53,7 @@ export function MemberFace({
           : resolvedAvatar
             ? undefined
             : {
-              backgroundImage: "url('/assets/placeholder-photo.svg')",
+              backgroundImage: "url('/ui/placeholder-photo.svg')",
               backgroundPosition: FACE_POSITIONS[name] ?? "50% 50%",
             }),
       }}

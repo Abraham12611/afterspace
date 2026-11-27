@@ -3311,7 +3311,7 @@
   inset: 0;
   border-radius: inherit;
   background-color: var(--potluck-bg);
-  background-image: url("/assets/textures/widget-paper-v1.jpg");
+  background-image: var(--as-grain);
   background-position: 22% 64%;
   background-size: cover;
   background-blend-mode: multiply;
@@ -5232,7 +5232,7 @@
   flex-direction: column;
   border-radius: 9px 13px 8px 11px;
   background-color: var(--rsvp-bg);
-  background-image: url("/assets/textures/widget-paper-v1.jpg");
+  background-image: var(--as-grain);
   background-position: 62% 28%;
   background-size: cover;
   background-blend-mode: multiply;
@@ -15414,7 +15414,7 @@
   inset: 0;
   border-radius: 9px 13px 8px 12px;
   background-color: var(--avail-bg);
-  background-image: url("/assets/textures/widget-paper-v1.jpg");
+  background-image: var(--as-grain);
   background-position: 38% 42%;
   background-size: cover;
   background-blend-mode: multiply;
@@ -15454,7 +15454,7 @@
   translate: -50%;
   rotate: -3deg;
   background-color: rgba(249, 234, 197, 0.85);
-  background-image: url("/assets/textures/note-paper.jpg");
+  background-image: var(--as-grain);
   background-position: center;
   background-size: 250px 250px;
   background-blend-mode: multiply;
@@ -16772,8 +16772,8 @@
   width: 42%;
   height: 26%;
   background: var(--note-backing);
-  mask: url("/assets/textures/note-torn-paper.png") center / 100% 100% no-repeat;
-  -webkit-mask: url("/assets/textures/note-torn-paper.png") center / 100% 100% no-repeat;
+  mask: var(--as-torn-paper) center / 100% 100% no-repeat;
+  -webkit-mask: var(--as-torn-paper) center / 100% 100% no-repeat;
   rotate: 1.5deg;
 }
 
@@ -16785,7 +16785,7 @@
   flex-direction: column;
   justify-content: space-between;
   background-color: transparent;
-  background-image: url("/assets/textures/note-torn-paper.png");
+  background-image: var(--as-torn-paper);
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100% 100%;
@@ -16825,7 +16825,7 @@
   width: 48px;
   height: 14px;
   background-color: var(--color-card);
-  background-image: url("/assets/textures/note-paper.jpg");
+  background-image: var(--as-grain);
   background-position: center;
   background-size: 260px 260px;
   box-shadow: none;
@@ -17275,7 +17275,7 @@
   overflow: visible;
   border-radius: 0;
   background-color: transparent;
-  background-image: url("/assets/textures/note-torn-paper.png");
+  background-image: var(--as-torn-paper);
   background-position: center;
   background-repeat: no-repeat;
   background-size: 100% 100%;
@@ -17295,8 +17295,8 @@
   z-index: -1;
   bottom: 0;
   height: 20px;
-  mask: url("/assets/textures/note-torn-paper.png") center / 100% 100% no-repeat;
-  -webkit-mask: url("/assets/textures/note-torn-paper.png") center / 100% 100% no-repeat;
+  mask: var(--as-torn-paper) center / 100% 100% no-repeat;
+  -webkit-mask: var(--as-torn-paper) center / 100% 100% no-repeat;
   content: "";
   left: 44%;
   width: 28%;
@@ -17311,7 +17311,7 @@
   width: 48px;
   height: 14px;
   background-color: var(--color-card);
-  background-image: url("/assets/textures/note-paper.jpg");
+  background-image: var(--as-grain);
   background-position: center;
   background-size: 250px 250px;
   box-shadow: none;
@@ -17440,7 +17440,7 @@
   left: 14px;
   z-index: 2;
   border-radius: 3px;
-  background: var(--color-card) url("/assets/textures/note-paper.jpg") center /
+  background: var(--color-card) var(--as-grain) center /
     260px 260px;
   box-shadow: 0 3px 0 color-mix(in srgb, var(--color-sticker) 30%, transparent);
   color: var(--color-ink);
@@ -17487,7 +17487,7 @@
   display: flex;
   min-height: 188px;
   flex-direction: column;
-  background: transparent url("/assets/textures/note-torn-paper.png") center /
+  background: transparent var(--as-torn-paper) center /
     100% 100% no-repeat;
   color: var(--color-ink);
   padding: 17px 20px 22px;
@@ -17505,7 +17505,7 @@
   width: 56px;
   height: 19px;
   background:
-    url("/assets/textures/note-paper.jpg") center / 260px 260px,
+    var(--as-grain) center / 260px 260px,
     color-mix(in srgb, var(--color-card) 80%, var(--color-muted));
   background-blend-mode: multiply;
   clip-path: polygon(
@@ -19429,7 +19429,7 @@
   position: absolute;
   z-index: 0;
   inset: 0;
-  background: transparent url("/assets/textures/note-torn-paper.png") center
+  background: transparent var(--as-torn-paper) center
     bottom / 100% 110% no-repeat;
   content: "";
   filter: brightness(1.06) contrast(0.97);
@@ -19452,7 +19452,7 @@
   margin-bottom: 16px;
   border-radius: 14px;
   background-color: var(--color-card);
-  background-image: url("/assets/textures/widget-paper-v1.jpg");
+  background-image: var(--as-grain);
   background-position: center;
   background-size: cover;
   padding: 12px 12px 10px;
@@ -19655,7 +19655,7 @@
 .widget-daily-q::before {
   border-radius: 11px 15px 10px 13px;
   background-color: var(--dq-bg);
-  background-image: url("/assets/textures/daily-question-paper.jpg");
+  background-image: var(--as-grain);
   background-position: center;
   background-size: cover;
   background-blend-mode: multiply;
@@ -19701,7 +19701,7 @@
 .dq-stack::after {
   border-radius: 10px 14px 11px 12px;
   background-color: var(--dq-bg);
-  background-image: url("/assets/textures/daily-question-paper.jpg");
+  background-image: var(--as-grain);
   background-size: cover;
   background-blend-mode: multiply;
   clip-path: polygon(
@@ -19732,7 +19732,7 @@
   overflow: hidden;
   border-radius: 5px 9px 6px 4px;
   background-color: var(--shelf-bg);
-  background-image: url("/assets/textures/link-shelf-ledger.jpg");
+  background-image: var(--as-grain);
   background-position: center;
   background-size: cover;
   background-blend-mode: multiply;
@@ -19853,7 +19853,7 @@
   height: 21px;
   border: 0;
   border-radius: 0;
-  background: transparent url("/assets/ui/quote-pushpin.png") center / contain
+  background: transparent url("/ui/pin-candle.png") center / contain
     no-repeat;
   box-shadow: none;
   filter: drop-shadow(0 1px 0 rgba(17, 17, 20, 0.26));
@@ -22896,7 +22896,7 @@
   border-radius: 14px;
   rotate: -2deg;
   background-color: var(--color-sticker);
-  background-image: url('/assets/textures/widget-paper-v1.jpg');
+  background-image: var(--as-grain);
   background-size: 500px;
   background-blend-mode: multiply;
   box-shadow: 2px 8px 8px color-mix(in srgb, var(--color-ink) 35%, transparent);
@@ -22958,7 +22958,7 @@
   justify-content: flex-start;
   gap: 8px;
   color: var(--color-ink);
-  background: var(--color-card) url('/assets/textures/note-paper.jpg') center / 460px;
+  background: var(--color-card) var(--as-grain) center / 460px;
   isolation: isolate;
 }
 .paper-bg[data-space-id="buildroom"] .widget-paper-note.is-keeper .note-paper-sheet::after {
@@ -22967,7 +22967,7 @@
   bottom: -9px;
   width: 100%;
   height: 18px;
-  background: url('/assets/textures/note-torn-paper.png') center / 100% 100% no-repeat;
+  background: var(--as-torn-paper) center / 100% 100% no-repeat;
   rotate: 0deg;
   opacity: 1;
 }
@@ -23018,7 +23018,7 @@
 /* The pushpin asset is purple plastic; on the green the room's pins are
    orange like its tape, so the hue is rotated toward the accent. */
 .paper-bg[data-space-id="buildroom"] .note-paper-pin {
-  background: url('/assets/ui/quote-pushpin.png') center / contain no-repeat;
+  background: url('/ui/pin-candle.png') center / contain no-repeat;
   width: 24px;
   height: 28px;
   top: -14px;
@@ -23629,7 +23629,7 @@
   min-height: 100%;
   gap: 10px;
   padding: 20px 20px 28px;
-  background: var(--color-card) url('/assets/textures/note-paper.jpg') center / 460px;
+  background: var(--color-card) var(--as-grain) center / 460px;
 }
 .widget-paper-note:not(.is-keeper) .note-paper-sheet p {
   display: block;
@@ -25272,7 +25272,7 @@
 .vendor-reading-slip strong { display: block; font: 800 18px/1.2 var(--font-display); letter-spacing: -.025em; }
 .vendor-reading-slip small { display: block; margin-top: 5px; color: var(--color-muted); font-size: 10px; }
 .vendor-reading-slip > span:last-child { margin-left: auto; font-size: 19px; }
-.vendor-reading-pile-0 .vendor-reading-slip { min-height: 190px; align-items: flex-start; flex-wrap: wrap; padding: 20px; background: var(--color-card) url('/assets/link-card-collage-violet.webp') no-repeat right bottom / 42%; }
+.vendor-reading-pile-0 .vendor-reading-slip { min-height: 190px; align-items: flex-start; flex-wrap: wrap; padding: 20px; background: var(--color-card) none no-repeat right bottom / 42%; }
 .vendor-reading-pile-0 .vendor-reading-slip > div { flex-basis: calc(100% - 58px); }
 .vendor-reading-pile-0 .vendor-reading-slip strong { max-width: 12ch; font-size: 28px; }
 .vendor-reading-pile-0 .vendor-reading-slip small { max-width: 18ch; margin-top: 14px; }
@@ -25615,7 +25615,7 @@
 .catalog-photos > span + span { left: 60px; top: 10px; rotate: 9deg; }
 .catalog-photos .widget-picker-preview-media { width: 67px; height: 64px; margin: 0; border: 0; border-radius: 0; rotate: 0deg; }
 .catalog-photos small { margin-top: 5px; color: var(--color-ink); font-size: 7px; }
-.catalog-paper { display: flex; flex-direction: column; width: 140px; min-height: 104px; padding: 11px; border-radius: 3px; background-color: var(--color-card); background-image: url('/assets/textures/widget-paper-v1.jpg'); background-size: cover; color: var(--color-ink); }
+.catalog-paper { display: flex; flex-direction: column; width: 140px; min-height: 104px; padding: 11px; border-radius: 3px; background-color: var(--color-card); background-image: var(--as-grain); background-size: cover; color: var(--color-ink); }
 .catalog-paper > strong { font: 800 12px/1.1 var(--font-display); margin-bottom: 10px; }
 .catalog-paper small { font-size: 6px; }
 .catalog-poll > span { display: flex; justify-content: space-between; margin-bottom: 5px; padding: 4px 6px; background: var(--color-couple); border-radius: 20px; color: var(--color-card); font-size: 8px; }

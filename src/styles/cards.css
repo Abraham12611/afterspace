@@ -1,0 +1,342 @@
+/*
+ * Afterspace card frames (P2.3, docs/plan/02-design/design-system.md "Shape").
+ * Bone paper, radius 14, a faint ink edge, a soft drop shadow and a warm glow;
+ * per-type silhouettes (tombstone, ticket, receipt, torn note, envelope);
+ * candle and bone pins and patterned tape from public/ui. Loaded after index.css.
+ */
+
+/* ── shared frame ─────────────────────────────────────────────────────────── */
+
+/* rectangular cards: the edge is an inset ring so it never changes layout */
+.widget-group-body > .widget-shell:is(.widget-poll, .widget-wheel, .widget-daily-q, .widget-countdown, .widget-itinerary, .widget-decision, .widget-weather, .widget-sports, .widget-chat, .widget-playlist, .widget-check-in, .widget-standings) {
+  border-radius: var(--radius-card);
+  box-shadow:
+    inset 0 0 0 1.5px rgb(29 20 31 / 0.2),
+    var(--shadow-card);
+}
+
+.widget-group:hover .widget-group-body > .widget-shell:is(.widget-poll, .widget-wheel, .widget-daily-q, .widget-itinerary, .widget-decision, .widget-weather, .widget-sports, .widget-chat, .widget-playlist, .widget-check-in, .widget-standings) {
+  box-shadow:
+    inset 0 0 0 1.5px rgb(29 20 31 / 0.2),
+    var(--shadow-card-lift);
+}
+
+/* cut-out cards (clip-path / mask): box-shadow would be clipped away, so the
+   shadow is a drop-shadow on the card's body, which follows the silhouette */
+.widget-group-body:has(> :is(.widget-rsvp, .widget-expense, .widget-quote, .widget-paper-note, .widget-potluck, .widget-availability, .widget-joke-registry, .widget-countdown, .widget-photo, .widget-letter)) {
+  filter: drop-shadow(0 9px 10px rgb(8 4 10 / 0.42)) drop-shadow(0 0 14px rgb(255 211 107 / 0.1));
+}
+
+.widget-group.is-dragging .widget-group-body {
+  filter: drop-shadow(0 18px 20px rgb(8 4 10 / 0.5));
+}
+
+/* selected: a bone ring, no white slab */
+.widget-group.is-thread-selected .widget-shell {
+  box-shadow:
+    0 0 0 3px var(--color-card),
+    0 0 0 5px rgb(255 211 107 / 0.55),
+    var(--shadow-card-lift);
+}
+
+/* tilt: never while you are typing in a card */
+.widget-group:focus-within:not(.widget-frame-group) {
+  rotate: 0deg;
+}
+
+/* the card toolbar: plum pill with a bone edge */
+.widget-management {
+  border: 1px solid rgb(243 234 217 / 0.28);
+  background: var(--color-paper-deep);
+  box-shadow: 0 10px 20px -8px rgb(8 4 10 / 0.7);
+}
+
+/* a frame's floor: a darker plum mat with a stitched edge */
+.widget-frame {
+  --frame-stroke: rgb(243 234 217 / 0.3);
+  background: rgb(18 11 22 / 0.55);
+}
+
+.widget-frame.is-focused {
+  background: rgb(18 11 22 / 0.72);
+}
+
+/* ── pins (images) ────────────────────────────────────────────────────────── */
+
+.poll-pin,
+.note-paper-pin,
+.decision-pin,
+.quote-pin {
+  width: 34px;
+  height: 46px;
+  border: 0;
+  border-radius: 0;
+  background: url("/ui/pin-candle.png") center / contain no-repeat;
+  box-shadow: none;
+  filter: drop-shadow(0 0 6px rgb(255 211 107 / 0.45));
+  pointer-events: none;
+}
+
+.poll-pin {
+  top: -32px;
+}
+
+.note-paper-pin {
+  top: -32px;
+}
+
+.decision-pin {
+  top: -30px;
+}
+
+/* the quote is clip-pathed: its pin sits inside the paper */
+.quote-pin {
+  top: 2px;
+  width: 26px;
+  height: 34px;
+  background-image: url("/ui/pin-bone.png");
+  filter: none;
+}
+
+/* cards with no pin of their own get one on the body (above the paper) */
+.widget-group-body:has(> :is(.widget-countdown, .widget-expense, .widget-rsvp, .widget-letter))::after {
+  position: absolute;
+  z-index: 8;
+  top: -24px;
+  left: 50%;
+  width: 40px;
+  height: 46px;
+  translate: -50% 0;
+  background: url("/ui/pin-bone.png") center / contain no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
+.widget-group-body:has(> :is(.widget-rsvp, .widget-letter))::after {
+  width: 32px;
+  background-image: url("/ui/pin-candle.png");
+}
+
+.widget-group-body:has(> .widget-letter)::after {
+  left: auto;
+  right: 18px;
+  translate: none;
+}
+
+/* ── tape (images) ────────────────────────────────────────────────────────── */
+
+.photo-tape {
+  top: -40px;
+  width: 78px;
+  height: 78px;
+  background: url("/ui/tape-pumpkin.png") center / contain no-repeat;
+  box-shadow: none;
+}
+
+.photo-tape-right {
+  background-image: url("/ui/tape-bone.png");
+}
+
+/* other tapes keep their box and wear the bone tape */
+:is(.potluck-tape, .photo-wall-tape, .joke-tape, .avail-tape, .weather-tape, .hs-keep-tape, .note-paper-tape) {
+  border: 0;
+  background: url("/ui/tape-bone.png") center / 118% auto no-repeat;
+  box-shadow: none;
+  clip-path: none;
+  opacity: 1;
+}
+
+/* a note is held by a bone pin, not tape */
+.widget-paper-note .note-paper-tape {
+  top: -28px;
+  left: 50%;
+  width: 40px;
+  height: 46px;
+  background: url("/ui/pin-bone.png") center / contain no-repeat;
+  rotate: -8deg;
+}
+
+/* ── per-type silhouettes ─────────────────────────────────────────────────── */
+
+/* countdown: a tombstone. Bone stone, arched top, the number in deep pumpkin. */
+.widget-countdown,
+.widget-countdown:is(.cd-tone-blush, .cd-tone-butter, .cd-tone-mint, .cd-tone-sky) {
+  --cd-bg: var(--color-card);
+  --cd-ink: var(--color-ink);
+  --cd-soft: var(--color-muted);
+  --cd-deco: rgb(29 20 31 / 0.1);
+  --cd-shadow: transparent;
+  --cd-num-shadow: transparent;
+  --cd-chip-bg: rgb(29 20 31 / 0.08);
+  --cd-dot: rgb(29 20 31 / 0.22);
+  --cd-dot-done: var(--color-ink);
+  background-image: var(--as-grain);
+  background-size: 180px;
+  border-radius: 50% 50% var(--radius-card) var(--radius-card) / 34% 34% var(--radius-card) var(--radius-card);
+  box-shadow: none;
+  padding-top: max(30px, 17%);
+}
+
+.widget-countdown .countdown-number {
+  color: #b4500c; /* pumpkin, deepened to 3.8:1 on bone (large text) */
+  text-shadow: none;
+}
+
+/* the tear-off strip belongs to a desk calendar, not a headstone */
+.widget-countdown .countdown-tear {
+  display: none;
+}
+
+/* rsvp: a ticket stub, notched on both sides */
+.widget-rsvp {
+  background-color: var(--color-card);
+  background-image: var(--as-grain);
+  background-size: 180px;
+  background-blend-mode: normal;
+  border-radius: var(--radius-card);
+  clip-path: none;
+  -webkit-mask:
+    radial-gradient(circle 12px at 0 50%, transparent 11.5px, #000 12px) left / 51% 100% no-repeat,
+    radial-gradient(circle 12px at 100% 50%, transparent 11.5px, #000 12px) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 12px at 0 50%, transparent 11.5px, #000 12px) left / 51% 100% no-repeat,
+    radial-gradient(circle 12px at 100% 50%, transparent 11.5px, #000 12px) right / 51% 100% no-repeat;
+}
+
+/* the stub's printed inner frame */
+.widget-rsvp > .rsvp-heading::before {
+  position: absolute;
+  inset: 8px 20px;
+  border: 1.5px solid rgb(29 20 31 / 0.14);
+  border-radius: 8px;
+  content: "";
+  pointer-events: none;
+}
+
+/* split: a till receipt, zigzag top and bottom */
+.widget-expense {
+  border-radius: 0;
+  background-color: var(--color-card);
+  background-image: var(--as-grain);
+  background-size: 180px;
+  padding-top: 22px;
+  clip-path: polygon(
+    0 10px, 6.25% 0, 12.5% 10px, 18.75% 0, 25% 10px, 31.25% 0, 37.5% 10px, 43.75% 0, 50% 10px,
+    56.25% 0, 62.5% 10px, 68.75% 0, 75% 10px, 81.25% 0, 87.5% 10px, 93.75% 0, 100% 10px,
+    100% calc(100% - 10px), 93.75% 100%, 87.5% calc(100% - 10px), 81.25% 100%, 75% calc(100% - 10px),
+    68.75% 100%, 62.5% calc(100% - 10px), 56.25% 100%, 50% calc(100% - 10px), 43.75% 100%,
+    37.5% calc(100% - 10px), 31.25% 100%, 25% calc(100% - 10px), 18.75% 100%, 12.5% calc(100% - 10px),
+    6.25% 100%, 0 calc(100% - 10px)
+  );
+}
+
+/* note: torn bone paper */
+.widget-paper-note .note-paper-backing {
+  display: none;
+}
+
+.widget-paper-note .note-paper-sheet {
+  background: var(--as-torn-paper) center / 100% 100% no-repeat;
+}
+
+.widget-paper-note .note-paper-doodle {
+  color: var(--color-pumpkin);
+}
+
+.widget-paper-note p,
+.widget-paper-note .note-headline {
+  color: var(--color-ink);
+}
+
+.widget-paper-note .note-author {
+  font-family: var(--font-hand);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* photo: an instant print on bone with tape */
+.widget-photo {
+  border-color: var(--color-card);
+  border-radius: 4px;
+  background: var(--color-card);
+}
+
+.widget-photo figcaption strong {
+  font-family: var(--font-hand);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.photo-heart {
+  background: var(--color-blood);
+  box-shadow: 0 4px 10px -2px rgb(8 4 10 / 0.5);
+}
+
+/* letter: an envelope with a wax seal */
+.letter-envelope {
+  border-radius: 6px;
+  background: var(--color-card);
+  background-image: var(--as-grain);
+  background-size: 180px;
+  box-shadow: inset 0 0 0 1.5px rgb(29 20 31 / 0.16);
+}
+
+.letter-flap {
+  background: #e7dcc6;
+  border-radius: 6px 6px 0 0;
+  filter: drop-shadow(0 2px 0 rgb(29 20 31 / 0.12));
+}
+
+.letter-seal {
+  width: 54px;
+  height: 54px;
+  margin: -27px 0 0 -27px;
+  border-radius: 0;
+  background: url("/ui/wax-seal.png") center / contain no-repeat;
+  box-shadow: none;
+  color: transparent;
+  font-size: 0;
+}
+
+.letter-stamp {
+  color: var(--color-blood);
+}
+
+/* poll: bone ballot, pumpkin bars */
+.widget-poll:not(.poll-tone-violet) {
+  --poll-bg: var(--color-card);
+  --poll-fill: var(--color-pumpkin);
+  --poll-fill-ink: var(--color-ink);
+  --poll-fill-check: rgb(29 20 31 / 0.5);
+  --poll-crown: var(--color-candle);
+  --poll-deco: rgb(255 122 26 / 0.22);
+  --poll-muted: #6b4a2d;
+}
+
+.widget-poll.poll-tone-violet {
+  --poll-bg: #3a2a47;
+  --poll-track: var(--color-card);
+  --poll-fill: var(--color-pumpkin);
+  --poll-fill-ink: var(--color-ink);
+}
+
+/* quote: torn scrap in bone, candle highlighter */
+.widget-quote {
+  background: var(--color-card);
+}
+
+.widget-quote .quote-hl {
+  background: rgb(255 211 107 / 0.75);
+}
+
+.widget-quote .quote-mark {
+  color: var(--color-pumpkin);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .widget-group,
+  .widget-shell {
+    transition: none;
+  }
+}

@@ -7,103 +7,18 @@ export type StickerDefinition = {
   rotate: number;
 };
 
+/* Afterspace's own stickers (public/mascots, public/ui; see design/ART-PROVENANCE.md).
+   The upstream sticker set (incl. the blue cat) was removed in P2.3; a stored
+   sticker row with an old id renders nothing (StickerWidget returns null). */
 export const STICKER_CATALOG: StickerDefinition[] = [
-  {
-    id: "glad-ur-here",
-    label: "hello cat",
-    src: "/assets/stickers/hello-cat.png",
-    width: 116,
-    height: 156,
-    rotate: -5,
-  },
-  {
-    id: "socks-terrier",
-    label: "terrier in socks",
-    src: "/assets/stickers/socks-terrier.png",
-    width: 148,
-    height: 151,
-    rotate: 3,
-  },
-  {
-    id: "holo-smiley",
-    label: "holographic smiley",
-    src: "/assets/stickers/holo-smiley.png",
-    width: 133,
-    height: 152,
-    rotate: -3,
-  },
-  {
-    id: "since-19",
-    label: "pizza pals",
-    src: "/assets/stickers/pizza-pals.png",
-    width: 105,
-    height: 160,
-    rotate: 4,
-  },
-  {
-    id: "blah-blah",
-    label: "blah blah blah",
-    src: "/assets/stickers/blah-blah.png",
-    width: 156,
-    height: 144,
-    rotate: -4,
-  },
-  {
-    id: "matcha-cake",
-    label: "matcha cake",
-    src: "/assets/stickers/matcha-cake.png",
-    width: 150,
-    height: 155,
-    rotate: 3,
-  },
-  {
-    id: "ours",
-    label: "roller crew",
-    src: "/assets/stickers/roller-crew.png",
-    width: 139,
-    height: 160,
-    rotate: -3,
-  },
-  {
-    id: "crew-high-five",
-    label: "crew high five",
-    src: "/assets/stickers/crew-high-five.png",
-    width: 150,
-    height: 148,
-    rotate: 4,
-  },
-  {
-    id: "good-vibes",
-    label: "skate sun",
-    src: "/assets/stickers/skate-sun.png",
-    width: 135,
-    height: 160,
-    rotate: 3,
-  },
-  {
-    id: "tahoe-car",
-    label: "Tahoe road trip",
-    src: "/assets/stickers/tahoe-car.png",
-    width: 160,
-    height: 130,
-    rotate: -3,
-  },
-  {
-    id: "double-smile",
-    label: "cherry duo",
-    src: "/assets/stickers/cherry-duo.png",
-    width: 129,
-    height: 160,
-    rotate: -4,
-  },
-  {
-    id: "sparkle-burst",
-    label: "moon sparkle",
-    src: "/assets/stickers/moon-sparkle.png",
-    width: 95,
-    height: 160,
-    rotate: 5,
-  },
+  { id: "wisp", label: "wisp", src: "/mascots/wisp-thriving.png", width: 140, height: 140, rotate: -4 },
+  { id: "pip", label: "pip the pumpkin", src: "/mascots/pip.png", width: 136, height: 136, rotate: 3 },
+  { id: "bones", label: "sleepy bones", src: "/mascots/bones.png", width: 140, height: 140, rotate: -3 },
+  { id: "planchette", label: "planchette", src: "/mascots/planchette.png", width: 128, height: 128, rotate: 5 },
+  { id: "crystal-ball", label: "crystal ball", src: "/ui/crystal-ball.png", width: 132, height: 132, rotate: -2 },
+  { id: "wax-seal", label: "wax seal", src: "/ui/wax-seal.png", width: 110, height: 110, rotate: 6 },
+  { id: "candle", label: "candle", src: "/ui/pin-candle.png", width: 96, height: 120, rotate: -5 },
+  { id: "wisp-sleepy", label: "wisp, fading", src: "/mascots/wisp-fading.png", width: 136, height: 136, rotate: 4 },
 ];
 
 export function getStickerDefinition(stickerId: unknown) {

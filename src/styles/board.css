@@ -8,6 +8,8 @@
   /* bone-tinted fractal noise, 6% alpha */
   --as-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.9  0 0 0 0 0.85  0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   color-scheme: dark;
+  /* bone paper with a torn edge all round (our own shape; replaces the upstream torn-paper PNG) */
+  --as-torn-paper: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M1 1.6 L12 .4 L24 1.7 L37 .2 L51 1.4 L64 .3 L78 1.6 L90 .5 L99.4 1.2 L100 14 L99.2 30 L100 47 L99.3 63 L100 80 L99.4 97.4 L93 99.4 L86 97.6 L78 99.8 L70 97.4 L61 99.5 L52 97.2 L43 99.7 L34 97.5 L25 99.6 L16 97.3 L8 99.5 L.6 97.8 L0 82 L.8 64 L0 47 L.7 30 L0 14 Z' fill='%23f3ead9'/></svg>");
 }
 
 html {

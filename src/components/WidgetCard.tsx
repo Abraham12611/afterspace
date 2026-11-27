@@ -98,7 +98,7 @@ function widgetTilt(widget: Widget): string | undefined {
   const step = (Math.abs(hash) % 5) - 2; // -2..2
   if (step === 0) return undefined;
   const damp = Math.min(1, Math.max(0.4, 240 / widget.w));
-  return `${(step * 1.1 * damp).toFixed(2)}deg`;
+  return `${(step * 0.7 * damp).toFixed(2)}deg`;
 }
 
 function groupStyle(

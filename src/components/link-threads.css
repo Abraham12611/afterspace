@@ -20,11 +20,14 @@
   width: 100%;
   height: 100%;
 }
+/* red string: thread-red with a darker under-stroke so it reads on plum and bone */
 .link-thread-line {
-  stroke: var(--color-ink);
-  stroke-width: 3;
+  fill: none;
+  stroke: #c8323f;
+  stroke-width: 2.4;
   stroke-linecap: round;
   stroke-dasharray: 2 9;
+  filter: drop-shadow(0 2px 1.5px rgb(8 4 10 / 0.55));
   animation: link-thread-march 900ms linear infinite;
 }
 .link-thread-line[data-state="live"],
@@ -45,13 +48,13 @@
   translate: -50% -50%;
   rotate: -2deg;
   padding: 5px 6px 5px 11px;
-  border: 2px solid var(--color-ink);
+  border: 1px solid rgb(243 234 217 / 0.35);
   border-radius: 999px;
-  background: var(--color-ink);
-  color: var(--color-lime);
+  background: var(--color-paper-deep);
+  color: var(--color-slime);
   font: 700 12px/1.2 var(--font-sans);
   white-space: nowrap;
-  box-shadow: 3px 3px 0 color-mix(in oklch, var(--color-ink) 35%, transparent);
+  box-shadow: 0 6px 14px -6px rgb(8 4 10 / 0.7);
   pointer-events: auto;
   animation: link-thread-tag-in var(--dur-arrive) var(--ease-pop) backwards;
 }

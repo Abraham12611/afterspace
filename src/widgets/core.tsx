@@ -789,12 +789,12 @@ export function MediaWidget({ widget, style }: { widget: Widget; style: Style })
         src={String(
           widget.data.thumbnailSrc ??
             widget.data.src ??
-            "/assets/placeholder-photo.svg",
+            "/ui/placeholder-photo.svg",
         )}
         alt={String(widget.data.caption)}
         onError={(event) => {
           event.currentTarget.onerror = null;
-          event.currentTarget.src = "/assets/placeholder-photo.svg";
+          event.currentTarget.src = "/ui/placeholder-photo.svg";
         }}
       />
       <figcaption>
