@@ -65,7 +65,7 @@ const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matc
 /* The other side wears its own wall so you can tell you turned the board over
    (room-knows.css .knows-side-*): "ink" near-black with the room colour as
    the accent, "paper" warm cream, "deep" the room colour in shadow. */
-const KNOWS_SIDE: "ink" | "paper" | "deep" = "paper";
+const KNOWS_SIDE: "ink" | "paper" | "deep" = "ink";
 
 /* The turn-over: board and page are two sides of one room, so going between
    them flips the room (a view transition on the room's <main>, both sides
@@ -258,71 +258,80 @@ export function RoomKnowsPage({
         <button type="button" className="knows-back" data-testid="room-knows-close" onClick={back}>
           <span aria-hidden="true">←</span> back to the page
         </button>
-        <header className="knows-head">
-          <div className="knows-title">
-            <p className="knows-kicker">{roomName} · the other side of the board</p>
-            <h1>the grimoire</h1>
-            <p className="knows-sub">
-              {count > 0 && (
-                <b key={count} className="knows-total">
-                  {count}
-                </b>
-              )}
-              {count > 0 ? ` things it has noticed about ${roomName}.` : `What it notices about ${roomName} shows up here.`} Tap one to see its card. Cross out anything it has wrong.
-            </p>
-            <form
-              className="knows-tell"
-              onSubmit={(e) => {
-                e.preventDefault();
-                tell();
-              }}
-            >
-              <input
-                data-testid="room-knows-tell"
-                value={draft}
-                maxLength={TOLD_CHARS}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder={narrow ? "tell it something" : "tell it something, like “we never do mondays”"}
-                aria-label="tell this space something"
-              />
-              <button type="submit" data-testid="room-knows-tell-send" disabled={!draft.trim()}>tell it</button>
-            </form>
+        {/* P2.6: an open book. Left page: who we are, how we do things. Right page:
+            where things stand, coming up, and the line you write on. */}
+        <div className="knows-book">
+          <div className="knows-page is-left">
+            <header className="knows-head">
+              <div className="knows-title">
+                <p className="knows-kicker">{roomName} · the other side of the board</p>
+                <h1>the grimoire</h1>
+                <p className="knows-sub">
+                  {count > 0 && (
+                    <b key={count} className="knows-total">
+                      {count}
+                    </b>
+                  )}
+                  {count > 0 ? ` things it has noticed about ${roomName}.` : `What it notices about ${roomName} shows up here.`} Tap one to see its card. Cross out anything it has wrong.
+                </p>
+              </div>
+            </header>
+            {knows && (people.length > 0 || of("who").length > 0) && (
+              <div className="knows-group">{section("who", of("who"), people.length > 0 && <>{peopleCount}<Portrait people={people} lines={lines} gone={gone} /></>)}</div>
+            )}
+            {knows && (told.length > 0 || of("habits").length > 0) && <div className="knows-sheet is-b">{habits(of("habits"))}</div>}
+            {knows && empty && (
+              <div className="knows-sheet knows-empty" data-testid="room-knows-empty">
+                <h2>it hasn’t noticed much yet</h2>
+                <p>
+                  It learns from what’s on the board: a countdown, a poll with votes, an rsvp, a split, a saved place. Add one and it shows up here, or tell it something yourself.
+                </p>
+                <span className="knows-hints" aria-hidden="true">
+                  {["a countdown", "a poll", "an rsvp", "a split", "a saved place"].map((h, k) => (
+                    <i key={h} style={{ "--i": k } as CSSProperties}>{h}</i>
+                  ))}
+                </span>
+              </div>
+            )}
           </div>
-          {knows && (people.length > 0 || of("who").length > 0) && (
-            <div className="knows-group">{section("who", of("who"), people.length > 0 && <>{peopleCount}<Portrait people={people} lines={lines} gone={gone} /></>)}</div>
-          )}
-        </header>
-
-        {knows === undefined ? (
-          <p className="knows-empty">opening…</p>
-        ) : (
-          <>
-            <div className="knows-sheets">
-              {empty && (
-                <div className="knows-sheet knows-empty" data-testid="room-knows-empty">
-                  <h2>it hasn’t noticed much yet</h2>
-                  <p>
-                    It learns from what’s on the board: a countdown, a poll with votes, an rsvp, a split, a saved place. Add one and it shows up here, or tell it something yourself.
-                  </p>
-                  <span className="knows-hints" aria-hidden="true">
-                    {["a countdown", "a poll", "an rsvp", "a split", "a saved place"].map((h, k) => (
-                      <i key={h} style={{ "--i": k } as CSSProperties}>{h}</i>
-                    ))}
-                  </span>
-                </div>
-              )}
-              {(of("soon").length > 0 || of("made").length > 0) && (
-                <div className="knows-sheet is-a">
-                  {section("soon", of("soon"))}
-                  {section("made", of("made"))}
-                </div>
-              )}
-              {(told.length > 0 || of("habits").length > 0) && <div className="knows-sheet is-b">{habits(of("habits"))}</div>}
-              {of("decided").length > 0 && <div className="knows-sheet is-c">{section("decided", of("decided"))}</div>}
-              {heldBack && <div className="knows-sheet is-d">{heldBack}</div>}
-            </div>
-          </>
-        )}
+          <div className="knows-page is-right">
+            {knows === undefined ? (
+              <p className="knows-empty">opening…</p>
+            ) : (
+              <>
+                {of("decided").length > 0 && <div className="knows-sheet is-c">{section("decided", of("decided"))}</div>}
+                {(of("soon").length > 0 || of("made").length > 0) && (
+                  <div className="knows-sheet is-a">
+                    {section("soon", of("soon"))}
+                    {section("made", of("made"))}
+                  </div>
+                )}
+                {heldBack && <div className="knows-sheet is-d">{heldBack}</div>}
+              </>
+            )}
+                <form
+                  className="knows-tell"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    tell();
+                  }}
+                >
+                  <svg className="knows-quill" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                    <path d="M20.5 3.5c-6 .6-10.6 4.3-12.8 10.4l-1.2 3.4 1.6.6 1-2.6c2.7-.2 5-1.4 6.6-3.4-1.3.1-2.5-.1-3.4-.6 2.5-.5 4.6-1.9 6-4.2-1 .1-1.9 0-2.6-.3 2-.9 3.6-1.9 4.8-3.3z" fill="currentColor" />
+                    <path d="M3 21h9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
+                  <input
+                    data-testid="room-knows-tell"
+                    value={draft}
+                    maxLength={TOLD_CHARS}
+                    onChange={(e) => setDraft(e.target.value)}
+                    placeholder={narrow ? "tell it something" : "tell it something, like “we never do mondays”"}
+                    aria-label="tell this space something"
+                  />
+                  <button type="submit" data-testid="room-knows-tell-send" disabled={!draft.trim()}>tell it</button>
+                </form>
+          </div>
+        </div>
         <p className="knows-foot" data-testid="room-knows-honest">
           It reads names and what’s on the board, nothing else. Everyone in {roomName} sees this same page. It keeps nothing private about any one person.
         </p>

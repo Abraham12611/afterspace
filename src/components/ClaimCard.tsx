@@ -191,6 +191,8 @@ export function ClaimCard({
     >
       {isGate && room ? (
         <div className="claim-room">
+          {/* P2.6: the gate is a guestbook page */}
+          <p className="claim-guestbook-title">sign in to the page</p>
           <span className="claim-card-kicker">you&apos;re walking into</span>
           <div className="claim-room-name">
             <span

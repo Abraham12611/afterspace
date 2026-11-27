@@ -204,7 +204,7 @@ function elementIsVisible(element: HTMLElement) {
 
 function routeFromHash(): Route {
   const hash = window.location.hash.replace(/^#\/?/, "");
-  if (hash === "test") return "test";
+  if (hash === "test" || hash === "welcome") return "test";
   if (hash === "about" || hash.startsWith("about/")) return "about";
   if (hash === "me") return "me";
   if (hash === "join" || hash.startsWith("join/")) return "join";
