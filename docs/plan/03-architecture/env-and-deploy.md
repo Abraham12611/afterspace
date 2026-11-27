@@ -17,8 +17,8 @@ Removed: `AGENTMAIL_API_KEY`, `AGENTMAIL_WEBHOOK_SECRET`, `FIRECRAWL_API_KEY`, `
 
 ## Deploy
 - Backend: `npx convex deploy` to a production deployment.
-- Frontend: Netlify (upstream `netlify.toml`) or Convex static hosting (`npm run deploy:convex`). Pick one in
-  phase 5; Netlify is the default.
+- Frontend: **Vercel** (`vercel.json`), project `abraham12611s-projects/afterspace`, connected to GitHub so every push to `main` deploys. Live: https://afterspace-phi.vercel.app. `/api/*` is rewritten to the prod Convex HTTP actions.
+- Convex: dev `wry-rhinoceros-386` (local `npx convex dev`), prod `joyous-mosquito-58` (`npx convex deploy -y`, then `npx convex run seed:demo --prod`).
 - Public demo URL goes in the README and Devpost.
 
 ## Demo data
