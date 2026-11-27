@@ -21,12 +21,12 @@ Deadline: **Fri Dec 4, 2026, 2:00 PM PT (11:00 PM GMT+1)**. Aim to submit Dec 4 
 ---
 
 ## P0. Setup
-- [ ] **P0.1 Repo.** Public GitHub repo `afterspace`. Root has `.kiro/` and `docs/plan/` already.
-- [ ] **P0.2 Import.** Copy upstream at `45bebcb` (without its `.git`, `node_modules`, `reference/`) into the
+- [x] **P0.1 Repo.** Public GitHub repo `afterspace`. Root has `.kiro/` and `docs/plan/` already.
+- [x] **P0.2 Import.** Copy upstream at `45bebcb` (without its `.git`, `node_modules`, `reference/`) into the
       repo root. Commit `import: ourspaces-app @ 45bebcb (MIT, Thomas Nguyen)`. Tag `upstream-import`.
       Merge our `.gitignore` with theirs.
 - [ ] **P0.3 Runs as-is.** `npm install`, `npx convex dev` on a new deployment. Note what breaks without keys.
-- [ ] **P0.4 License.** `LICENSE`: keep upstream line, add `Copyright (c) 2026 <you>`. Set GitHub About license.
+- [x] **P0.4 License.** `LICENSE`: keep upstream line, add `Copyright (c) 2026 <you>`. Set GitHub About license.
 - [ ] **P0.5 Kiro setup.** Hooks and MCP from `kiro-usage.md`. Add Vitest + fast-check, `npm test`.
 
 ## P1. Strip (docs: `03-architecture/strip-plan.md`)
@@ -46,7 +46,7 @@ Deadline: **Fri Dec 4, 2026, 2:00 PM PT (11:00 PM GMT+1)**. Aim to submit Dec 4 
 - [ ] P2.2 Tokens + fonts (design-system.md)
 - [ ] P2.3 Card frames + per-type silhouettes + red string
 - [ ] P2.4 Layout moves (layout-changes.md): header band, tab strip, crystal ball bar, demo ribbon
-- [ ] P2.5 Mascots + 12 avatars + stickers (generate, review, add to `public/`)
+- [x] P2.5 Mascots + 12 avatars + stickers (generate, review, add to `public/`). Art in `public/{brand,icons,mascots,ui,avatars}`; wiring into components happens in P2.3/P2.4/P3
 - [ ] P2.6 Join modal, welcome page, grimoire page restyle; sounds swapped
 **Exit:** side-by-side with upstream screenshots, no screen looks the same.
 
