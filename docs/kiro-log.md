@@ -25,3 +25,17 @@ Note: a first version of the schema generator used fully arbitrary values and al
 
 ### Observations, not changed
 - `num` fields coerce non-numeric strings to 0 then clamp: `"abc"` becomes the field's min instead of failing, because `"abc".replace(/[^0-9.-]/g, "")` is `""` and `Number("")` is 0. Not covered by a failing property (output is still in range); worth a decision later.
+
+## 2026-11-27 · Hooks and file-match steering
+- Added 4 hooks in `.kiro/hooks/`, each a small Node script in `scripts/hooks/` (inline `node -e` commands broke under
+  the Windows shell because of `|` and quotes, so logic moved to files):
+  - `test-pure-lib` (PostFileSave `src/lib/**/*.ts`): runs `vitest related` for the saved file, so property tests run on every rule change.
+  - `no-removed-services` (PostFileSave `.ts/.tsx/.css`): warns if a file mentions AgentMail, Nebius/Nemotron, Tavily or Firecrawl.
+  - `guard-reference` (PreToolUse on write tools): blocks edits inside `reference/ourspaces-app` (exit 2).
+  - `provenance-check` (Stop): keeps the agent working if `LICENSE` lost the upstream MIT line.
+- Each hook tested with simulated payloads before committing (guard blocked a reference path with exit 2; removed-service
+  warning fired on a scratch file; vitest related ran 36 tests for `src/lib/rightOfWay.ts`).
+- Added `inclusion: fileMatch` steering: `design.md` (UI files) and `convex.md` (backend files).
+- Convex: project `afterspace` created from the CLI (`npx convex dev --once --configure new --team ... --project afterspace`);
+  real codegen replaced the strip agent's hand-edited `_generated` types and added two modules the hand edit missed
+  (`openrouter`, `tables/after`). Auth keys generated with `jose` and set without printing them. `seed:demo` seeded the coven (13 cards).

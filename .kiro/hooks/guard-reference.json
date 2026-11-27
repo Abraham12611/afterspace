@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Guard upstream reference copy",
+      "trigger": "PreToolUse",
+      "description": "Block any write or delete inside reference/ourspaces-app, the read-only upstream copy.",
+      "matcher": "fs_write|fs_append|str_replace|delete_file|write|edit",
+      "action": {
+        "type": "command",
+        "command": "node scripts/hooks/guard-reference.cjs",
+        "timeout": 10
+      }
+    }
+  ]
+}

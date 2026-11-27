@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Test pure rules on save",
+      "trigger": "PostFileSave",
+      "description": "When a pure rule file in src/lib (or a test) is saved, run the related Vitest/fast-check tests and report failures, including property counterexamples.",
+      "matcher": "src[\\\\/]lib[\\\\/].*\\.ts$",
+      "action": {
+        "type": "command",
+        "command": "node scripts/hooks/test-pure-lib.cjs",
+        "timeout": 120
+      }
+    }
+  ]
+}

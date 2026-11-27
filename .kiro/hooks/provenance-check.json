@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Provenance check",
+      "trigger": "Stop",
+      "description": "Before the agent ends its turn, make sure LICENSE still has the upstream MIT copyright line (license compliance for the disclosed fork).",
+      "action": {
+        "type": "command",
+        "command": "node scripts/hooks/provenance-check.cjs",
+        "timeout": 15
+      }
+    }
+  ]
+}

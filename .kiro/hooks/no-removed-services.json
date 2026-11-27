@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "No removed services",
+      "trigger": "PostFileSave",
+      "description": "After a source file is saved, warn if it mentions a service Afterspace removed (AgentMail, Nebius/Nemotron, Tavily, Firecrawl).",
+      "matcher": "\\.(ts|tsx|css)$",
+      "action": {
+        "type": "command",
+        "command": "node scripts/hooks/no-removed-services.cjs",
+        "timeout": 15
+      }
+    }
+  ]
+}
