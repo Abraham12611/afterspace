@@ -30,7 +30,7 @@ export const SPACE_THEME_PRESETS: {
   { id: "blush", name: "blush", background: "#ffdad6", ink: "#111114" },
   { id: "lagoon", name: "lagoon", background: "#12a594", ink: "#ffffff" },
   { id: "spruce", name: "spruce", background: "#0f5c50", ink: "#ffffff" },
-  { id: "nightwall", name: "night wall", background: "#211922", ink: "#ffffff" },
+  { id: "nightwall", name: "night plum", background: "#1b1220", ink: "#ffffff" },
   { id: "white", name: "clean", background: "#f4f4f2", ink: "#111114" },
   { id: "violet", name: "violet", background: "#b7a7ff", ink: "#1b1532" },
   { id: "cobalt", name: "cobalt", background: "#3f70ff", ink: "#ffffff" },
@@ -50,14 +50,14 @@ export const SPACE_ACCENTS = [
 ];
 
 const SPACE_DEFAULT_THEMES: Record<string, SpaceThemeId> = {
-  coven: "violet",
+  coven: "nightwall",
 };
 
 /** A room whose wall is its own colour takes a second colour for tape, frames and pins. */
 const SPACE_DEFAULT_ACCENTS: Record<string, string> = {};
 
 export function defaultSpaceCustomization(space: SpaceMeta): SpaceCustomization {
-  const theme = SPACE_DEFAULT_THEMES[space.id] ?? "blush";
+  const theme = SPACE_DEFAULT_THEMES[space.id] ?? "nightwall";
 
   return {
     name: space.name,
@@ -65,7 +65,7 @@ export function defaultSpaceCustomization(space: SpaceMeta): SpaceCustomization 
     icon: space.icon,
     kind: space.kind,
     theme,
-    customBackground: "#211922",
+    customBackground: "#1b1220",
     accent: SPACE_DEFAULT_ACCENTS[space.id] ?? space.color,
   };
 }
@@ -88,7 +88,7 @@ export function spaceCustomizationStyle(customization: SpaceCustomization): Spac
   const background =
     customization.theme === "custom"
       ? customization.customBackground
-      : (preset?.background ?? "#211922");
+      : (preset?.background ?? "#1b1220");
   const ink =
     customization.theme === "custom"
       ? readableInk(customization.customBackground)

@@ -1,16 +1,25 @@
-@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800&family=Figtree:wght@400;500;600;700;800&family=Caveat:wght@500;600;700&family=VT323&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #211922;
-  --color-paper-deep: #171119;
-  --color-card: #fffaf7;
-  --color-mat: #ddc8ac;
-  --color-ink: #111114;
-  --color-muted: #5f5055;
-  --color-sticker: #0b0b0e;
-  --color-lime: #c9ff3d;
-  --color-rail: #111114;
+  /* Afterspace palette (docs/plan/02-design/design-system.md). Upstream token
+     names are kept so existing rules restyle for free. */
+  --color-paper: #1b1220; /* night plum */
+  --color-paper-deep: #120b16;
+  --color-card: #f3ead9; /* bone */
+  --color-mat: #d9c7a8;
+  --color-ink: #1d141f;
+  --color-muted: #6b5b69; /* #7a6a78 in the spec, darkened for 4.5:1 on bone */
+  --color-sticker: #120b16; /* the dark chrome (pills, bars) is deep plum, not black */
+  --color-slime: #9dff4f;
+  --color-lime: var(--color-slime); /* upstream name, now slime */
+  --color-pumpkin: #ff7a1a;
+  --color-candle: #ffd36b;
+  --color-blood: #c2263a;
+  --color-ghost: #e9f5ff;
+  --color-moth: #9c7bff;
+  --color-plum-2: #2a1d31; /* raised plum (pills, tabs) */
+  --color-rail: #120b16;
   --color-crew: #7853ff;
   --color-couple: #e9369d;
   --color-fam: #3f70ff;
@@ -22,9 +31,14 @@
   --text-body--line-height: 1.5;
   --text-caption: 0.875rem;
   --text-caption--line-height: 1.4;
-  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Unbounded", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-hand: "Caveat", "Segoe Print", cursive;
+  --font-pixel: "VT323", ui-monospace, monospace;
   --radius-pill: 9999px;
+  --radius-card: 14px;
+  --shadow-card: 0 1px 0 rgb(29 20 31 / 0.08), 0 10px 22px -8px rgb(8 4 10 / 0.55), 0 0 26px -6px rgb(255 211 107 / 0.16);
+  --shadow-card-lift: 0 1px 0 rgb(29 20 31 / 0.08), 0 18px 32px -10px rgb(8 4 10 / 0.6), 0 0 34px -4px rgb(255 211 107 / 0.24);
   --ease-glide: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-pop: cubic-bezier(0.2, 0.9, 0.3, 1.18);
   --ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -56,8 +70,10 @@
     font: inherit;
   }
 
-  button:focus-visible {
-    outline: 3px solid #111114;
+  button:focus-visible,
+  a:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid var(--color-slime);
     outline-offset: 3px;
   }
 
@@ -66,17 +82,19 @@
   h3,
   .font-display {
     font-family: var(--font-display);
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 }
 
 .paper-bg {
   background-color: var(--color-paper);
+  background-image: var(--as-grain);
+  background-size: 180px;
   --page-bg: var(--color-paper);
-  --canvas-field: #2d2234;
-  --canvas-grid-dot: rgba(255, 255, 255, 0.055);
-  --canvas-grid-major: rgba(120, 83, 255, 0.3);
+  --canvas-field: #251a2b;
+  --canvas-grid-dot: rgba(243, 234, 217, 0.05);
+  --canvas-grid-major: rgba(156, 123, 255, 0.18);
   transition:
     background-color 220ms ease-out,
     color 220ms ease-out;
@@ -85,8 +103,8 @@
 .paper-bg.space-theme-blush {
   background-color: #ffdad6;
   --page-bg: #ffdad6;
-  background-image: url(https://asset.mmm.page/55/4df91bfe464242812c7dcf75bb4869/1xp26r2.png);
-  background-size: 21%;
+  background-image: var(--as-grain);
+  background-size: 180px;
   --canvas-field: #f0ccc7;
   --canvas-grid-dot: rgba(17, 17, 20, 0.055);
   --canvas-grid-major: rgba(120, 83, 255, 0.2);
@@ -95,8 +113,8 @@
 .paper-bg.space-theme-lagoon {
   background-color: #12a594;
   --page-bg: #12a594;
-  background-image: url(https://asset.mmm.page/55/4df91bfe464242812c7dcf75bb4869/1xp26r2.png);
-  background-size: 21%;
+  background-image: var(--as-grain);
+  background-size: 180px;
   --canvas-field: #0e9282;
   --canvas-grid-dot: rgba(255, 255, 255, 0.07);
   --canvas-grid-major: rgba(201, 255, 61, 0.24);
@@ -105,19 +123,19 @@
 .paper-bg.space-theme-spruce {
   background-color: #0f5c50;
   --page-bg: #0f5c50;
-  background-image: url(https://asset.mmm.page/55/4df91bfe464242812c7dcf75bb4869/1xp26r2.png);
-  background-size: 21%;
+  background-image: var(--as-grain);
+  background-size: 180px;
   --canvas-field: #0c5044;
   --canvas-grid-dot: rgba(255, 255, 255, 0.06);
   --canvas-grid-major: rgba(201, 255, 61, 0.2);
 }
 
 .paper-bg.space-theme-nightwall {
-  background-color: #211922;
-  --page-bg: #211922;
-  --canvas-field: #2d2234;
-  --canvas-grid-dot: rgba(255, 255, 255, 0.055);
-  --canvas-grid-major: rgba(120, 83, 255, 0.3);
+  background-color: var(--color-paper);
+  --page-bg: var(--color-paper);
+  --canvas-field: #251a2b;
+  --canvas-grid-dot: rgba(243, 234, 217, 0.05);
+  --canvas-grid-major: rgba(156, 123, 255, 0.18);
 }
 
 .paper-bg.space-theme-white {
@@ -12040,8 +12058,8 @@
 
 .space-wallpaper-preview-blush {
   background-color: #ffdad6;
-  background-image: url(https://asset.mmm.page/55/4df91bfe464242812c7dcf75bb4869/1xp26r2.png);
-  background-size: 21%;
+  background-image: var(--as-grain);
+  background-size: 180px;
 }
 
 .space-wallpaper-preview-nightwall {
@@ -16943,7 +16961,7 @@
     --canvas-grid-major: rgba(120, 83, 255, 0.12);
     background-image:
       linear-gradient(rgba(255, 218, 214, 0.55), rgba(255, 218, 214, 0.55)),
-      url(https://asset.mmm.page/55/4df91bfe464242812c7dcf75bb4869/1xp26r2.png);
+      var(--as-grain);
     background-repeat: no-repeat, repeat;
     background-size: 100% 100%, 30%;
   }
@@ -19901,7 +19919,7 @@
     --canvas-grid-major: rgba(201, 255, 61, 0.16);
     background-image:
       linear-gradient(rgba(18, 165, 148, 0.94), rgba(18, 165, 148, 0.94)),
-      url(https://asset.mmm.page/55/4df91bfe464242812c7dcf75bb4869/1xp26r2.png);
+      var(--as-grain);
     background-repeat: no-repeat, repeat;
     background-size: 100% 100%, 30%;
   }
@@ -19918,7 +19936,7 @@
     --canvas-grid-major: rgba(201, 255, 61, 0.14);
     background-image:
       linear-gradient(rgba(15, 92, 80, 0.82), rgba(15, 92, 80, 0.82)),
-      url(https://asset.mmm.page/55/4df91bfe464242812c7dcf75bb4869/1xp26r2.png);
+      var(--as-grain);
     background-repeat: no-repeat, repeat;
     background-size: 100% 100%, 30%;
   }

@@ -1,0 +1,96 @@
+/*
+ * Afterspace board surface (P2.2, docs/plan/02-design/design-system.md "Board surface").
+ * Night plum, a fine grain (our own SVG noise, no image file), a soft vignette
+ * and fog that drifts on a 40 s loop. Loaded after index.css (main.tsx).
+ */
+
+:root {
+  /* bone-tinted fractal noise, 6% alpha */
+  --as-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95  0 0 0 0 0.9  0 0 0 0 0.85  0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  color-scheme: dark;
+}
+
+html {
+  background: var(--color-paper);
+}
+
+::selection {
+  background: var(--color-slime);
+  color: var(--color-ink);
+}
+
+/* The page is its own stacking context so the fog can sit between the plum
+   wall and everything on it. */
+main.paper-bg {
+  isolation: isolate;
+}
+
+main.paper-bg::before,
+main.paper-bg::after {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+}
+
+/* fog: three soft banks that drift and breathe */
+main.paper-bg::before {
+  inset: -25%;
+  background:
+    radial-gradient(38% 26% at 22% 32%, rgb(233 245 255 / 0.075), transparent 70%),
+    radial-gradient(34% 24% at 74% 62%, rgb(156 123 255 / 0.09), transparent 70%),
+    radial-gradient(30% 20% at 48% 88%, rgb(157 255 79 / 0.035), transparent 70%),
+    radial-gradient(26% 18% at 86% 18%, rgb(233 245 255 / 0.05), transparent 70%);
+  animation: as-fog-drift 40s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* vignette */
+main.paper-bg::after {
+  inset: 0;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgb(8 4 10 / 0.55) 100%);
+}
+
+/* Light walls (picked in settings) keep their colour; the fog only belongs to dark ones. */
+main.paper-bg:is(.space-theme-blush, .space-theme-white, .space-theme-violet, .space-theme-mint, .space-theme-butter)::before {
+  opacity: 0.35;
+}
+
+main.paper-bg:is(.space-theme-blush, .space-theme-white, .space-theme-violet, .space-theme-mint, .space-theme-butter)::after {
+  opacity: 0.25;
+}
+
+@keyframes as-fog-drift {
+  0% {
+    transform: translate3d(-4%, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3%, -2%, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(5%, 2%, 0) scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main.paper-bg::before {
+    animation: none;
+  }
+}
+
+/* Typography helpers for the new faces. */
+.font-hand {
+  font-family: var(--font-hand);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.font-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.02em;
+}
+
+/* Inside light paper surfaces a slime ring vanishes: use ink there. */
+:is(.widget-shell, .claim-card.is-gate, .knows-page) :is(button, a, input, [tabindex]):focus-visible {
+  outline-color: var(--color-ink);
+}

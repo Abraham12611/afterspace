@@ -436,7 +436,7 @@
   border-radius: 22px;
   background-color: #ffdad6;
   background-image:
-    url(https://asset.mmm.page/55/4df91bfe464242812c7dcf75bb4869/1xp26r2.png),
+    var(--as-grain),
     radial-gradient(circle, var(--canvas-grid-major) 0 1.5px, transparent 1.8px),
     radial-gradient(circle, var(--canvas-grid-dot) 0 1px, transparent 1.3px);
   background-size: 21%, 160px 160px, 32px 32px;
