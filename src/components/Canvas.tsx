@@ -629,6 +629,10 @@ export function SpaceHeader({
   livePeers = [],
   arrivalPeerId,
   knowsDoor,
+  visitorCount,
+  profileTop8,
+  visitorsDetail,
+  onGuestbook,
 }: {
   spaceId: string;
   /** The chip that turns the board over to "what this space knows" (RoomKnows.tsx). */
@@ -639,6 +643,10 @@ export function SpaceHeader({
   roomEditing?: boolean;
   onEditSpace?: () => void;
   visitorCount?: number;
+  /** the live Top 8 (with why); without it the header shows the roster placeholder */
+  profileTop8?: ProfileFace[];
+  visitorsDetail?: string;
+  onGuestbook?: () => void;
   entrance?: boolean;
   members?: SpaceMember[];
   spaceName?: string;
@@ -700,14 +708,14 @@ export function SpaceHeader({
           ...online.map((member) => member.name),
         ].join(", ")}`;
   /* Top 8 placeholder (P2.4): the space's roster, then whoever is here. Real Top 8 is P3. */
-  const top8: ProfileFace[] = [];
-  for (const member of membersProp ?? space.members) {
+  const top8: ProfileFace[] = profileTop8 ? [...profileTop8] : [];
+  for (const member of profileTop8 ? [] : (membersProp ?? space.members)) {
     if (top8.length < 8 && !top8.some((face) => face.name === member.name)) top8.push({ key: `m-${member.name}`, name: member.name, color: member.color });
   }
-  for (const peer of livePeers) {
+  for (const peer of profileTop8 ? [] : livePeers) {
     if (top8.length < 8 && !top8.some((face) => face.name === peer.name)) top8.push({ key: peer.userId, name: peer.name, emoji: peer.emoji, color: peer.color, avatarUrl: peer.avatarUrl });
   }
-  const visitors = getBuildClubVisitorCount();
+  const visitors = visitorCount ?? getBuildClubVisitorCount();
   const inviteUrl = inviteUrlForSpace(spaceId);
   const inviteFaces = [
     ...(self ? [{ key: "self", name: self.name, emoji: self.emoji, color: self.color, avatarUrl: self.avatarUrl }] : []),
@@ -848,6 +856,8 @@ export function SpaceHeader({
         tagline={tagline}
         top8={top8}
         visitors={visitors}
+        visitorsDetail={visitorsDetail}
+        onGuestbook={onGuestbook}
         handles={
           <>
             <button

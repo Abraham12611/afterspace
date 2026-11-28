@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode, type Ref } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type Ref } from "react";
 import { MemberFace } from "./MemberFace";
 
 /**
@@ -10,7 +10,7 @@ import { MemberFace } from "./MemberFace";
  * `SpaceHeader` (Canvas.tsx) renders this and passes its own handles (edit, grimoire
  * door) and side (presence, add, invite), so the invite logic stays where it was.
  */
-export type ProfileFace = { key: string; name: string; emoji?: string; color?: string; avatarUrl?: string };
+export type ProfileFace = { key: string; name: string; emoji?: string; color?: string; avatarUrl?: string; /** why they are in your top 8: "3 polls together" */ why?: string };
 
 const TOP_SLOTS = 8;
 
@@ -26,6 +26,8 @@ export function ProfileHeader({
   tagline,
   top8,
   visitors,
+  visitorsDetail,
+  onGuestbook,
   handles,
   side,
 }: {
@@ -36,13 +38,34 @@ export function ProfileHeader({
   tagline?: string;
   top8: ProfileFace[];
   visitors: number;
+  /** "5 people" under the digits, for the title and screen readers */
+  visitorsDetail?: string;
+  /** opens the guestbook (the space chat); the button only shows when this is given */
+  onGuestbook?: () => void;
   /** quiet chips under the name: edit, the grimoire */
   handles?: ReactNode;
   /** who's here and the header actions (add, invite) */
   side?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
+  const top8Ref = useRef<HTMLElement>(null);
   const faces = top8.slice(0, TOP_SLOTS);
+  const pickedFace = faces.find((face) => face.key === picked);
+  useEffect(() => {
+    if (!picked) return;
+    const close = (event: PointerEvent | KeyboardEvent) => {
+      if (event instanceof KeyboardEvent) {
+        if (event.key === "Escape") setPicked(null);
+      } else if (!top8Ref.current?.contains(event.target as Node)) setPicked(null);
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", close);
+    return () => {
+      document.removeEventListener("pointerdown", close);
+      document.removeEventListener("keydown", close);
+    };
+  }, [picked]);
   const empty = Math.max(0, TOP_SLOTS - faces.length);
   const digits = counterDigits(visitors);
 
@@ -83,25 +106,49 @@ export function ProfileHeader({
       </div>
 
       <div className="profile-extras" id="profile-extras">
-        <section className="profile-top8" aria-label="top 8">
+        <section className="profile-top8" aria-label="top 8" ref={top8Ref}>
           <h2 className="profile-label">top 8</h2>
           <ol>
-            {faces.map((face, index) => (
-              <li key={face.key} style={{ "--i": index } as CSSProperties}>
-                <MemberFace name={face.name} emoji={face.emoji} color={face.color} avatarUrl={face.avatarUrl} size="sm" />
-                <span className="profile-top8-name">{face.name.toLowerCase()}</span>
-              </li>
-            ))}
+            {faces.map((face, index) => {
+              const inner = (
+                <>
+                  <MemberFace name={face.name} emoji={face.emoji} color={face.color} avatarUrl={face.avatarUrl} size="sm" />
+                  <span className="profile-top8-name">{face.name.toLowerCase()}</span>
+                </>
+              );
+              return (
+                <li key={face.key} style={{ "--i": index } as CSSProperties}>
+                  {face.why ? (
+                    <button
+                      type="button"
+                      className="profile-top8-face"
+                      aria-expanded={picked === face.key}
+                      aria-label={`${face.name}: ${face.why}`}
+                      onClick={() => setPicked((current) => (current === face.key ? null : face.key))}
+                    >
+                      {inner}
+                    </button>
+                  ) : (
+                    inner
+                  )}
+                </li>
+              );
+            })}
             {Array.from({ length: empty }, (_, index) => (
               <li key={`empty-${index}`} className="is-empty" aria-hidden="true">
                 <span className="profile-top8-slot" />
               </li>
             ))}
           </ol>
+          {pickedFace?.why && (
+            <p className="profile-top8-why" role="status">
+              <b>{pickedFace.name.toLowerCase()}</b> {pickedFace.why}
+            </p>
+          )}
         </section>
 
         <div className="profile-counters">
-          <div className="profile-visitors" role="img" aria-label={`${visitors} visitors`}>
+          <div className="profile-visitors" role="img" aria-label={`${visitors} visits${visitorsDetail ? `, ${visitorsDetail}` : ""}`} title={visitorsDetail}>
             <span className="profile-label" aria-hidden="true">visitors</span>
             <span className="profile-visitors-digits font-pixel" aria-hidden="true">
               {digits.split("").map((digit, index) => (
@@ -109,9 +156,16 @@ export function ProfileHeader({
               ))}
             </span>
           </div>
-          <button type="button" className="profile-song" aria-disabled="true" title="profile songs arrive soon">
-            <span aria-hidden="true">♪</span> no song yet
-          </button>
+          <div className="profile-counter-actions">
+            {onGuestbook && (
+              <button type="button" className="profile-guestbook" onClick={onGuestbook}>
+                <span aria-hidden="true">✎</span> sign the guestbook
+              </button>
+            )}
+            <button type="button" className="profile-song" aria-disabled="true" title="profile songs arrive soon">
+              <span aria-hidden="true">♪</span> no song yet
+            </button>
+          </div>
         </div>
       </div>
 

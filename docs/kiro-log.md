@@ -39,3 +39,8 @@ Note: a first version of the schema generator used fully arbitrary values and al
 - Convex: project `afterspace` created from the CLI (`npx convex dev --once --configure new --team ... --project afterspace`);
   real codegen replaced the strip agent's hand-edited `_generated` types and added two modules the hand edit missed
   (`openrouter`, `tables/after`). Auth keys generated with `jose` and set without printing them. `seed:demo` seeded the coven (13 cards).
+
+## 2026-11-29: F1 buddy list and F2 profile header data (Kiro)
+- F1: `BuddyList.tsx` (floating window, bottom sheet on phones, away popover with presets, door sounds). Online comes from a per-space room in the presence component (`roomPresence.buddyBeat`, person taken from the session), so the list flips on its own timer without writing the `members` row every few seconds (that would re-run every `seatOf` query of that person). New `members` fields: `awayMessage`, `awaySince`, `idleSince`, `lastVisitAt`. Pure rules in `src/lib/buddy.ts` (+ tests). Door sounds are synthesized with Web Audio (no files to license).
+- F2: pure `src/lib/top8.ts` with fast-check properties (length min(8, members-1), no viewer, deterministic, adding shared activity never lowers rank). `convex/top8.ts` gathers polls (vote time), rsvps and splits (card creation time, the data has no stamp), and card threads. `convex/visits.ts`: `recordVisit` (one per member per 30 min), `counter`, `seedDemo`. Guestbook is the space chat opened with the title "guestbook" from a header button, no new card type.
+- Verified by build, tests and `npx convex run` against dev. Not verified visually (no dev server here).

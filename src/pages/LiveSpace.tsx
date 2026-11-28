@@ -27,6 +27,9 @@ import { boardItems, titleOfWidget } from "../lib/deck";
 import { applyEdit } from "../lib/deck/edits";
 import { myPartFor } from "../lib/challenge";
 import { Canvas, SpaceHeader } from "../components/Canvas";
+import { BuddyList } from "../components/BuddyList";
+import { FamiliarPet } from "../components/FamiliarPet";
+import { useSpaceProfile } from "../live/useSpaceProfile";
 import { ClaimCard, type RoomContext } from "../components/ClaimCard";
 import { SettingsSheet } from "../components/SettingsSheet";
 import { JoinForm } from "../components/JoinForm";
@@ -327,6 +330,10 @@ export function LiveSpacePage({
   const chatReturnView = useRef<boolean | null>(null);
   const canvasCameraAnimation = useRef(0);
   const [chatOpen, setChatOpen] = useState(false);
+  const [guestbookOpen, setGuestbookOpen] = useState(false);
+  useEffect(() => {
+    if (!chatOpen) setGuestbookOpen(false);
+  }, [chatOpen]);
   const [claimOpen, setClaimOpen] = useState(false);
   const [gateLeaving, setGateLeaving] = useState(false);
   const gateCursorPoint = useRef<GatePoint | null>(null);
@@ -426,6 +433,7 @@ export function LiveSpacePage({
   const ensureCozyColorWidget = useMutation(api.paint.ensureCozyColorWidget);
   const doorForced = isInviteEntry || doorParam === "1";
   const roomEntered = (entered || (!doorForced && space?.door === false)) && !isInviteEntry;
+  const profile = useSpaceProfile(space?._id, roomEntered);
   /* The identity popover: your cursor rides while it is open (so "that's
      your cursor" is literally true), and it leaves the way the gate does —
      the card collapses into the cursor, then the drawn cursor hands over. */
@@ -2343,6 +2351,8 @@ export function LiveSpacePage({
       {roomEntered && space?.slug && (
         <RoomPresenceHeartbeat roomId={space.slug} userId={presenceId} />
       )}
+      {roomEntered && mode === "live" && space?._id && <BuddyList spaceId={space._id} selfUserId={identity.userId} />}
+      {roomEntered && mode === "live" && space?._id && <FamiliarPet spaceId={space._id} slug={space.slug ?? slug} />}
       <SpaceHeader
         key={boardKey}
         spaceId={slug}
@@ -2357,6 +2367,10 @@ export function LiveSpacePage({
         livePeers={liveCursors}
         arrivalPeerId={arrivalPeer?.userId}
         knowsDoor={mode === "live" && space ? <RoomKnowsDoor slug={slug} count={roomKnows ? standing(roomKnows) : undefined} /> : undefined}
+        profileTop8={profile.top8}
+        visitorCount={profile.visitors}
+        visitorsDetail={profile.visitorsDetail}
+        onGuestbook={mode === "live" && space ? () => { playSound("tap"); setGuestbookOpen(true); setChatOpen(true); } : undefined}
         addOpen={pickerOpen}
         onAddClick={() => {
           if (pickerOpen) {
@@ -2723,7 +2737,7 @@ export function LiveSpacePage({
         onToggle={() => { playSound("tap"); setChatOpen((open) => !open); }}
         onThreadChange={() => {}}
         onSendMessage={() => {}}
-        title={activeCustomization.name}
+        title={guestbookOpen ? "guestbook" : activeCustomization.name}
         messages={globalMessages}
         onSend={(text) => handlers.onSend("global", text)}
         onPromote={promotable ? () => handlers.onPromote(promotable.id, promotePosition.x, promotePosition.y) : undefined}
