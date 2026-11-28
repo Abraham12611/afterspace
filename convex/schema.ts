@@ -6,6 +6,8 @@ import * as voice from "./tables/voice";
 import * as row from "./tables/rightOfWay";
 import * as games from "./tables/games";
 import * as after from "./tables/after";
+import * as social from "./tables/social";
+import * as haunt from "./tables/haunt";
 
 // The whole data model at a glance; each table's fields and indexes live in
 // convex/tables/<area>.ts. Shape rationale: docs/data-model-plan.md §11.
@@ -49,4 +51,8 @@ export default defineSchema({
 
   // afterspace
   modelCalls: after.modelCalls, // one metrics row per model call (job, model, ms, tokens, usd)
+  visits: social.visits, // a member opened the space: visitor counter, Top 8, séance (F1, F2)
+  familiars: haunt.familiars, // the space's pet and its health (F4)
+  graveyard: haunt.graveyard, // dead pets and plans, with epitaphs (F4)
+  spiritLocks: haunt.spiritLocks, // a spirit board's locked answer (F5)
 });
