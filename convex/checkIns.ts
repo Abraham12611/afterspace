@@ -2,7 +2,7 @@ import { mutation } from "./_generated/server";
 import { recheck } from "./choiceVotes";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { touchSpace } from "./activity";
+import { recordEvent, touchSpace } from "./activity";
 import { applyLinks } from "./links";
 import type { CheckInWidgetData } from "./widgetData";
 
@@ -51,6 +51,7 @@ export const log = mutation({
     await recheck(ctx, widgetId);
     await applyLinks(ctx, widgetId);
     await touchSpace(ctx, spaceId);
+    await recordEvent(ctx, spaceId, "checkin");
     return { name: person.name, day, value: v };
   },
 });

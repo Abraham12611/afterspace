@@ -1,0 +1,186 @@
+/* F4 pet: floats over the board, bobbing; a small popover on tap. Tokens only. */
+
+.familiar {
+  position: fixed;
+  left: 16px;
+  bottom: 96px;
+  z-index: 30;
+}
+
+.familiar.is-compact {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  z-index: auto;
+  display: inline-block;
+}
+
+.familiar-body {
+  display: block;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  animation: familiar-bob 3.6s ease-in-out infinite;
+  filter: drop-shadow(0 6px 8px color-mix(in srgb, var(--color-paper) 55%, transparent));
+}
+
+.familiar.is-compact .familiar-body {
+  width: 40px;
+  height: 40px;
+  animation-duration: 4.4s;
+}
+
+.familiar-body img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.familiar.is-hungry .familiar-body {
+  animation-duration: 5s;
+}
+
+.familiar.is-fading .familiar-body {
+  opacity: 0.8;
+  animation-duration: 6s;
+}
+
+.familiar.is-dead .familiar-body {
+  animation: none;
+  opacity: 0.7;
+}
+
+.familiar-body:focus-visible,
+.familiar-grave:focus-visible {
+  outline: 3px solid var(--color-card);
+  outline-offset: 3px;
+}
+
+@keyframes familiar-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.familiar-pop {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  width: min(260px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--color-paper) 70%, transparent), 0 0 16px color-mix(in srgb, var(--color-candle) 14%, transparent);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.familiar.is-compact .familiar-pop {
+  top: calc(100% + 8px);
+  bottom: auto;
+}
+
+.familiar-pop p {
+  margin: 0 0 6px;
+}
+
+.familiar-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: lowercase;
+}
+
+.familiar-feel {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+.familiar-age,
+.familiar-count {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.familiar-meter {
+  height: 8px;
+  margin: 2px 0 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-ink) 14%, transparent);
+}
+
+.familiar-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-pumpkin);
+  transition: width 400ms;
+}
+
+.familiar.is-thriving .familiar-meter span,
+.familiar.is-okay .familiar-meter span {
+  background: var(--color-slime);
+}
+
+.familiar-hint {
+  font-family: "Caveat", var(--font-sans);
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.familiar-pips {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.familiar-pips li {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-muted);
+  border-radius: 50%;
+}
+
+.familiar-pips li.is-on {
+  border-color: var(--color-candle);
+  background: var(--color-candle);
+  box-shadow: 0 0 8px var(--color-candle);
+}
+
+.familiar-grave {
+  display: inline-block;
+  padding: 6px 0 2px;
+  color: var(--color-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .familiar-body,
+  .familiar.is-hungry .familiar-body,
+  .familiar.is-fading .familiar-body {
+    animation: none;
+  }
+
+  .familiar-meter span {
+    transition: none;
+  }
+}

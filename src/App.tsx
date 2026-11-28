@@ -87,7 +87,7 @@ import { mockRoomKnows } from "./data/roomKnows";
 import { getDataMode } from "./live/dataMode";
 import { getIdentity } from "./live/identity";
 import { useCanvasSpacePan } from "./lib/canvasSpacePan";
-import { DEFAULT_SPACE_SLUG, knowsHash, lastSpaceSlug, normalSpaceHash, redirectLegacyKnows, rememberSpaceSlug, slugOfSpaceHash } from "./lib/routes";
+import { DEFAULT_SPACE_SLUG, isGraveyardHash, knowsHash, lastSpaceSlug, normalSpaceHash, redirectLegacyKnows, rememberSpaceSlug, slugOfSpaceHash } from "./lib/routes";
 import { widgetIsInsideFrame } from "./lib/frameMembership";
 import { YourTurn, goToTurnWidget } from "./components/YourTurn";
 import { GameInvite, GameSheet, GameSheetTab, GamesDev } from "./components/games/GameInvite";
@@ -107,6 +107,9 @@ const Welcome = lazy(() => import("./pages/Welcome"));
 const AboutPage = lazy(() =>
   import("./pages/About").then((module) => ({ default: module.About })),
 );
+const GraveyardPage = lazy(() =>
+  import("./pages/Graveyard").then((module) => ({ default: module.Graveyard })),
+);
 
 function DeferredRoute({ children }: { children: ReactNode }) {
   return (
@@ -122,7 +125,7 @@ function DeferredRoute({ children }: { children: ReactNode }) {
   );
 }
 
-type Route = "space" | "me" | "about" | "live" | "join" | "test" | "admin";
+type Route = "space" | "me" | "about" | "live" | "join" | "test" | "admin" | "graveyard";
 type WidgetPlacement = Partial<Pick<Widget, "x" | "y" | "z" | "w" | "h">>;
 type FrameLayout = Pick<Widget, "x" | "y" | "w" | "h">;
 type CanvasSize = { width: number; height: number };
@@ -211,6 +214,7 @@ function routeFromHash(): Route {
   if (hash === "live" || hash.startsWith("live/")) return "live";
   // Linked from nowhere and gated on ADMIN_KEY server-side (convex/admin.ts).
   if (hash === "admin") return "admin";
+  if (isGraveyardHash(window.location.hash)) return "graveyard";
   return "space";
 }
 
@@ -1798,6 +1802,10 @@ export default function App() {
 
   if (route === "test") {
     return <DeferredRoute><Welcome /></DeferredRoute>;
+  }
+
+  if (route === "graveyard") {
+    return <DeferredRoute><GraveyardPage slug={spaceId} /></DeferredRoute>;
   }
 
   if (route === "about") {

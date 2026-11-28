@@ -53,8 +53,8 @@ Deadline: **Fri Dec 4, 2026, 2:00 PM PT (11:00 PM GMT+1)**. Aim to submit Dec 4 
 ## P3. New features (docs: `01-product/features-new.md`)
 - [x] P3.1 F1 buddy list + away messages + door sounds
 - [x] P3.2 F2 profile header: Top 8 (`src/lib/top8.ts` + PBT), visitor counter, guestbook
-- [ ] P3.3 F4 pet: `src/lib/familiar.ts` + PBT, cron, states art, popover, graveyard page, revive
-- [ ] P3.4 F5 spirit board: `src/lib/spiritBoard.ts` + PBT, card, server lock
+- [x] P3.3 F4 pet: `src/lib/familiar.ts` + PBT, cron, states art, popover, graveyard page, revive
+- [x] P3.4 F5 spirit board: `src/lib/spiritBoard.ts` + PBT, card, server lock
 - [ ] P3.5 F7 receipt photo → split: `src/lib/receipt.ts` + PBT, capture sheet, vision call, confirm
 - [ ] P3.6 F6 sealed letters + time capsule
 - [ ] P3.7 F8 séance sheet

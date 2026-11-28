@@ -3,7 +3,7 @@ import { applyLinks } from "./links";
 import { seatOf, canRead } from "./seat";
 import { recheck } from "./choiceVotes";
 import { v } from "convex/values";
-import { touchSpace } from "./activity";
+import { recordEvent, touchSpace } from "./activity";
 import { TableAggregate } from "@convex-dev/aggregate";
 import { components } from "./_generated/api";
 import type { DataModel, Id } from "./_generated/dataModel";
@@ -104,6 +104,7 @@ export const vote = mutation({
       await ctx.db.patch(existing._id, { optionId });
       await pollTallies.replace(ctx, existing, { ...existing, optionId });
       await touchSpace(ctx, spaceId);
+      await recordEvent(ctx, spaceId, "vote");
       // a card waiting on this poll (a flow, links.ts) may resolve now: everyone voted
       await applyLinks(ctx, widgetId);
       // a vote on this card waiting on these voters may be moot now (choiceVotes.ts)
@@ -115,6 +116,7 @@ export const vote = mutation({
     const doc = await ctx.db.get(id);
     await pollTallies.insert(ctx, doc!);
     await touchSpace(ctx, spaceId);
+    await recordEvent(ctx, spaceId, "vote");
     await applyLinks(ctx, widgetId);
     return id;
   },

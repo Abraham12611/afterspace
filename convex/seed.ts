@@ -8,6 +8,10 @@ import { pollTallies } from "./votes";
 import { messagesCounter, spacesCounter, widgetsCounter } from "./stats";
 import type { WidgetData } from "./widgetData";
 import { internal } from "./_generated/api";
+import { latestPet, hungryEvents } from "./familiar";
+import { DEAD_AFTER_MS, HOUR_MS, health, stateOf } from "../src/lib/familiar";
+
+const DAY_MS = 24 * HOUR_MS;
 
 function seedUserId(slug: string, name: string) {
   return `seed:${slug}:${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
@@ -226,9 +230,62 @@ export const demo = internalMutation({
     await retireCutSpaceRows(ctx);
     await seedMissing(ctx);
     const existing = await ctx.db.query("spaces").withIndex("by_slug", (q) => q.eq("slug", "coven")).unique();
-    return existing?._id ?? (await seedAll(ctx));
+    const id = existing?._id ?? (await seedAll(ctx));
+    await seedHaunt(ctx);
+    return id;
   },
 });
+
+/**
+ * The pets (F4). Only fills what is missing, so a re-run never touches a live pet or a tombstone:
+ * - the coven gets "wisp", hungry, so the demo opens with a hint worth acting on;
+ * - "the crypt" (fictional members) is a space whose wisp is already dead, with a graveyard entry and its epitaph.
+ * To put a pet back in a demo state: `npx convex run familiar:fastForward '{"slug":"coven","to":"hungry"}'`.
+ */
+async function seedHaunt(ctx: MutationCtx) {
+  const now = Date.now();
+  const coven = await ctx.db.query("spaces").withIndex("by_slug", (q) => q.eq("slug", "coven")).unique();
+  if (coven && !(await latestPet(ctx, coven._id))) {
+    const members = await ctx.db.query("members").withIndex("by_space", (q) => q.eq("spaceId", coven._id)).take(3);
+    const events = hungryEvents(now, members.map((m) => m.userId));
+    const h = health(events, now);
+    await ctx.db.insert("familiars", {
+      spaceId: coven._id, name: "wisp", generation: 1, health: h, state: stateOf(h),
+      bornAt: now - 60 * HOUR_MS, lastTickAt: now, events,
+    });
+  }
+
+  let crypt = await ctx.db.query("spaces").withIndex("by_slug", (q) => q.eq("slug", "crypt")).unique();
+  if (!crypt) {
+    const spaceId = await ctx.db.insert("spaces", {
+      name: "the crypt", type: "ongoing", icon: "🪦", color: "#6b5b69", slug: "crypt",
+      tagline: "the cabin trip is over. the pet is too.", createdAt: now - 12 * DAY_MS, lastActivityAt: now - 3 * DAY_MS,
+    });
+    await spacesCounter.inc(ctx);
+    for (const [name, color] of [["mara", "#c77dff"], ["oz", "#ff9f1c"], ["ines", "#2ec4b6"]] as const) {
+      const memberId = await ctx.db.insert("members", { spaceId, userId: seedUserId("crypt", name), name, color, lastSeen: now - 5 * DAY_MS });
+      await memberCounts.insert(ctx, (await ctx.db.get(memberId))!);
+    }
+    await ctx.db.insert("widgets", {
+      spaceId, type: "note", x: 120, y: 140, w: 280, h: 165, z: 1, rotate: -2, createdBy: seedUserId("crypt", "mara"), createdAt: now - 10 * DAY_MS,
+      data: { text: "cabin dates? anyone? ...", author: "mara", tone: "warm", kicker: "unanswered" },
+    });
+    await widgetsCounter.inc(ctx);
+    crypt = await ctx.db.get(spaceId);
+  }
+  if (crypt && !(await latestPet(ctx, crypt._id))) {
+    const born = now - 9 * DAY_MS;
+    const died = now - 1 * DAY_MS;
+    await ctx.db.insert("familiars", {
+      spaceId: crypt._id, name: "wisp", generation: 1, health: 0, state: "dead",
+      bornAt: born, zeroSince: died - DEAD_AFTER_MS, diedAt: died, lastTickAt: died, events: [],
+    });
+    await ctx.db.insert("graveyard", {
+      spaceId: crypt._id, kind: "pet", name: "wisp", epitaph: "it waited by the poll. nobody came.",
+      born, died, cause: "nobody came back after the cabin trip",
+    });
+  }
+}
 
 export const reset = internalMutation({
   args: {},

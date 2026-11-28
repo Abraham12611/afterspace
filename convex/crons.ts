@@ -24,4 +24,9 @@ crons.cron("nightly room reset", "0 7 * * *", internal.admin.nightlyReset, {});
 // one stored row instead of the board (roomBrief.ts).
 crons.interval("room briefs", { minutes: 10 }, internal.roomBrief.refreshActive, {});
 
+// Every 30 minutes: re-score every space's pet from what people did, notice
+// deaths (health 0 for 24 h -> graveyard + epitaph), revive, and bury plans
+// that ended over 14 days ago (convex/familiar.ts).
+crons.interval("familiar tick", { minutes: 30 }, internal.familiar.tick, {});
+
 export default crons;

@@ -4,7 +4,7 @@ import { v } from "convex/values";
 import schema from "./schema";
 import type { DecisionData } from "./widgetData";
 import { messagesCounter, widgetsCounter } from "./stats";
-import { touchSpace } from "./activity";
+import { recordEvent, touchSpace } from "./activity";
 import { canRead, seatOf } from "./seat";
 
 const messageValidator = schema.doc("messages");
@@ -89,6 +89,7 @@ export const sendMessage = mutation({
     });
     await messagesCounter.inc(ctx);
     await touchSpace(ctx, args.spaceId, now);
+    await recordEvent(ctx, args.spaceId, "reply", now);
     return id;
   },
 });

@@ -1,5 +1,8 @@
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import { getAuthUserId } from "@convex-dev/auth/server";
+import { health, stateOf, trimEvents, type EventKind, type PetEvent } from "../src/lib/familiar";
+import { latestPet, reviveIfReady } from "./familiar";
 
 /**
  * Minimum staleness before `spaces.lastActivityAt` is allowed to move. Coarse
@@ -47,4 +50,34 @@ export async function touchSpace(
   // a clock that goes backwards can never drag the timestamp backwards.
   if (!space || now - space.lastActivityAt < ACTIVITY_BUMP_MS) return;
   await ctx.db.patch(spaceId, { lastActivityAt: now });
+}
+
+/** The same person doing the same thing again inside this window counts once (a drag of votes is one vote's worth). */
+const EVENT_DEDUPE_MS = 30_000;
+const PET_KINDS = ["hatch", "card", "vote", "rsvp", "claim", "split", "checkin", "letter", "reply", "present"];
+
+/**
+ * Tell the space's pet that a person really did something (F4): a card, a
+ * vote, an rsvp, a claim, a split line, a check-in, a letter, a thread reply.
+ * The person is the caller's session, never an argument; an AI or scheduler
+ * write has no session, so it records nothing (health only rises from people).
+ * The pet is re-scored at once; a dead pet may be revived by this act
+ * (3 distinct members within 24 h, convex/familiar.ts).
+ */
+export async function recordEvent(ctx: MutationCtx, spaceId: Id<"spaces">, kind: EventKind, now: number = Date.now()): Promise<void> {
+  const by = await getAuthUserId(ctx);
+  if (!by) return;
+  const pet = await latestPet(ctx, spaceId);
+  if (!pet) return;
+  const old = (pet.events ?? []).filter((e) => PET_KINDS.includes(e.kind)) as PetEvent[];
+  const last = [...old].reverse().find((e) => e.kind === kind && e.by === by);
+  if (last && now - last.at < EVENT_DEDUPE_MS) return;
+  const events = trimEvents([...old, { kind, at: now, by }], now);
+  if (pet.state === "dead") {
+    await ctx.db.patch(pet._id, { events });
+    await reviveIfReady(ctx, pet, events, now);
+    return;
+  }
+  const h = health(events, now);
+  await ctx.db.patch(pet._id, { events, health: h, state: stateOf(h), zeroSince: undefined });
 }

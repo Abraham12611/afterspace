@@ -7,7 +7,7 @@ import { v } from "convex/values";
 import { widgetDataValidator, type PotluckData } from "./widgetData";
 import schema from "./schema";
 import { widgetsCounter } from "./stats";
-import { touchSpace } from "./activity";
+import { recordEvent, touchSpace } from "./activity";
 import { editedLabels, noteOutcome } from "./voiceBuild";
 import { applyLinks } from "./links";
 import { canRead, requireSeat, seatOrMaker } from "./seat";
@@ -57,6 +57,7 @@ export const createWidget = mutation({
     const id = await ctx.db.insert("widgets", { ...args, createdBy: me.userId, createdAt: now });
     await widgetsCounter.inc(ctx);
     await touchSpace(ctx, args.spaceId, now);
+    await recordEvent(ctx, args.spaceId, "card", now);
     return id;
   },
 });
@@ -150,6 +151,7 @@ export const claimItem = mutation({
     await ctx.db.patch(widget._id, { data: { ...potluckData, items: nextItems } });
     await recheck(ctx, widget._id);
     await touchSpace(ctx, args.spaceId);
+    await recordEvent(ctx, args.spaceId, "claim");
     return null;
   },
 });
@@ -236,6 +238,9 @@ export async function writeWidgetData(ctx: MutationCtx, widget: Doc<"widgets">, 
   // the room's stamp re-runs every query that reads the space doc: a voice edit stamps it right after, like voiceBuild.commit
   if (opts.stampLater) await ctx.scheduler.runAfter(0, internal.widgets.stamp, { spaceId: widget.spaceId, at: Date.now() });
   else await touchSpace(ctx, widget.spaceId);
+  // a person's edit to an rsvp or a split is activity the pet feeds on (no session = an AI write = nothing)
+  if (widget.type === "rsvp") await recordEvent(ctx, widget.spaceId, "rsvp");
+  else if (widget.type === "expenseSplit") await recordEvent(ctx, widget.spaceId, "split");
 }
 
 export const stamp = internalMutation({

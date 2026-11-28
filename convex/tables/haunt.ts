@@ -18,6 +18,10 @@ export const familiars = defineTable({
   zeroSince: v.optional(v.number()), // when health first hit 0; dead after 24 h at 0
   diedAt: v.optional(v.number()),
   lastTickAt: v.number(),
+  // what health is computed from: the last 72 h of real activity (src/lib/familiar.ts), written by convex/activity.ts recordEvent
+  events: v.optional(v.array(v.object({ kind: v.string(), at: v.number(), by: v.optional(v.string()) }))),
+  // what the room could use a hand with, refreshed by the tick: { vote: "dinner", ... } feeds the hint line
+  topics: v.optional(v.record(v.string(), v.string())),
 }).index("by_space", ["spaceId", "bornAt"]);
 
 /** Dead pets and plans that died (expired countdowns, long-closed polls), with an epitaph. */

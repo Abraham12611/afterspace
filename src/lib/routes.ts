@@ -5,6 +5,17 @@ export function normalSpaceHash(slug: string) {
   return `#/space/${encodeURIComponent(slug)}`;
 }
 
+/** A space's graveyard (the pet's and the plans that died): `#/space/<slug>/graveyard`. */
+export function graveyardHash(slug: string) {
+  return `${normalSpaceHash(slug)}/graveyard`;
+}
+
+const GRAVEYARD_RE = /^#\/?space\/[^/?]+\/graveyard\b/;
+
+export function isGraveyardHash(hash: string = window.location.hash) {
+  return GRAVEYARD_RE.test(hash);
+}
+
 /** A room's own grimoire page ("what this space knows"): `#/space/<slug>/grimoire`. */
 export function knowsHash(slug: string) {
   return `${normalSpaceHash(slug)}/grimoire`;

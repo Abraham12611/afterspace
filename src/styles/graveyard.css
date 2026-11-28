@@ -1,0 +1,117 @@
+/* F4 graveyard page: night plum ground, bone tombstones. Tokens only. */
+
+.graveyard-page {
+  min-height: 100dvh;
+  padding: 24px 16px 64px;
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--color-candle) 8%, var(--color-paper)), var(--color-paper-deep) 70%);
+  color: var(--color-card);
+}
+
+.graveyard-head {
+  max-width: 640px;
+  margin: 0 auto 24px;
+}
+
+.graveyard-head h1 {
+  margin: 12px 0 4px;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 7vw, 38px);
+  font-weight: 800;
+  text-transform: lowercase;
+}
+
+.graveyard-head p {
+  margin: 0;
+  font-family: "Caveat", var(--font-sans);
+  font-size: 22px;
+  color: color-mix(in srgb, var(--color-card) 80%, transparent);
+}
+
+.graveyard-back {
+  display: inline-block;
+  min-height: 32px;
+  padding: 4px 0;
+  color: var(--color-card);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.graveyard-back:focus-visible {
+  outline: 3px solid var(--color-card);
+  outline-offset: 3px;
+}
+
+.graveyard-empty {
+  max-width: 640px;
+  margin: 0 auto;
+  font-family: "Caveat", var(--font-sans);
+  font-size: 22px;
+}
+
+.graveyard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.tomb {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--color-paper-deep) 80%, transparent);
+}
+
+.tomb-stone {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 64px;
+  border-radius: 24px 24px 6px 6px;
+  background: color-mix(in srgb, var(--color-muted) 35%, var(--color-card));
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+
+.tomb.is-plan .tomb-stone {
+  background: color-mix(in srgb, var(--color-pumpkin) 25%, var(--color-card));
+}
+
+.tomb-text h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  text-transform: lowercase;
+  overflow-wrap: anywhere;
+}
+
+.tomb-kind {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+
+.tomb-epitaph {
+  margin: 6px 0;
+  font-family: "Caveat", var(--font-sans);
+  font-size: 21px;
+  line-height: 1.15;
+}
+
+.tomb-meta {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--color-muted);
+}
