@@ -27,6 +27,7 @@ export const WIDGET_SIZES: Partial<Record<WidgetType, { w: number; h: number }>>
   sports: { w: 420, h: 280 },
   weather: { w: 230, h: 110 },
   wheel: { w: 280, h: 330 },
+  spiritBoard: { w: 340, h: 400 },
   dualClock: { w: 340, h: 150 },
   cozyColor: { w: 560, h: 500 },
   checkIn: { w: 600, h: 420 },
@@ -140,6 +141,15 @@ export function freshWidgetData(type: WidgetType, source: Widget["data"]): Widge
         spinNonce: 0,
         resultIndex: 0,
         spunBy: "You",
+      };
+    case "spiritBoard":
+      return {
+        question: "where should we go?",
+        answers: [
+          { id: "a", label: "tahoe" },
+          { id: "b", label: "big sur" },
+          { id: "c", label: "stay home" },
+        ],
       };
     case "dualClock":
       return {

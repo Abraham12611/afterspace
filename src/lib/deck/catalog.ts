@@ -143,6 +143,21 @@ export const CATALOG = [
     }),
   }),
   card({
+    id: "spiritBoard",
+    use: "a spirit board: everyone rests one planchette on an answer together to decide where, what or who; for \"spirit board: <question>? a, b, c\"",
+    type: "spiritBoard",
+    settings: { question: text(80), answers: list(2, 6, { itemMax: 24 }) },
+    needs: [
+      need("question", "what is the board deciding?", "add the question", "text"),
+      need("answers", "what are the answers?", "add answers", "list", (w) => w.list.length >= 2),
+    ],
+    rotate: -1,
+    build: (s) => ({
+      question: s.question,
+      answers: s.answers.map((label, i) => ({ id: LETTERS[i], label })),
+    }),
+  }),
+  card({
     id: "note",
     use: "a sticky note with words someone wants kept",
     type: "note",

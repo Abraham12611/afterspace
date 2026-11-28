@@ -329,6 +329,16 @@ const standingsData = v.object({
   stake: v.optional(v.string()),
 });
 
+// The spirit board (F5): a question, 2-6 answers on an arc, and the lock state.
+// `dwell` is the server's running count (convex/spiritBoard.ts); `locked` is set once
+// 2+ hands rested on one answer for 3 s.
+const spiritBoardData = v.object({
+  question: v.string(),
+  answers: v.array(v.object({ id: v.string(), label: v.string() })),
+  dwell: v.optional(v.object({ answer: v.number(), since: v.number(), seen: v.number() })),
+  locked: v.optional(v.object({ index: v.number(), answer: v.string(), at: v.number(), hands: v.array(v.string()) })),
+});
+
 // Last resort. Nothing we ship lands here: all 32 types in src/data/types.ts
 // have an arm above, and every producer payload (seed, picker defaults, editor
 // panel) was replayed against the typed arms alone and
@@ -369,6 +379,7 @@ export const widgetDataValidator = v.union(
   cozyColorData,
   checkInData,
   standingsData,
+  spiritBoardData,
   fallbackData,
 );
 
@@ -389,5 +400,6 @@ export type ItineraryData = Infer<typeof itineraryData>;
 export type PotluckData = Infer<typeof potluckData>;
 export type RsvpData = Infer<typeof rsvpData>;
 export type DailyQData = Infer<typeof dailyQData>;
+export type SpiritBoardData = Infer<typeof spiritBoardData>;
 export type FallbackWidgetData = Infer<typeof fallbackData>;
 export type WidgetData = Infer<typeof widgetDataValidator>;

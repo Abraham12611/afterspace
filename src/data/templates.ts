@@ -22,6 +22,7 @@ export const WIDGET_CATALOG: WidgetTemplate[] = [
   { type: "weather", label: "weather", emoji: "☀️" },
   { type: "sports", label: "live score", emoji: "🏈" },
   { type: "wheel", label: "spin wheel", emoji: "🎡" },
+  { type: "spiritBoard", label: "spirit board", emoji: "🕯" },
   { type: "dualClock", label: "two clocks", emoji: "🕰", pickerHidden: true },
   { type: "cozyColor", label: "color together", emoji: "🎨" },
   { type: "checkIn", label: "check-in", emoji: "✅", pickerHidden: true },

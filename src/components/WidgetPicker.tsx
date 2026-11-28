@@ -29,6 +29,7 @@ const WIDGET_DETAILS: Partial<Record<WidgetType, { description: string; category
   weather: { description: "Check the forecast", category: "Plan" },
   sports: { description: "Follow the game together", category: "Play" },
   wheel: { description: "Leave the choice to chance", category: "Play" },
+  spiritBoard: { description: "Decide together, hands on one planchette", category: "Plan" },
   cozyColor: { description: "Color a picture together", category: "Play" },
 };
 const CATEGORIES = ["All", "Share", "Plan", "Play"];
@@ -149,6 +150,8 @@ function WidgetPreview({ item }: { item: WidgetTemplate }) {
       );
     case "wheel":
       return <span className={`${previewClassName} preview-mini-wheel`} aria-hidden="true"><i /><i /><i /><i /><b>↗</b></span>;
+    case "spiritBoard":
+      return <span className={`${previewClassName} preview-mini-spirit`} aria-hidden="true"><i /><i /><i /><b /></span>;
     case "cozyColor":
       return <span className={`${previewClassName} preview-mini-paint`} aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>;
     case "weather":

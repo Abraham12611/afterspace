@@ -47,6 +47,8 @@ export function widgetLabel(widget: Widget): string {
       return "quote of the week";
     case "wheel":
       return String(widget.data.title ?? "spin wheel");
+    case "spiritBoard":
+      return String(widget.data.question ?? "spirit board");
     case "dualClock":
       return String(widget.data.title ?? "two clocks");
     case "cozyColor":

@@ -23,6 +23,7 @@ export type WidgetType =
   | "weather"
   | "sports"
   | "wheel"
+  | "spiritBoard"
   | "dualClock"
   | "cozyColor"
   | "letter"

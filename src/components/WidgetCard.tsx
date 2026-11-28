@@ -29,6 +29,7 @@ import { widgetLabel } from "../lib/widgetLabels";
 import { widgetSupportsThread } from "../lib/widgetThreads";
 import { CheckInWidget, StandingsWidget, WaitingOn } from "../widgets/challenge";
 import { CallIt, EmptySlot } from "../widgets/flowMarks";
+import { SpiritBoardWidget } from "../widgets/spiritBoard";
 import {
   ChatWidget,
   CountdownWidget,
@@ -764,6 +765,9 @@ function WidgetCardComponent({
           disabled={!onWheelSpin && spaceId !== "widget-lab"}
         />
       );
+      break;
+    case "spiritBoard":
+      content = <SpiritBoardWidget widget={widget} style={inner} spaceId={spaceId} identity={paintIdentity} onCursor={onPaintCursor} />;
       break;
     case "game":
       content = <GameCard />;
