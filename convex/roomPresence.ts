@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { components } from "./_generated/api";
 import { Presence } from "@convex-dev/presence";
+import { seatOf } from "./seat";
 
 /**
  * presence component: lightweight "who has this space open right now"
@@ -86,5 +87,34 @@ export const onlineCountForSpace = query({
   handler: async (ctx, { spaceId, excludeUserId }) => {
     const users = await presence.listRoom(ctx, spaceId, true);
     return users.filter((user) => user.userId !== excludeUserId).length;
+  },
+});
+
+/** The buddy list's own room in the presence component: one per space, keyed by the AUTH user id (not the per-tab cursor id). */
+export const buddyRoomId = (spaceId: string) => `buddy:${spaceId}`;
+
+const BUDDY_LIVE_MS = 30_000;
+// A hidden tab's timers are throttled to ~1/min, so its window is wider; the 2-minute idle flag (members.idleSince) is what turns it "away".
+const BUDDY_HIDDEN_LIVE_MS = 150_000;
+
+/**
+ * F1: "I'm here". Derives who from the session, never from args. One call per
+ * tab session; the component turns silence into offline on its own (the
+ * reactive part), and `presence:disconnect` (beacon on unload) ends it early.
+ */
+export const buddyBeat = mutation({
+  args: { spaceId: v.id("spaces"), sessionId: v.string(), hidden: v.boolean() },
+  returns: v.union(v.object({ sessionToken: v.string() }), v.null()),
+  handler: async (ctx, { spaceId, sessionId, hidden }) => {
+    const seat = await seatOf(ctx, spaceId);
+    if (!seat) return null;
+    const { sessionToken } = await presence.heartbeat(
+      ctx,
+      buddyRoomId(spaceId),
+      seat.userId,
+      sessionId,
+      hidden ? BUDDY_HIDDEN_LIVE_MS : BUDDY_LIVE_MS,
+    );
+    return { sessionToken };
   },
 });

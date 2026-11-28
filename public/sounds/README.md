@@ -111,3 +111,13 @@ Tweak `-ss`, `-t`, and `volume=` until it feels like `tap.mp3` / `place.mp3`
 - High-tech / sci‑fi / cinematic whoosh
 - “Futuristic zoom move”, “quick zoom impact”, “ghostly whoosh”
 - Anything over ~0.5s before trimming
+
+## Door sounds (Afterspace buddy list)
+
+`creak` (someone joins) and `close` (someone leaves) are **synthesized at runtime with the Web Audio
+API** in `src/lib/sounds.ts` (`playDoor`). There are no audio files for them, so there is nothing to
+license: a sawtooth sweep through a band filter for the hinge, and a falling sine plus a filtered noise
+click for the latch. They are off until a person turns door sounds on in the buddy list; the choice is
+stored in `localStorage` (`afterspace:door-sound`). They play for other people's arrivals and
+departures only. To swap in recorded CC0 files later, replace the bodies of `creak` and `close` with
+`playSound`-style `Audio` playback and list the source and license here.

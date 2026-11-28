@@ -34,6 +34,9 @@ export const spaces = defineTable({
 export const members = defineTable({
   spaceId: v.id("spaces"), userId: v.string(), name: v.string(), color: v.string(),
   emoji: v.optional(v.string()), avatarUrl: v.optional(v.string()), lastSeen: v.number(),
+  // F1 buddy list: a manual away message (max 80), when it was set, when the tab went idle (2 min hidden), the last counted visit (F2)
+  awayMessage: v.optional(v.string()), awaySince: v.optional(v.number()), idleSince: v.optional(v.number()),
+  lastVisitAt: v.optional(v.number()),
 }).index("by_space", ["spaceId"]).index("by_space_user", ["spaceId", "userId"]).index("by_user", ["userId"]);
 
 export const widgets = defineTable({

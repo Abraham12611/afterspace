@@ -2,9 +2,10 @@ import { internalMutation, mutation, query } from "./_generated/server";
 import { seatOf, canRead } from "./seat";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
+import { cleanAwayMessage } from "../src/lib/buddy";
 import { touchSpace } from "./activity";
-import { presence as roomPresence } from "./roomPresence";
+import { buddyRoomId, presence as roomPresence } from "./roomPresence";
 import schema from "./schema";
 
 // The client hides a cursor after 30s (src/live/usePresence.ts); the sweep
@@ -418,6 +419,96 @@ export const cleanup = internalMutation({
     for (const row of stale) {
       await ctx.db.delete(row._id);
     }
+    return null;
+  },
+});
+
+// ---------------------------------------------------------------------------
+// F1 buddy list: who is here, away or gone, with away messages.
+// ---------------------------------------------------------------------------
+
+async function memberOf(ctx: MutationCtx, spaceId: Id<"spaces">) {
+  const seat = await seatOf(ctx, spaceId);
+  if (!seat) throw new ConvexError("not in this room");
+  const member = await ctx.db
+    .query("members")
+    .withIndex("by_space_user", (q) => q.eq("spaceId", spaceId).eq("userId", seat.userId))
+    .first();
+  if (!member) throw new ConvexError("not in this room");
+  return member;
+}
+
+/** The roster with live status. Online comes from the presence component, so it flips on its own timer. */
+export const buddyList = query({
+  args: { spaceId: v.id("spaces") },
+  returns: v.array(
+    v.object({
+      userId: v.string(),
+      name: v.string(),
+      color: v.string(),
+      emoji: v.optional(v.string()),
+      avatarUrl: v.optional(v.string()),
+      online: v.boolean(),
+      awayMessage: v.optional(v.string()),
+      awaySince: v.optional(v.number()),
+      idleSince: v.optional(v.number()),
+    }),
+  ),
+  handler: async (ctx, { spaceId }) => {
+    if (!(await canRead(ctx, spaceId))) return [];
+    const members = await ctx.db
+      .query("members")
+      .withIndex("by_space", (q) => q.eq("spaceId", spaceId))
+      .take(200);
+    const here = await roomPresence.listRoom(ctx, buddyRoomId(spaceId), true);
+    const online = new Set(here.map((row) => row.userId));
+    return members.map((m) => ({
+      userId: m.userId,
+      name: m.name,
+      color: m.color,
+      emoji: m.emoji,
+      avatarUrl: m.avatarUrl,
+      online: online.has(m.userId),
+      awayMessage: m.awayMessage,
+      awaySince: m.awaySince,
+      idleSince: m.idleSince,
+    }));
+  },
+});
+
+export const setAway = mutation({
+  args: { spaceId: v.id("spaces"), message: v.string() },
+  returns: v.null(),
+  handler: async (ctx, { spaceId, message }) => {
+    const member = await memberOf(ctx, spaceId);
+    const clean = cleanAwayMessage(message);
+    if (!clean) throw new ConvexError("say where you went");
+    await ctx.db.patch(member._id, { awayMessage: clean, awaySince: Date.now() });
+    return null;
+  },
+});
+
+/** "i'm back": clears the message and the idle flag. */
+export const clearAway = mutation({
+  args: { spaceId: v.id("spaces") },
+  returns: v.null(),
+  handler: async (ctx, { spaceId }) => {
+    const member = await memberOf(ctx, spaceId);
+    if (member.awayMessage !== undefined || member.awaySince !== undefined || member.idleSince !== undefined) {
+      await ctx.db.patch(member._id, { awayMessage: undefined, awaySince: undefined, idleSince: undefined });
+    }
+    return null;
+  },
+});
+
+/** The tab has been hidden for 2 minutes (idle: true) or is back (idle: false). Writes only on a change. */
+export const setIdle = mutation({
+  args: { spaceId: v.id("spaces"), idle: v.boolean() },
+  returns: v.null(),
+  handler: async (ctx, { spaceId, idle }) => {
+    const member = await memberOf(ctx, spaceId);
+    if (idle && member.idleSince === undefined) await ctx.db.patch(member._id, { idleSince: Date.now() });
+    if (!idle && member.idleSince !== undefined) await ctx.db.patch(member._id, { idleSince: undefined });
     return null;
   },
 });
